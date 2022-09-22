@@ -1,4 +1,4 @@
-package eu.europa.ted.maven;
+package eu.europa.ted.maven.boot;
 
 import java.io.File;
 import java.nio.file.Files;
@@ -34,6 +34,8 @@ import org.eclipse.aether.util.repository.AuthenticationBuilder;
 import org.eclipse.aether.util.repository.DefaultProxySelector;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import eu.europa.ted.maven.listener.ConsoleRepositoryListener;
+import eu.europa.ted.maven.listener.ConsoleTransferListener;
 
 public class MavenBooter {
   private static final Logger logger = LoggerFactory.getLogger(MavenBooter.class);

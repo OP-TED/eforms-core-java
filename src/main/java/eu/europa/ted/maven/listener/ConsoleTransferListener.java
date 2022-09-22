@@ -1,4 +1,4 @@
-package eu.europa.ted.maven;
+package eu.europa.ted.maven.listener;
 
 import static java.util.Objects.requireNonNull;
 

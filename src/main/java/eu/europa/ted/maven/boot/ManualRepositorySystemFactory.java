@@ -1,4 +1,4 @@
-package eu.europa.ted.maven;
+package eu.europa.ted.maven.boot;
 
 import org.apache.maven.repository.internal.MavenRepositorySystemUtils;
 import org.eclipse.aether.RepositorySystem;
