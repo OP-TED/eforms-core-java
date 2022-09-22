@@ -40,6 +40,9 @@
     <maven.compiler.target>${java.version}</maven.compiler.target>
 
     <!-- Third-party libraries -->
+    <version.commons-collections>3.2.2</version.commons-collections>
+    <version.commons-io>2.11.0</version.commons-io>
+    <version.jackson>2.13.3</version.jackson>
     <version.maven>3.8.6</version.maven>
     <version.resolver>1.8.2</version.resolver>
 
@@ -49,6 +52,24 @@
 
   <dependencyManagement>
     <dependencies>
+      <dependency>
+        <groupId>com.fasterxml.jackson.core</groupId>
+        <artifactId>jackson-core</artifactId>
+        <version>${version.jackson}</version>
+      </dependency>
+
+      <!-- Apache Commons -->
+      <dependency>
+        <groupId>commons-collections</groupId>
+        <artifactId>commons-collections</artifactId>
+        <version>${version.commons-collections}</version>
+      </dependency>
+      <dependency>
+        <groupId>commons-io</groupId>
+        <artifactId>commons-io</artifactId>
+        <version>${version.commons-io}</version>
+      </dependency>
+
       <!-- Maven Artifact Resolver -->
       <dependency>
         <groupId>org.apache.maven.resolver</groupId>
@@ -95,6 +116,22 @@
   </dependencyManagement>
 
   <dependencies>
+    <dependency>
+      <groupId>com.fasterxml.jackson.core</groupId>
+      <artifactId>jackson-core</artifactId>
+      <version>${version.jackson}</version>
+    </dependency>
+
+    <!-- Apache Commons -->
+    <dependency>
+      <groupId>commons-collections</groupId>
+      <artifactId>commons-collections</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>commons-io</groupId>
+      <artifactId>commons-io</artifactId>
+    </dependency>
+
     <!-- Maven Artifact Resolver -->
     <dependency>
       <groupId>org.apache.maven.resolver</groupId>
