@@ -47,6 +47,7 @@
     <version.resolver>1.8.2</version.resolver>
 
     <!-- Versions - Plugins -->
+    <version.install.plugin>2.5.2</version.install.plugin>
     <version.surefire.plugin>3.0.0-M7</version.surefire.plugin> <!-- Versions prior to 3.0.x do not pick up Junit 5 tests correctly. -->
   </properties>
 
@@ -177,7 +178,7 @@
         </plugin>
         <plugin>
           <artifactId>maven-install-plugin</artifactId>
-          <version>2.5.2</version>
+          <version>${version.install.plugin}</version>
           <configuration>
             <createChecksum>true</createChecksum>
           </configuration>
