@@ -12,6 +12,7 @@ import java.util.zip.ZipFile;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.RegExUtils;
 import org.apache.commons.lang3.Validate;
+import org.codehaus.plexus.util.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -28,6 +29,7 @@ public class ArchiveUtils {
 
   /**
    * Unpacks a zipfile to a given directory.
+   * If the directory already exists, it will be deleted first.
    * 
    * @param archive Path of the zipfile to unpack
    * @param targetDir Target directory for unpacking
@@ -41,6 +43,9 @@ public class ArchiveUtils {
 
     Validate.isTrue(Files.isRegularFile(archive.toPath()),
         MessageFormat.format("[{0}] is not a file.", archive));
+
+    logger.debug("Deleting directory [{}]", targetDir);
+    FileUtils.deleteDirectory(targetDir.toFile());
 
     logger.debug("Unpacking file [{}] onto [{}]", archive, targetDir.toAbsolutePath());
 
