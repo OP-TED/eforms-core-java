@@ -8,7 +8,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
-
+import java.util.function.Function;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.repository.internal.MavenRepositorySystemUtils;
 import org.apache.maven.settings.Profile;
@@ -41,7 +41,6 @@ public class MavenBooter {
   private static final Logger logger = LoggerFactory.getLogger(MavenBooter.class);
 
   private static final String SETTINGS_FILE_NAME = "settings.xml";
-  private static final Path DEFAULT_LOCAL_REPOSITORY_PATH = Path.of("local-maven-repo");
 
   private static final MavenBooter INSTANCE = new MavenBooter();
 
@@ -57,19 +56,18 @@ public class MavenBooter {
       settings = getSettings();
       repositorySession = newRepositorySystemSession(repositorySystem, settings);
     } catch (Exception e) {
-      logger.error("Failed to configure Maven");
-      logger.debug("Cause:", e);
-      throw new RuntimeException(e);
+      throw new IllegalArgumentException("Failed to configure Maven", e);
     }
     repositories = newRepositories(repositorySession, settings);
   }
 
-  public static VersionRangeResult resolveVersionRange(Artifact artifact) throws VersionRangeResolutionException {
+  public static VersionRangeResult resolveVersionRange(Artifact artifact)
+      throws VersionRangeResolutionException {
     VersionRangeRequest rangeRequest = new VersionRangeRequest().setArtifact(artifact)
         .setRepositories(MavenBooter.INSTANCE.repositories);
 
-    return MavenBooter.INSTANCE.repositorySystem.resolveVersionRange(MavenBooter.INSTANCE.repositorySession,
-        rangeRequest);
+    return MavenBooter.INSTANCE.repositorySystem
+        .resolveVersionRange(MavenBooter.INSTANCE.repositorySession, rangeRequest);
   }
 
   public static File resolveArtifact(Artifact artifact) throws ArtifactResolutionException {
@@ -77,15 +75,19 @@ public class MavenBooter {
         .setRepositories(MavenBooter.INSTANCE.repositories);
 
     return MavenBooter.INSTANCE.repositorySystem
-        .resolveArtifact(MavenBooter.INSTANCE.repositorySession, artifactRequest).getArtifact().getFile();
+        .resolveArtifact(MavenBooter.INSTANCE.repositorySession, artifactRequest).getArtifact()
+        .getFile();
 
   }
 
-  private static DefaultRepositorySystemSession newRepositorySystemSession(RepositorySystem system, Settings settings) {
-    DefaultRepositorySystemSession session = MavenRepositorySystemUtils.newSession()
-        .setProxySelector(getProxySelector(settings));
+  private static DefaultRepositorySystemSession newRepositorySystemSession(RepositorySystem system,
+      Settings settings) {
+    DefaultRepositorySystemSession session =
+        MavenRepositorySystemUtils.newSession().setProxySelector(getProxySelector(settings));
 
-    session.setLocalRepositoryManager(system.newLocalRepositoryManager(session, getLocalRepository(settings)));
+    session.setOffline(settings.isOffline());
+    session.setLocalRepositoryManager(
+        system.newLocalRepositoryManager(session, getLocalRepository(settings)));
     session.setTransferListener(new ConsoleTransferListener());
     session.setRepositoryListener(new ConsoleRepositoryListener());
 
@@ -93,8 +95,30 @@ public class MavenBooter {
   }
 
   private static LocalRepository getLocalRepository(Settings settings) {
-    Path localRepositoryPath = Path.of(Optional.ofNullable(settings.getLocalRepository())
-        .orElse(Path.of(System.getProperty("user.home"), ".m2", "repository").toString()));
+    List<Function<Void, Path>> localRepoDiscoveryFunctions = Arrays.asList((Void v) -> {
+      logger.debug("Looking for local repository path using system property M2_LOCAL_REPO.");
+      String mavenLocalRepo = System.getProperty("M2_LOCAL_REPO");
+
+      return StringUtils.isNotBlank(mavenLocalRepo) ? Path.of(mavenLocalRepo) : null;
+    }, (Void v) -> {
+      logger.debug("Looking for local repository path in Maven settings.");
+      String localRepoInSettings = settings.getLocalRepository();
+      return StringUtils.isNotBlank(localRepoInSettings) ? Path.of(localRepoInSettings) : null;
+    });
+
+    Path localRepositoryPath = null;
+
+    for (Function<Void, Path> f : localRepoDiscoveryFunctions) {
+      localRepositoryPath = f.apply(null);
+      if (localRepositoryPath != null) {
+        break;
+      }
+    }
+
+    if (localRepositoryPath == null) {
+      logger.debug("Looking for local repository path under user's home.");
+      localRepositoryPath = Path.of(System.getProperty("user.home"), ".m2", "repository");
+    }
 
     LocalRepository localRepository = new LocalRepository(localRepositoryPath.toString());
 
@@ -104,28 +128,45 @@ public class MavenBooter {
   }
 
   private static File getSettingsFile() {
-    Path settingsPath = null;
+    List<Function<Void, Path>> settingsDiscoveryFunctions = Arrays.asList((Void v) -> {
+      logger.debug("Looking for settings file using system property M2_SETTINGS.");
+      String mavenSettings = System.getProperty("M2_SETTINGS");
+      return StringUtils.isNotBlank(mavenSettings) ? Path.of(mavenSettings) : null;
+    }, (Void v) -> {
+      logger.debug("Looking for settings file using environment variable MAVEN_OPTS.");
 
-    logger.debug("Looking for settings file using environment variable MAVEN_OPTS.");
-    String mavenOpts = System.getenv("MAVEN_OPTS");
-    if (StringUtils.isNotBlank(mavenOpts)) {
+      String mavenOpts = System.getenv("MAVEN_OPTS");
+      if (StringUtils.isBlank(mavenOpts)) {
+        return null;
+      }
+
       String mavenOptsUserHome = Arrays.asList(mavenOpts.split("\\s")).stream()
           .filter((String s) -> s.startsWith("-Duser.home="))
-          .map((String s) -> s.replaceAll("-Duser.home=", StringUtils.EMPTY)).findFirst().orElse(StringUtils.EMPTY);
+          .map((String s) -> s.replaceAll("-Duser.home=", StringUtils.EMPTY)).findFirst()
+          .orElse(StringUtils.EMPTY);
 
-      if (StringUtils.isNotBlank(mavenOptsUserHome)) {
-        settingsPath = Path.of(mavenOptsUserHome, ".m2", SETTINGS_FILE_NAME);
-      }
-    }
-
-    if (settingsPath == null || !Files.exists(settingsPath)) {
+      return StringUtils.isNotBlank(mavenOptsUserHome)
+          ? Path.of(mavenOptsUserHome, ".m2", SETTINGS_FILE_NAME)
+          : null;
+    }, (Void v) -> {
       logger.debug("Looking for settings file under user's home folder.");
-      settingsPath = Path.of(System.getProperty("user.home"), ".m2", SETTINGS_FILE_NAME);
-    }
+      return Path.of(System.getProperty("user.home"), ".m2", SETTINGS_FILE_NAME);
+    }, (Void v) -> {
+      logger.debug(
+          "Looking for settings file under Maven Home, as set by environment variale M2_HOME.");
 
-    if (settingsPath == null || !Files.exists(settingsPath)) {
-      logger.debug("Looking for settings file under Maven Home, as set by environment variale M2_HOME.");
-      settingsPath = Path.of(System.getenv("M2_HOME"), "conf", SETTINGS_FILE_NAME);
+      String mavenHome = Optional.ofNullable(System.getenv("M2_HOME")).orElse(StringUtils.EMPTY);
+      return StringUtils.isNotBlank(mavenHome) ? Path.of(mavenHome, "conf", SETTINGS_FILE_NAME)
+          : null;
+    });
+
+    Path settingsPath = null;
+
+    for (Function<Void, Path> f : settingsDiscoveryFunctions) {
+      settingsPath = f.apply(null);
+      if (settingsPath != null && Files.exists(settingsPath)) {
+        break;
+      }
     }
 
     if (settingsPath == null || !Files.exists(settingsPath)) {
@@ -144,12 +185,14 @@ public class MavenBooter {
       return new Settings();
     }
 
-    DefaultSettingsBuildingRequest request = new DefaultSettingsBuildingRequest().setGlobalSettingsFile(settingsFile);
+    DefaultSettingsBuildingRequest request = new DefaultSettingsBuildingRequest()
+        .setGlobalSettingsFile(settingsFile).setUserSettingsFile(settingsFile);
 
     return new DefaultSettingsBuilderFactory().newInstance().build(request).getEffectiveSettings();
   }
 
-  private static List<RemoteRepository> newRepositories(RepositorySystemSession session, Settings settings) {
+  private static List<RemoteRepository> newRepositories(RepositorySystemSession session,
+      Settings settings) {
     List<RemoteRepository> remoteRepositories = new ArrayList<>();
 
     if (settings.getProfiles() != null) {
@@ -158,11 +201,12 @@ public class MavenBooter {
       settings.getProfiles().stream().forEach((Profile profile) -> {
         if (StringUtils.isNotBlank(profile.getId()) && activeProfiles.contains(profile.getId())) {
           Optional.ofNullable(profile.getRepositories()).orElse(Collections.emptyList()).stream()
-              .forEach((Repository repository) -> remoteRepositories.add(toRemoteRepository(repository, session)));
+              .forEach((Repository repository) -> remoteRepositories
+                  .add(toRemoteRepository(repository, session)));
         }
       });
 
-      if (remoteRepositories.isEmpty()) {
+      if (remoteRepositories.isEmpty() && !settings.isOffline()) {
         remoteRepositories.addAll(getDefaultRepositories(session));
       }
     }
@@ -170,10 +214,12 @@ public class MavenBooter {
     return remoteRepositories;
   }
 
-  private static RemoteRepository toRemoteRepository(Repository repository, RepositorySystemSession session) {
+  private static RemoteRepository toRemoteRepository(Repository repository,
+      RepositorySystemSession session) {
     // need a temp repo to lookup proxy
     RemoteRepository tempRemoteRepository = toRemoteRepositoryBuilder(repository).build();
-    org.eclipse.aether.repository.Proxy proxy = session.getProxySelector().getProxy(tempRemoteRepository);
+    org.eclipse.aether.repository.Proxy proxy =
+        session.getProxySelector().getProxy(tempRemoteRepository);
 
     // now build the actual repo and attach proxy
     return toRemoteRepositoryBuilder(repository).setProxy(proxy).build();
@@ -184,12 +230,13 @@ public class MavenBooter {
   }
 
   private static List<RemoteRepository> getDefaultRepositories(RepositorySystemSession session) {
-    RemoteRepository.Builder builder = new RemoteRepository.Builder("central", "default",
-        "https://repo.maven.apache.org/maven2/");
+    RemoteRepository.Builder builder =
+        new RemoteRepository.Builder("central", "default", "https://repo.maven.apache.org/maven2/");
 
     // need a temp repo to lookup proxy
     RemoteRepository tempDefaultRepository = builder.build();
-    org.eclipse.aether.repository.Proxy proxy = session.getProxySelector().getProxy(tempDefaultRepository);
+    org.eclipse.aether.repository.Proxy proxy =
+        session.getProxySelector().getProxy(tempDefaultRepository);
 
     // now build the actual repo and attach proxy
     RemoteRepository defaultRepository = builder.setProxy(proxy).build();
@@ -207,10 +254,10 @@ public class MavenBooter {
   }
 
   private static org.eclipse.aether.repository.Proxy convertProxy(Proxy settingsProxy) {
-    AuthenticationBuilder auth = new AuthenticationBuilder().addUsername(settingsProxy.getUsername())
-        .addPassword(settingsProxy.getPassword());
+    AuthenticationBuilder auth = new AuthenticationBuilder()
+        .addUsername(settingsProxy.getUsername()).addPassword(settingsProxy.getPassword());
 
-    return new org.eclipse.aether.repository.Proxy(settingsProxy.getProtocol(), settingsProxy.getHost(),
-        settingsProxy.getPort(), auth.build());
+    return new org.eclipse.aether.repository.Proxy(settingsProxy.getProtocol(),
+        settingsProxy.getHost(), settingsProxy.getPort(), auth.build());
   }
 }

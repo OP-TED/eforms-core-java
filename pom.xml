@@ -43,6 +43,8 @@
     <version.commons-collections>3.2.2</version.commons-collections>
     <version.commons-io>2.11.0</version.commons-io>
     <version.jackson>2.13.3</version.jackson>
+    <version.junit>5.7.2</version.junit>
+    <version.logback>1.2.11</version.logback>
     <version.maven>3.8.6</version.maven>
     <version.resolver>1.8.2</version.resolver>
 
@@ -113,6 +115,18 @@
         <artifactId>maven-resolver-provider</artifactId>
         <version>${version.maven}</version>
       </dependency>
+
+      <dependency>
+        <groupId>ch.qos.logback</groupId>
+        <artifactId>logback-classic</artifactId>
+        <version>${version.logback}</version>
+      </dependency>
+
+      <dependency>
+        <groupId>org.junit.jupiter</groupId>
+        <artifactId>junit-jupiter-api</artifactId>
+        <version>${version.junit}</version>
+      </dependency>
     </dependencies>
   </dependencyManagement>
 
@@ -120,7 +134,6 @@
     <dependency>
       <groupId>com.fasterxml.jackson.core</groupId>
       <artifactId>jackson-core</artifactId>
-      <version>${version.jackson}</version>
     </dependency>
 
     <!-- Apache Commons -->
@@ -166,6 +179,18 @@
     <dependency>
       <groupId>org.apache.maven</groupId>
       <artifactId>maven-resolver-provider</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>ch.qos.logback</groupId>
+      <artifactId>logback-classic</artifactId>
+      <scope>test</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter-api</artifactId>
+      <scope>test</scope>
     </dependency>
   </dependencies>
 
