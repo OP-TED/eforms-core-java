@@ -9,38 +9,37 @@ import java.util.Optional;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
 import eu.europa.ted.eforms.sdk.SdkConstants;
+import eu.europa.ted.eforms.sdk.SdkVersion;
 
 public class SdkResourceLoader {
-  private Path root = SdkConstants.DEFAULT_SDK_ROOT;
-
-  public static final SdkResourceLoader INSTANCE = new SdkResourceLoader();
-
   private SdkResourceLoader() {}
 
-  public SdkResourceLoader setRoot(Path root) {
-    Optional.ofNullable(root).ifPresent((Path s) -> this.root = s);
+  /**
+   * Returns the path to a resource under the given subfolder. The subfolder is meant to exist under
+   * the defined root path ({@link #rootPath}).
+   *
+   * @param sdkVersion The target SDK version
+   * @param resourceType The resource type
+   * @param filename The target filename
+   * @param sdkRootPath Path of the root SDK folder
+   * @return
+   */
+  public static Path getResourceAsPath(final SdkVersion sdkVersion, final PathResource resourceType,
+      String filename, Path sdkRootPath) {
+    Validate.notNull(sdkVersion, "Undefined SDK version");
 
-    return this;
-  }
+    sdkRootPath = Optional.ofNullable(sdkRootPath).orElse(SdkConstants.DEFAULT_SDK_ROOT);
 
-  public Path getRoot() {
-    return root;
-  }
+    final String sdkDir =
+        sdkVersion.isPatch() ? sdkVersion.toString() : sdkVersion.toStringWithoutPatch();
 
-  public Path getResourceAsPath(final PathResource resource, final String sdkVersion) {
-    return getResourceAsPath(resource, sdkVersion, null);
-  }
-
-  public Path getResourceAsPath(final PathResource resource, String sdkVersion, String filename) {
-    Validate.notEmpty(sdkVersion, "Undefined SDK resources version");
-
-    sdkVersion = Optional.ofNullable(sdkVersion).orElse(StringUtils.EMPTY);
-
-    final String resourcePath = Optional.ofNullable(resource).map(PathResource::getPath)
+    final String resourcePath = Optional.ofNullable(resourceType).map(PathResource::getPath)
         .orElse(Path.of(StringUtils.EMPTY)).toString();
+
     filename = Optional.ofNullable(filename).orElse(StringUtils.EMPTY);
 
-    Path result = Path.of(root.toString(), sdkVersion, resourcePath, filename).toAbsolutePath();
+    final Path result =
+        Path.of(sdkRootPath.toString(), sdkDir, resourcePath, filename).toAbsolutePath();
 
     Validate.isTrue(Files.exists(result),
         MessageFormat.format("Resource [{0}] does not exist", result));
@@ -48,8 +47,32 @@ public class SdkResourceLoader {
     return result;
   }
 
-  public InputStream getResourceAsStream(final PathResource resource, String sdkVersion,
-      final String filename) throws IOException {
-    return Files.newInputStream(getResourceAsPath(resource, sdkVersion, filename));
+  public static Path getResourceAsPath(final String sdkVersion, final PathResource resourceType,
+      String filename, Path sdkRootPath) {
+    return getResourceAsPath(new SdkVersion(sdkVersion), resourceType, filename, sdkRootPath);
+  }
+
+  public static Path getResourceAsPath(final String sdkVersion, final PathResource resourceType,
+      Path sdkRootPath) {
+    return getResourceAsPath(new SdkVersion(sdkVersion), resourceType, null, sdkRootPath);
+  }
+
+  /**
+   * Returns a resource of the given SDK version as an input stream.
+   *
+   * @param resourceType The resource type
+   * @param sdkVersion The target SDK version
+   * @param filename The target filename
+   * @return
+   * @throws IOException
+   */
+  public static InputStream getResourceAsStream(final SdkVersion sdkVersion,
+      final PathResource resourceType, final String filename, Path sdkRootPath) throws IOException {
+    return Files.newInputStream(getResourceAsPath(sdkVersion, resourceType, filename, sdkRootPath));
+  }
+
+  public static InputStream getResourceAsStream(final String sdkVersion,
+      final PathResource resourceType, final String filename, Path sdkRootPath) throws IOException {
+    return getResourceAsStream(new SdkVersion(sdkVersion), resourceType, filename, sdkRootPath);
   }
 }

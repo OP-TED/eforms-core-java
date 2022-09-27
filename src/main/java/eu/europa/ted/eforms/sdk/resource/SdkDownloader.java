@@ -35,11 +35,11 @@ public class SdkDownloader {
   }
 
   public static void downloadSdk(String sdkVersion, Path rootDir) throws IOException {
-    Path sdkDir =
-        Path.of(Optional.ofNullable(rootDir).orElse(SdkConstants.DEFAULT_SDK_ROOT).toString(), sdkVersion);
+    Path sdkDir = Path.of(
+        Optional.ofNullable(rootDir).orElse(SdkConstants.DEFAULT_SDK_ROOT).toString(), sdkVersion);
 
     try {
-      if (sdkExistsAt(sdkVersion, sdkDir)) {
+      if (sdkExistsAt(sdkVersion, sdkDir, rootDir)) {
         logger.debug("SDK [{}] found at [{}]. No download required.", sdkVersion, sdkDir);
       } else {
         logger.info("Downloading eForms SDK [{}]", sdkVersion);
@@ -62,7 +62,7 @@ public class SdkDownloader {
     }
   }
 
-  private static boolean sdkExistsAt(String sdkVersion, Path sdkDir) {
+  private static boolean sdkExistsAt(String sdkVersion, Path sdkDir, Path rootDir) {
     if (StringUtils.isBlank(sdkVersion) || sdkDir == null) {
       return false;
     }
@@ -71,7 +71,7 @@ public class SdkDownloader {
 
     try {
       fieldsJsonPath =
-          SdkResourceLoader.INSTANCE.getResourceAsPath(SdkResource.FIELDS_JSON, sdkVersion);
+          SdkResourceLoader.getResourceAsPath(sdkVersion, SdkResource.FIELDS_JSON, rootDir);
     } catch (Exception e) {
       return false;
     }
