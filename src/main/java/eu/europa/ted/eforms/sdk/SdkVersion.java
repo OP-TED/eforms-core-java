@@ -1,28 +1,41 @@
 package eu.europa.ted.eforms.sdk;
 
 import java.text.MessageFormat;
-import java.util.Arrays;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
 
 public class SdkVersion implements Comparable<SdkVersion> {
-  private String major;
-  private String minor;
-  private String patch;
+  private static final String FORMAT_PATTERN = "{0}.{1}.{2}";
+
+  private String major = "0";
+  private String minor = "0";
+  private String patch = "0";
+
+  private boolean isPatch = false;
 
   @SuppressWarnings("unused")
   private SdkVersion() {}
 
   public SdkVersion(final String version) {
     Validate.notBlank(version, "Undefined version");
-    Validate.matchesPattern(version, "[0-9]+(\\.[0-9]+(-SNAPSHOT)?)*", "Invalid version format");
+    Validate.matchesPattern(version, "[0-9]+(\\.[0-9]+)*(-SNAPSHOT)?", "Invalid version format");
 
     String[] versionParts = version.split("\\.");
+
     this.major = versionParts[0];
-    this.minor = versionParts.length > 1 ? versionParts[1] : StringUtils.EMPTY;
-    this.patch = versionParts.length > 2 ? versionParts[2] : StringUtils.EMPTY;
+
+    if (versionParts.length > 1) {
+      this.minor = versionParts[1];
+    }
+
+    if (versionParts.length > 2) {
+      this.isPatch = true;
+      this.patch = versionParts[2];
+    }
   }
 
   public String getMajor() {
@@ -38,20 +51,39 @@ public class SdkVersion implements Comparable<SdkVersion> {
   }
 
   public String getNextMajor() {
-    return String.valueOf(getAsInt(major) + 1);
+    return new SdkVersion(MessageFormat.format(FORMAT_PATTERN, getAsInt(major) + 1, minor, patch))
+        .toString();
   }
 
   public String getNextMinor() {
-    return MessageFormat.format("{0}.{1}", major, minor + 1);
+    return new SdkVersion(MessageFormat.format(FORMAT_PATTERN, major, getAsInt(minor) + 1, patch))
+        .toString();
+  }
+
+  public boolean isPatch() {
+    return isPatch;
+  }
+
+  public String toNormalisedString(boolean withPatch) {
+    List<String> parts = new ArrayList<>();
+
+    parts.add(major);
+    parts.add(minor);
+
+    if (withPatch) {
+      parts.add(patch);
+    }
+
+    return StringUtils.join(parts, ".");
   }
 
   public String toStringWithoutPatch() {
-    return StringUtils.join(Arrays.asList(major, minor), ".");
+    return toNormalisedString(false);
   }
 
   @Override
   public String toString() {
-    return StringUtils.join(Arrays.asList(major, minor, patch), ".");
+    return toNormalisedString(true);
   }
 
   @Override
