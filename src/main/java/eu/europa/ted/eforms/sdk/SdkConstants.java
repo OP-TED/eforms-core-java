@@ -7,7 +7,7 @@ public class SdkConstants {
   public static final String FIELDS_JSON_XML_STRUCTURE_KEY = "xmlStructure";
   public static final String FIELDS_JSON_FIELDS_KEY = "fields";
 
-  public static final String DEFAULT_SDK_ROOT = "eforms-sdk";
+  public static final Path DEFAULT_SDK_ROOT = Path.of("eforms-sdk");
 
   public static final String SDK_GROUP_ID = "eu.europa.ted.eforms";
   public static final String SDK_ARTIFACT_ID = "eforms-sdk";

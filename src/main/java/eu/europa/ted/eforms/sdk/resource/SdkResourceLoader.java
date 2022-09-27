@@ -11,19 +11,19 @@ import org.apache.commons.lang3.Validate;
 import eu.europa.ted.eforms.sdk.SdkConstants;
 
 public class SdkResourceLoader {
-  private String root = SdkConstants.DEFAULT_SDK_ROOT;
+  private Path root = SdkConstants.DEFAULT_SDK_ROOT;
 
   public static final SdkResourceLoader INSTANCE = new SdkResourceLoader();
 
   private SdkResourceLoader() {}
 
-  public SdkResourceLoader setRoot(String root) {
-    Optional.ofNullable(root).ifPresent((String s) -> this.root = s);
+  public SdkResourceLoader setRoot(Path root) {
+    Optional.ofNullable(root).ifPresent((Path s) -> this.root = s);
 
     return this;
   }
 
-  public String getRoot() {
+  public Path getRoot() {
     return root;
   }
 
@@ -40,7 +40,7 @@ public class SdkResourceLoader {
         .orElse(Path.of(StringUtils.EMPTY)).toString();
     filename = Optional.ofNullable(filename).orElse(StringUtils.EMPTY);
 
-    Path result = Path.of(root, sdkVersion, resourcePath, filename).toAbsolutePath();
+    Path result = Path.of(root.toString(), sdkVersion, resourcePath, filename).toAbsolutePath();
 
     Validate.isTrue(Files.exists(result),
         MessageFormat.format("Resource [{0}] does not exist", result));

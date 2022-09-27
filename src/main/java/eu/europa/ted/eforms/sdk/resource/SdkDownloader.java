@@ -34,9 +34,9 @@ public class SdkDownloader {
     downloadSdk(sdkVersion, null);
   }
 
-  public static void downloadSdk(String sdkVersion, String rootDir) throws IOException {
+  public static void downloadSdk(String sdkVersion, Path rootDir) throws IOException {
     Path sdkDir =
-        Path.of(Optional.ofNullable(rootDir).orElse(SdkConstants.DEFAULT_SDK_ROOT), sdkVersion);
+        Path.of(Optional.ofNullable(rootDir).orElse(SdkConstants.DEFAULT_SDK_ROOT).toString(), sdkVersion);
 
     try {
       if (sdkExistsAt(sdkVersion, sdkDir)) {
