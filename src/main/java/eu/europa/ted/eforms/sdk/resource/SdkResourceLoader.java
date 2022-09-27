@@ -1,4 +1,4 @@
-package eu.europa.ted.resource;
+package eu.europa.ted.eforms.sdk.resource;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -10,14 +10,14 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
 import eu.europa.ted.eforms.sdk.SdkConstants;
 
-public class ResourceLoader {
+public class SdkResourceLoader {
   private String root = SdkConstants.DEFAULT_SDK_ROOT;
 
-  public static final ResourceLoader INSTANCE = new ResourceLoader();
+  public static final SdkResourceLoader INSTANCE = new SdkResourceLoader();
 
-  private ResourceLoader() {}
+  private SdkResourceLoader() {}
 
-  public ResourceLoader setRoot(String root) {
+  public SdkResourceLoader setRoot(String root) {
     Optional.ofNullable(root).ifPresent((String s) -> this.root = s);
 
     return this;

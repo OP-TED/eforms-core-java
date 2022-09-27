@@ -1,7 +1,7 @@
 package eu.europa.ted.eforms.sdk;
 
 import java.nio.file.Path;
-import eu.europa.ted.resource.PathResource;
+import eu.europa.ted.eforms.sdk.resource.PathResource;
 
 public class SdkConstants {
   public static final String FIELDS_JSON_XML_STRUCTURE_KEY = "xmlStructure";

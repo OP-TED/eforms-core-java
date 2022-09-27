@@ -1,4 +1,4 @@
-package eu.europa.ted.eforms.sdk.selector.resource;
+package eu.europa.ted.eforms.sdk.resource;
 
 import java.io.IOException;
 import java.nio.file.Path;
@@ -23,7 +23,6 @@ import eu.europa.ted.eforms.sdk.SdkConstants.SdkResource;
 import eu.europa.ted.eforms.sdk.SdkVersion;
 import eu.europa.ted.maven.MavenUtils;
 import eu.europa.ted.maven.boot.MavenBooter;
-import eu.europa.ted.resource.ResourceLoader;
 import eu.europa.ted.util.ArchiveUtils;
 
 public class SdkDownloader {
@@ -72,7 +71,7 @@ public class SdkDownloader {
 
     try {
       fieldsJsonPath =
-          ResourceLoader.INSTANCE.getResourceAsPath(SdkResource.FIELDS_JSON, sdkVersion);
+          SdkResourceLoader.INSTANCE.getResourceAsPath(SdkResource.FIELDS_JSON, sdkVersion);
     } catch (Exception e) {
       return false;
     }

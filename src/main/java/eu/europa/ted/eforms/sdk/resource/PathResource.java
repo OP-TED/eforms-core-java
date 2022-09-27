@@ -1,4 +1,4 @@
-package eu.europa.ted.resource;
+package eu.europa.ted.eforms.sdk.resource;
 
 import java.nio.file.Path;
 
