@@ -20,7 +20,8 @@ public class SdkConstants {
     VIEW_TEMPLATES(Path.of("view-templates")), //
     FIELDS(Path.of("fields")), //
     TRANSLATIONS(Path.of("translations")), //
-    FIELDS_JSON(Path.of("fields", "fields.json"));
+    FIELDS_JSON(Path.of("fields", "fields.json")), //
+    NOTICE_TYPES(Path.of("notice-types"));
 
     private Path path;
 

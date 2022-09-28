@@ -47,6 +47,11 @@ public class SdkResourceLoader {
     return result;
   }
 
+  public static Path getResourceAsPath(final SdkVersion sdkVersion, final PathResource resourceType,
+      Path sdkRootPath) {
+    return getResourceAsPath(sdkVersion, resourceType, null, sdkRootPath);
+  }
+
   public static Path getResourceAsPath(final String sdkVersion, final PathResource resourceType,
       String filename, Path sdkRootPath) {
     return getResourceAsPath(new SdkVersion(sdkVersion), resourceType, filename, sdkRootPath);
@@ -54,7 +59,7 @@ public class SdkResourceLoader {
 
   public static Path getResourceAsPath(final String sdkVersion, final PathResource resourceType,
       Path sdkRootPath) {
-    return getResourceAsPath(new SdkVersion(sdkVersion), resourceType, null, sdkRootPath);
+    return getResourceAsPath(new SdkVersion(sdkVersion), resourceType, sdkRootPath);
   }
 
   /**
