@@ -1,74 +1,105 @@
 package eu.europa.ted.eforms.sdk.selector.component;
 
 import java.text.MessageFormat;
+import java.util.Arrays;
 import java.util.Collections;
+import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
-
-import org.atteo.classindex.ClassIndex;
+import org.apache.commons.lang3.ArrayUtils;
+import org.reflections.Reflections;
+import org.reflections.util.ConfigurationBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public abstract class VersionDependentComponentFactory {
-  private static final Logger logger = LoggerFactory.getLogger(VersionDependentComponentFactory.class);
+  private static final Logger logger =
+      LoggerFactory.getLogger(VersionDependentComponentFactory.class);
 
   private Map<String, Map<VersionDependentComponentType, VersionDependentComponentDescriptor<?>>> componentsMap;
 
-  protected VersionDependentComponentFactory() {
-    populateComponents();
+  protected static final String[] DEFAULT_PACKAGES = new String[] {"eu.europa.ted"};
+
+  /**
+   * A factory for instantiating classes annotated with {@link VersionDependentComponent}. 
+   * @param packages The package(s) to scan for annotated classes
+   */
+  protected VersionDependentComponentFactory(String... packages) {
+    populateComponents(Optional.ofNullable(packages).orElse(DEFAULT_PACKAGES));
   }
 
-  private void populateComponents() {
+  private void populateComponents(String... packages) {
+    if (ArrayUtils.isEmpty(packages)) {
+      packages = DEFAULT_PACKAGES;
+    }
+
+    Class<VersionDependentComponent> annotationType = VersionDependentComponent.class;
+
+    logger.debug("Looking in the classpath for types annotated with {}", annotationType);
+
     if (componentsMap == null) {
       componentsMap = new HashMap<>();
     }
 
-    ClassIndex.getAnnotated(VersionDependentComponent.class).forEach((Class<?> clazz) -> {
-      VersionDependentComponent annotation = clazz.getAnnotation(VersionDependentComponent.class);
+    new Reflections(ConfigurationBuilder.build().forPackages(packages))
+        .getTypesAnnotatedWith(annotationType).stream()
+        .forEach((Class<?> clazz) -> {
+          logger.trace("Processing type [{}]", clazz);
 
-      String[] supportedSdkVersions = annotation.versions();
-      VersionDependentComponentType componentType = annotation.componentType();
+          VersionDependentComponent annotation =
+              clazz.getAnnotation(VersionDependentComponent.class);
 
-      for (String sdkVersion : supportedSdkVersions) {
-        Map<VersionDependentComponentType, VersionDependentComponentDescriptor<?>> components =
-            componentsMap.get(sdkVersion);
+          String[] supportedSdkVersions = annotation.versions();
+          VersionDependentComponentType componentType = annotation.componentType();
 
-        if (components == null) {
-          components = new HashMap<>();
-          componentsMap.put(sdkVersion, components);
-        }
+          logger.trace("Class [{}] has a component type of [{}] and supports SDK versions [{}]",
+              clazz, componentType, supportedSdkVersions);
 
-        VersionDependentComponentDescriptor<?> component =
-            new VersionDependentComponentDescriptor<>(sdkVersion, componentType, clazz);
-        VersionDependentComponentDescriptor<?> existingComponent = components.get(componentType);
+          Arrays.asList(supportedSdkVersions).forEach((String sdkVersion) -> {
+            VersionDependentComponentDescriptor<?> component =
+                new VersionDependentComponentDescriptor<>(sdkVersion, componentType, clazz);
 
-        if (existingComponent != null && !existingComponent.equals(component)) {
-          throw new IllegalArgumentException(MessageFormat.format(
-              "More than one components of type [{0}] have been found for SDK version [{1}]:\n\t- {2}\n\t- {3}",
-              componentType, sdkVersion, existingComponent.getImplType().getName(),
-              clazz.getName()));
-        }
+            Map<VersionDependentComponentType, VersionDependentComponentDescriptor<?>> components =
+                componentsMap.get(sdkVersion);
 
-        components.put(componentType, component);
-      }
-    });
+            if (components != null) {
+              VersionDependentComponentDescriptor<?> existingComponent =
+                  components.get(componentType);
+
+              if (existingComponent != null && !existingComponent.equals(component)) {
+                throw new IllegalArgumentException(MessageFormat.format(
+                    "More than one components of type [{0}] have been found for SDK version [{1}]:\n\t- {2}\n\t- {3}",
+                    componentType, sdkVersion, existingComponent.getImplType().getName(),
+                    clazz.getName()));
+              }
+            } else {
+              components = new EnumMap<>(VersionDependentComponentType.class);
+              componentsMap.put(sdkVersion, components);
+            }
+
+            components.put(componentType, component);
+          });
+        });
   }
 
   @SuppressWarnings("unchecked")
-  protected <T> T getComponentImpl(String sdkVersion, final VersionDependentComponentType componentType,
+  protected <T> T getComponentImpl(String sdkVersion,
+      final VersionDependentComponentType componentType,
       final Class<T> intf, Object... initArgs) throws InstantiationException {
-  
-    String normalizedVersion = normalizeVersion(sdkVersion); 
+
+    String normalizedVersion = normalizeVersion(sdkVersion);
 
     VersionDependentComponentDescriptor<T> descriptor =
-        (VersionDependentComponentDescriptor<T>) Optional.ofNullable(componentsMap.get(normalizedVersion))
+        (VersionDependentComponentDescriptor<T>) Optional
+            .ofNullable(componentsMap.get(normalizedVersion))
             .orElseGet(Collections::emptyMap).get(componentType);
 
     if (descriptor == null) {
       logger.error("Failed to load required components of SDK [{}]", sdkVersion);
       throw new IllegalArgumentException(MessageFormat
-          .format("No implementation found for component type [{0}] of SDK [{1}].", componentType, sdkVersion));
+          .format("No implementation found for component type [{0}] of SDK [{1}].", componentType,
+              sdkVersion));
     }
 
     return descriptor.createInstance(initArgs);
