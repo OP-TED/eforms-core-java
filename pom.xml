@@ -49,6 +49,7 @@
     <version.resolver>1.8.2</version.resolver>
 
     <!-- Versions - Plugins -->
+    <version.compiler.plugin>3.10.1</version.compiler.plugin>
     <version.install.plugin>2.5.2</version.install.plugin>
     <version.surefire.plugin>3.0.0-M7</version.surefire.plugin> <!-- Versions prior to 3.0.x do not pick up Junit 5 tests correctly. -->
   </properties>
@@ -131,6 +132,12 @@
   </dependencyManagement>
 
   <dependencies>
+    <dependency>
+      <groupId>org.reflections</groupId>
+      <artifactId>reflections</artifactId>
+      <version>0.10.2</version>
+    </dependency>
+
     <dependency>
       <groupId>com.fasterxml.jackson.core</groupId>
       <artifactId>jackson-core</artifactId>

@@ -36,7 +36,7 @@ public class SdkDownloader {
   *   be fetched and will be stored under a directory "<root_directory>/<minor>"
   * - If a patch is request (e.g., "1.1.2"), then that patch will be fetched and will be stored
   *   under a directory "<root_directory>/<minor>/<patch>".
-  *   If the requested patched is not found, then an {@link IllegalArgumentException} will be thrown.
+  *   If the requested patch is not found, then an {@link IllegalArgumentException} will be thrown.
   *
   * @param sdkVersion The target SDK version (<major>.<minor>.<patch>)
   * @param rootDir The root directory
