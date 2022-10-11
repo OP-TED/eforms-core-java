@@ -50,7 +50,10 @@
 
     <!-- Versions - Plugins -->
     <version.compiler.plugin>3.10.1</version.compiler.plugin>
+    <version.gpg.plugin>1.5</version.gpg.plugin>
     <version.install.plugin>2.5.2</version.install.plugin>
+    <version.javadoc.plugin>3.4.0</version.javadoc.plugin>
+    <version.source.plugin>3.2.1</version.source.plugin>
     <version.surefire.plugin>3.0.0-M7</version.surefire.plugin> <!-- Versions prior to 3.0.x do not pick up Junit 5 tests correctly. -->
   </properties>
 
@@ -215,6 +218,21 @@
             <createChecksum>true</createChecksum>
           </configuration>
         </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-source-plugin</artifactId>
+          <version>${version.source.plugin}</version>
+        </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-javadoc-plugin</artifactId>
+          <version>${version.javadoc.plugin}</version>
+        </plugin>
+        <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-gpg-plugin</artifactId>
+            <version>${version.gpg.plugin}</version>
+        </plugin>
       </plugins>
     </pluginManagement>
   </build>
@@ -229,7 +247,6 @@
           <plugin>
             <groupId>org.apache.maven.plugins</groupId>
             <artifactId>maven-source-plugin</artifactId>
-            <version>3.2.1</version>
             <executions>
               <execution>
                 <id>attach-sources</id>
@@ -242,7 +259,6 @@
           <plugin>
             <groupId>org.apache.maven.plugins</groupId>
             <artifactId>maven-javadoc-plugin</artifactId>
-            <version>3.4.0</version>
             <executions>
               <execution>
                 <id>attach-javadocs</id>
@@ -255,7 +271,6 @@
           <plugin>
             <groupId>org.apache.maven.plugins</groupId>
             <artifactId>maven-gpg-plugin</artifactId>
-            <version>1.5</version>
             <executions>
               <execution>
                 <id>sign-artifacts</id>
