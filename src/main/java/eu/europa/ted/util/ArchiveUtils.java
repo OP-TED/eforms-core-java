@@ -33,7 +33,7 @@ public class ArchiveUtils {
    * 
    * @param archive Path of the zipfile to unpack
    * @param targetDir Target directory for unpacking
-   * @throws IOException
+   * @throws IOException if the unpacking fails
    */
   public static void unzip(File archive, Path targetDir) throws IOException {
     if (archive == null) {
