@@ -31,16 +31,16 @@ public class SdkDownloader {
   * Downloads a SDK version from Maven Central (or local Maven repository) and unpacks it under
   * the given root directory.
   * - If a major version is requested (e.g., "1"), then the latest minor/patch will be fetched
-  *   and will be stored under a directory "<root_directory>/<minor>".
+  *   and will be stored under a directory "&lt;root_directory&gt;/&lt;minor&gt;".
   * - If a minor version is requested (e.g., "1.1"), then the latest patch for this minor will
-  *   be fetched and will be stored under a directory "<root_directory>/<minor>"
+  *   be fetched and will be stored under a directory "&lt;root_directory&gt;/&lt;minor&gt;"
   * - If a patch is request (e.g., "1.1.2"), then that patch will be fetched and will be stored
-  *   under a directory "<root_directory>/<minor>/<patch>".
+  *   under a directory "&lt;root_directory&gt;/&lt;minor&gt;/&lt;patch&gt;".
   *   If the requested patch is not found, then an {@link IllegalArgumentException} will be thrown.
   *
-  * @param sdkVersion The target SDK version (<major>.<minor>.<patch>)
+  * @param sdkVersion The target SDK version (&lt;major&gt;.&lt;minor&gt;.&lt;patch&gt;)
   * @param rootDir The root directory
-  * @throws IOException
+  * @throws IOException if the download fails
   */
   public static void downloadSdk(final SdkVersion sdkVersion, final Path rootDir)
       throws IOException {

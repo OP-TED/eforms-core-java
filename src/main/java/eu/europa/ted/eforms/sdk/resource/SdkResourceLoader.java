@@ -15,14 +15,14 @@ public class SdkResourceLoader {
   private SdkResourceLoader() {}
 
   /**
-   * Returns the path to a resource under the given subfolder. The subfolder is meant to exist under
-   * the defined root path ({@link #rootPath}).
+   * Returns the path to a resource under the given subfolder.
+   * The subfolder is meant to exist under the defined root path.
    *
    * @param sdkVersion The target SDK version
    * @param resourceType The resource type
    * @param filename The target filename
    * @param sdkRootPath Path of the root SDK folder
-   * @return
+   * @return The target resource's path
    */
   public static Path getResourceAsPath(final SdkVersion sdkVersion, final PathResource resourceType,
       String filename, Path sdkRootPath) {
@@ -65,11 +65,12 @@ public class SdkResourceLoader {
   /**
    * Returns a resource of the given SDK version as an input stream.
    *
-   * @param resourceType The resource type
    * @param sdkVersion The target SDK version
+   * @param resourceType The resource type
    * @param filename The target filename
-   * @return
-   * @throws IOException
+   * @param sdkRootPath Path of the root SDK folder
+   * @return The target resource as a stream
+   * @throws IOException if the resource cannot be retrieved
    */
   public static InputStream getResourceAsStream(final SdkVersion sdkVersion,
       final PathResource resourceType, final String filename, Path sdkRootPath) throws IOException {
