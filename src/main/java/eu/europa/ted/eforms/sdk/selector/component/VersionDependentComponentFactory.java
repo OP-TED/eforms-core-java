@@ -47,8 +47,7 @@ public abstract class VersionDependentComponentFactory {
         .forEach((Class<?> clazz) -> {
           logger.trace("Processing type [{}]", clazz);
 
-          VersionDependentComponent annotation =
-              clazz.getAnnotation(VersionDependentComponent.class);
+          VersionDependentComponent annotation = clazz.getAnnotation(annotationType);
 
           String[] supportedSdkVersions = annotation.versions();
           VersionDependentComponentType componentType = annotation.componentType();
