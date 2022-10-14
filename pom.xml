@@ -53,11 +53,14 @@
     <!-- Versions - Third-party libraries -->
     <version.commons-collections>3.2.2</version.commons-collections>
     <version.commons-io>2.11.0</version.commons-io>
+    <version.commons-lang3>3.12.0</version.commons-lang3>
     <version.jackson>2.13.3</version.jackson>
     <version.junit>5.7.2</version.junit>
     <version.logback>1.2.11</version.logback>
     <version.maven>3.8.6</version.maven>
+    <version.reflections>0.10.2</version.reflections>
     <version.resolver>1.8.2</version.resolver>
+    <version.slf4j>2.0.3</version.slf4j>
 
     <!-- Versions - Plugins -->
     <version.compiler.plugin>3.10.1</version.compiler.plugin>
@@ -70,6 +73,12 @@
 
   <dependencyManagement>
     <dependencies>
+      <dependency>
+        <groupId>org.reflections</groupId>
+        <artifactId>reflections</artifactId>
+        <version>${version.reflections}</version>
+      </dependency>
+
       <dependency>
         <groupId>com.fasterxml.jackson.core</groupId>
         <artifactId>jackson-core</artifactId>
@@ -119,7 +128,16 @@
         <artifactId>maven-resolver-transport-http</artifactId>
         <version>${version.resolver}</version>
       </dependency>
-
+      <dependency>
+        <groupId>org.apache.maven.resolver</groupId>
+        <artifactId>maven-resolver-util</artifactId>
+        <version>${version.resolver}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.maven</groupId>
+        <artifactId>maven-settings</artifactId>
+        <version>${version.maven}</version>
+      </dependency>
       <dependency>
         <groupId>org.apache.maven</groupId>
         <artifactId>maven-settings-builder</artifactId>
@@ -142,6 +160,17 @@
         <artifactId>junit-jupiter-api</artifactId>
         <version>${version.junit}</version>
       </dependency>
+
+      <dependency>
+        <groupId>org.slf4j</groupId>
+        <artifactId>slf4j-api</artifactId>
+        <version>${version.slf4j}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.commons</groupId>
+        <artifactId>commons-lang3</artifactId>
+        <version>${version.commons-lang3}</version>
+      </dependency>
     </dependencies>
   </dependencyManagement>
 
@@ -149,12 +178,6 @@
     <dependency>
       <groupId>org.reflections</groupId>
       <artifactId>reflections</artifactId>
-      <version>0.10.2</version>
-    </dependency>
-
-    <dependency>
-      <groupId>com.fasterxml.jackson.core</groupId>
-      <artifactId>jackson-core</artifactId>
     </dependency>
 
     <!-- Apache Commons -->
@@ -165,6 +188,10 @@
     <dependency>
       <groupId>commons-io</groupId>
       <artifactId>commons-io</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.commons</groupId>
+      <artifactId>commons-lang3</artifactId>
     </dependency>
 
     <!-- Maven Artifact Resolver -->
@@ -201,13 +228,30 @@
       <groupId>org.apache.maven</groupId>
       <artifactId>maven-resolver-provider</artifactId>
     </dependency>
+    <dependency>
+      <groupId>org.apache.maven</groupId>
+      <artifactId>maven-settings</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.maven.resolver</groupId>
+      <artifactId>maven-resolver-util</artifactId>
+    </dependency>
 
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-api</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>com.fasterxml.jackson.core</groupId>
+      <artifactId>jackson-core</artifactId>
+      <scope>test</scope>
+    </dependency>
     <dependency>
       <groupId>ch.qos.logback</groupId>
       <artifactId>logback-classic</artifactId>
       <scope>test</scope>
     </dependency>
-
     <dependency>
       <groupId>org.junit.jupiter</groupId>
       <artifactId>junit-jupiter-api</artifactId>
@@ -240,9 +284,9 @@
           <version>${version.javadoc.plugin}</version>
         </plugin>
         <plugin>
-            <groupId>org.apache.maven.plugins</groupId>
-            <artifactId>maven-gpg-plugin</artifactId>
-            <version>${version.gpg.plugin}</version>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-gpg-plugin</artifactId>
+          <version>${version.gpg.plugin}</version>
         </plugin>
       </plugins>
     </pluginManagement>
