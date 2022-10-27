@@ -6,7 +6,6 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import eu.europa.ted.eforms.sdk.SdkConstants;
 import eu.europa.ted.eforms.sdk.entity.SdkEntityFactory;
 import eu.europa.ted.eforms.sdk.entity.SdkNode;
-import eu.europa.ted.eforms.sdk.helpers.MapFromJson;
 
 public class SdkNodeRepository extends MapFromJson<SdkNode> {
   private static final long serialVersionUID = 1L;
