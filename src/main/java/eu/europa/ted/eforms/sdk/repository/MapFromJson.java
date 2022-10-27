@@ -1,4 +1,4 @@
-package eu.europa.ted.eforms.sdk.helpers;
+package eu.europa.ted.eforms.sdk.repository;
 
 import java.io.IOException;
 import java.io.InputStream;

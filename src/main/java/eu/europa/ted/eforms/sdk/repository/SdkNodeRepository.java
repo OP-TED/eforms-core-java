@@ -1,10 +1,11 @@
-package eu.europa.ted.eforms.sdk.entity;
+package eu.europa.ted.eforms.sdk.repository;
 
 import java.nio.file.Path;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import eu.europa.ted.eforms.sdk.SdkConstants;
-import eu.europa.ted.eforms.sdk.helpers.MapFromJson;
+import eu.europa.ted.eforms.sdk.entity.SdkEntityFactory;
+import eu.europa.ted.eforms.sdk.entity.SdkNode;
 
 public class SdkNodeRepository extends MapFromJson<SdkNode> {
   private static final long serialVersionUID = 1L;

@@ -179,16 +179,6 @@
         <artifactId>ph-genericode</artifactId>
         <version>${version.ph-genericode}</version>
       </dependency>
-      <dependency>
-        <groupId>com.helger.commons</groupId>
-        <artifactId>ph-jaxb</artifactId>
-        <version>${version.ph}</version>
-      </dependency>
-      <dependency>
-        <groupId>com.helger.commons</groupId>
-        <artifactId>ph-xml</artifactId>
-        <version>${version.ph}</version>
-      </dependency>
 
       <!-- SLF4J -->
       <dependency>
@@ -297,14 +287,6 @@
     <dependency>
       <groupId>com.helger.commons</groupId>
       <artifactId>ph-commons</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>com.helger.commons</groupId>
-      <artifactId>ph-jaxb</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>com.helger.commons</groupId>
-      <artifactId>ph-xml</artifactId>
     </dependency>
     <dependency>
       <!-- For genericode .gc files (SDK codelist related) -->

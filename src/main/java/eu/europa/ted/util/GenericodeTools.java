@@ -1,4 +1,4 @@
-package eu.europa.ted.eforms.sdk.helpers;
+package eu.europa.ted.util;
 
 import java.nio.charset.StandardCharsets;
 import com.helger.genericode.Genericode10CodeListMarshaller;
