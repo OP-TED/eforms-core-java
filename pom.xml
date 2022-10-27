@@ -57,7 +57,7 @@
     <version.jackson>2.13.4</version.jackson>
     <version.jackson-databind>2.13.4.2</version.jackson-databind>
     <version.junit>5.7.2</version.junit>
-    <version.logback>1.2.11</version.logback>
+    <version.logback>1.4.4</version.logback>
     <version.maven>3.8.6</version.maven>
     <version.ph>10.0.0</version.ph>
     <version.ph-genericode>6.2.0</version.ph-genericode>
@@ -194,6 +194,11 @@
         <version>${version.logback}</version>
       </dependency>
       <dependency>
+        <groupId>ch.qos.logback</groupId>
+        <artifactId>logback-core</artifactId>
+        <version>${version.logback}</version>
+      </dependency>
+      <dependency>
         <groupId>org.junit.jupiter</groupId>
         <artifactId>junit-jupiter-api</artifactId>
         <version>${version.junit}</version>
@@ -298,6 +303,11 @@
     <dependency>
       <groupId>ch.qos.logback</groupId>
       <artifactId>logback-classic</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>ch.qos.logback</groupId>
+      <artifactId>logback-core</artifactId>
       <scope>test</scope>
     </dependency>
     <dependency>
