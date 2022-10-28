@@ -7,33 +7,26 @@ import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
-import org.apache.commons.lang3.ArrayUtils;
 import org.reflections.Reflections;
+import org.reflections.util.ClasspathHelper;
 import org.reflections.util.ConfigurationBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/**
+ * A factory for instantiating classes annotated with {@link SdkComponent}. 
+ */
 public abstract class SdkComponentFactory {
   private static final Logger logger =
       LoggerFactory.getLogger(SdkComponentFactory.class);
 
   private Map<String, Map<SdkComponentType, SdkComponentDescriptor<?>>> componentsMap;
 
-  protected static final String[] DEFAULT_PACKAGES = new String[] {"eu.europa.ted"};
-
-  /**
-   * A factory for instantiating classes annotated with {@link SdkComponent}. 
-   * @param packages The package(s) to scan for annotated classes
-   */
-  protected SdkComponentFactory(String... packages) {
-    populateComponents(Optional.ofNullable(packages).orElse(DEFAULT_PACKAGES));
+  protected SdkComponentFactory() {
+    populateComponents();
   }
 
-  private void populateComponents(String... packages) {
-    if (ArrayUtils.isEmpty(packages)) {
-      packages = DEFAULT_PACKAGES;
-    }
-
+  private void populateComponents() {
     Class<SdkComponent> annotationType = SdkComponent.class;
 
     logger.debug("Looking in the classpath for types annotated with {}", annotationType);
@@ -42,7 +35,15 @@ public abstract class SdkComponentFactory {
       componentsMap = new HashMap<>();
     }
 
-    new Reflections(ConfigurationBuilder.build().forPackages(packages))
+    // Get a list of all the packages loaded by the current classloader.
+    // This can be a bit expensive in some situations, so this method factory should
+    // be ensured to run as less as possible (ideally only once).
+    String[] availablePackages = Arrays.stream(ClasspathHelper.contextClassLoader()
+        .getDefinedPackages())
+        .map(Package::getName)
+        .toArray(String[]::new);
+
+    new Reflections(ConfigurationBuilder.build().forPackages(availablePackages))
         .getTypesAnnotatedWith(annotationType).stream()
         .forEach((Class<?> clazz) -> {
           logger.trace("Processing type [{}]", clazz);
