@@ -1,4 +1,4 @@
-package eu.europa.ted.eforms.sdk.selector.component;
+package eu.europa.ted.eforms.sdk.component;
 
 import java.text.MessageFormat;
 import java.util.Arrays;
@@ -13,19 +13,19 @@ import org.reflections.util.ConfigurationBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public abstract class VersionDependentComponentFactory {
+public abstract class SdkComponentFactory {
   private static final Logger logger =
-      LoggerFactory.getLogger(VersionDependentComponentFactory.class);
+      LoggerFactory.getLogger(SdkComponentFactory.class);
 
-  private Map<String, Map<VersionDependentComponentType, VersionDependentComponentDescriptor<?>>> componentsMap;
+  private Map<String, Map<SdkComponentType, SdkComponentDescriptor<?>>> componentsMap;
 
   protected static final String[] DEFAULT_PACKAGES = new String[] {"eu.europa.ted"};
 
   /**
-   * A factory for instantiating classes annotated with {@link VersionDependentComponent}. 
+   * A factory for instantiating classes annotated with {@link SdkComponent}. 
    * @param packages The package(s) to scan for annotated classes
    */
-  protected VersionDependentComponentFactory(String... packages) {
+  protected SdkComponentFactory(String... packages) {
     populateComponents(Optional.ofNullable(packages).orElse(DEFAULT_PACKAGES));
   }
 
@@ -34,7 +34,7 @@ public abstract class VersionDependentComponentFactory {
       packages = DEFAULT_PACKAGES;
     }
 
-    Class<VersionDependentComponent> annotationType = VersionDependentComponent.class;
+    Class<SdkComponent> annotationType = SdkComponent.class;
 
     logger.debug("Looking in the classpath for types annotated with {}", annotationType);
 
@@ -47,23 +47,23 @@ public abstract class VersionDependentComponentFactory {
         .forEach((Class<?> clazz) -> {
           logger.trace("Processing type [{}]", clazz);
 
-          VersionDependentComponent annotation = clazz.getAnnotation(annotationType);
+          SdkComponent annotation = clazz.getAnnotation(annotationType);
 
           String[] supportedSdkVersions = annotation.versions();
-          VersionDependentComponentType componentType = annotation.componentType();
+          SdkComponentType componentType = annotation.componentType();
 
           logger.trace("Class [{}] has a component type of [{}] and supports SDK versions [{}]",
               clazz, componentType, supportedSdkVersions);
 
           Arrays.asList(supportedSdkVersions).forEach((String sdkVersion) -> {
-            VersionDependentComponentDescriptor<?> component =
-                new VersionDependentComponentDescriptor<>(sdkVersion, componentType, clazz);
+            SdkComponentDescriptor<?> component =
+                new SdkComponentDescriptor<>(sdkVersion, componentType, clazz);
 
-            Map<VersionDependentComponentType, VersionDependentComponentDescriptor<?>> components =
+            Map<SdkComponentType, SdkComponentDescriptor<?>> components =
                 componentsMap.get(sdkVersion);
 
             if (components != null) {
-              VersionDependentComponentDescriptor<?> existingComponent =
+              SdkComponentDescriptor<?> existingComponent =
                   components.get(componentType);
 
               if (existingComponent != null && !existingComponent.equals(component)) {
@@ -73,7 +73,7 @@ public abstract class VersionDependentComponentFactory {
                     clazz.getName()));
               }
             } else {
-              components = new EnumMap<>(VersionDependentComponentType.class);
+              components = new EnumMap<>(SdkComponentType.class);
               componentsMap.put(sdkVersion, components);
             }
 
@@ -84,13 +84,13 @@ public abstract class VersionDependentComponentFactory {
 
   @SuppressWarnings("unchecked")
   protected <T> T getComponentImpl(String sdkVersion,
-      final VersionDependentComponentType componentType,
+      final SdkComponentType componentType,
       final Class<T> intf, Object... initArgs) throws InstantiationException {
 
     String normalizedVersion = normalizeVersion(sdkVersion);
 
-    VersionDependentComponentDescriptor<T> descriptor =
-        (VersionDependentComponentDescriptor<T>) Optional
+    SdkComponentDescriptor<T> descriptor =
+        (SdkComponentDescriptor<T>) Optional
             .ofNullable(componentsMap.get(normalizedVersion))
             .orElseGet(Collections::emptyMap).get(componentType);
 

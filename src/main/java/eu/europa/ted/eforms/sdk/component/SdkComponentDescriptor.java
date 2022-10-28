@@ -1,4 +1,4 @@
-package eu.europa.ted.eforms.sdk.selector.component;
+package eu.europa.ted.eforms.sdk.component;
 
 import java.io.Serializable;
 import java.lang.reflect.Constructor;
@@ -11,18 +11,18 @@ import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class VersionDependentComponentDescriptor<T> implements Serializable {
+public class SdkComponentDescriptor<T> implements Serializable {
   private static final long serialVersionUID = -6237218459963821365L;
 
-  private static final Logger logger = LoggerFactory.getLogger(VersionDependentComponentDescriptor.class);
+  private static final Logger logger = LoggerFactory.getLogger(SdkComponentDescriptor.class);
 
   private String sdkVersion;
 
-  private VersionDependentComponentType componentType;
+  private SdkComponentType componentType;
 
   private Class<T> implType;
 
-  public VersionDependentComponentDescriptor(String sdkVersion, VersionDependentComponentType componentType,
+  public SdkComponentDescriptor(String sdkVersion, SdkComponentType componentType,
       Class<T> implType) {
     this.sdkVersion = sdkVersion;
     this.componentType = componentType;
@@ -81,7 +81,7 @@ public class VersionDependentComponentDescriptor<T> implements Serializable {
       return false;
     if (getClass() != obj.getClass())
       return false;
-    VersionDependentComponentDescriptor<?> other = (VersionDependentComponentDescriptor<?>) obj;
+    SdkComponentDescriptor<?> other = (SdkComponentDescriptor<?>) obj;
     return componentType == other.componentType && Objects.equals(sdkVersion, other.sdkVersion);
   }
 

@@ -1,4 +1,4 @@
-package eu.europa.ted.eforms.sdk.selector.component;
+package eu.europa.ted.eforms.sdk.component;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Inherited;
@@ -9,8 +9,8 @@ import java.lang.annotation.Target;
 @Inherited
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.TYPE)
-public @interface VersionDependentComponent {
+public @interface SdkComponent {
   public String[] versions();
 
-  public VersionDependentComponentType componentType();
+  public SdkComponentType componentType();
 }
