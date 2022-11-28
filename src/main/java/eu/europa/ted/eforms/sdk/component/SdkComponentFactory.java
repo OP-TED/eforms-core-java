@@ -7,6 +7,7 @@ import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Stream;
 import org.reflections.Reflections;
 import org.reflections.util.ClasspathHelper;
 import org.reflections.util.ConfigurationBuilder;
@@ -35,11 +36,13 @@ public abstract class SdkComponentFactory {
       componentsMap = new HashMap<>();
     }
 
-    // Get a list of all the packages loaded by the current classloader.
+    // Get a list of all the packages loaded by the available classloaders.
     // This can be a bit expensive in some situations, so this method factory should
     // be ensured to run as less as possible (ideally only once).
-    String[] availablePackages = Arrays.stream(ClasspathHelper.contextClassLoader()
-        .getDefinedPackages())
+    String[] availablePackages = Arrays
+        .stream(ClasspathHelper.classLoaders())
+        .map(ClassLoader::getDefinedPackages)
+        .flatMap(Stream::of)
         .map(Package::getName)
         .toArray(String[]::new);
 
