@@ -28,20 +28,20 @@ public class SdkDownloader {
   private SdkDownloader() {}
 
   /**
-  * Downloads a SDK version from Maven Central (or local Maven repository) and unpacks it under
-  * the given root directory.
-  * - If a major version is requested (e.g., "1"), then the latest minor/patch will be fetched
-  *   and will be stored under a directory "&lt;root_directory&gt;/&lt;minor&gt;".
-  * - If a minor version is requested (e.g., "1.1"), then the latest patch for this minor will
-  *   be fetched and will be stored under a directory "&lt;root_directory&gt;/&lt;minor&gt;"
-  * - If a patch is request (e.g., "1.1.2"), then that patch will be fetched and will be stored
-  *   under a directory "&lt;root_directory&gt;/&lt;minor&gt;/&lt;patch&gt;".
-  *   If the requested patch is not found, then an {@link IllegalArgumentException} will be thrown.
-  *
-  * @param sdkVersion The target SDK version (&lt;major&gt;.&lt;minor&gt;.&lt;patch&gt;)
-  * @param rootDir The root directory
-  * @throws IOException if the download fails
-  */
+   * Downloads a SDK version from Maven Central (or local Maven repository) and unpacks it under the
+   * given root directory. - If a major version is requested (e.g., "1"), then the latest
+   * minor/patch will be fetched and will be stored under a directory
+   * "&lt;root_directory&gt;/&lt;minor&gt;". - If a minor version is requested (e.g., "1.1"), then
+   * the latest patch for this minor will be fetched and will be stored under a directory
+   * "&lt;root_directory&gt;/&lt;minor&gt;" - If a patch is request (e.g., "1.1.2"), then that patch
+   * will be fetched and will be stored under a directory
+   * "&lt;root_directory&gt;/&lt;minor&gt;/&lt;patch&gt;". If the requested patch is not found, then
+   * an {@link IllegalArgumentException} will be thrown.
+   *
+   * @param sdkVersion The target SDK version (&lt;major&gt;.&lt;minor&gt;.&lt;patch&gt;)
+   * @param rootDir The root directory
+   * @throws IOException if the download fails
+   */
   public static void downloadSdk(final SdkVersion sdkVersion, final Path rootDir)
       throws IOException {
     Path sdkDir =
@@ -91,13 +91,17 @@ public class SdkDownloader {
 
   private static Path createVersionFile(final SdkVersion sdkVersion, final Path sdkDir)
       throws IOException {
-    logger.debug("Creating version file for SDK [{}] under [{}]", sdkVersion, sdkDir);
+    Path versionFilePath = Path.of(sdkDir.toString(), "VERSION");
 
-    Path versionFilePath = Files.createFile(Path.of(sdkDir.toString(), "VERSION"));
-    Files.writeString(versionFilePath, sdkVersion.toString());
+    if (!Files.exists(versionFilePath)) {
+      logger.debug("Creating version file [{}] for SDK [{}]", versionFilePath, sdkVersion);
 
-    logger.debug("Successfully created version file [{}] for SDK [{}]", versionFilePath,
-        sdkVersion);
+      Files.createFile(versionFilePath);
+      Files.writeString(versionFilePath, sdkVersion.toString());
+
+      logger.debug("Successfully created version file [{}] for SDK [{}]", versionFilePath,
+          sdkVersion);
+    }
 
     return versionFilePath;
   }
@@ -115,12 +119,10 @@ public class SdkDownloader {
   }
 
   /**
-   * Discovers the latest available version for a given base version.
-   * If the major of the base version is zero, then the second digit is regarded as
-   * major.
-   * E.g.:
-   *   - For base version 0.6, the result is the largest found version number between 0.6 and 0.7
-   *   - For base version 1.0, the result is the largest found version number between 1.0 and 1.1
+   * Discovers the latest available version for a given base version. If the major of the base
+   * version is zero, then the second digit is regarded as major. E.g.: - For base version 0.6, the
+   * result is the largest found version number between 0.6 and 0.7 - For base version 1.0, the
+   * result is the largest found version number between 1.0 and 1.1
    * 
    * @param sdkVersion The base version
    * @return
@@ -143,9 +145,10 @@ public class SdkDownloader {
 
     VersionRangeResult versions = MavenBooter.resolveVersionRange(artifact);
     try {
-      /** If the major version is "0", Maven will return all the versions up to the next major.
-       *  In this case we need to filter out all the discovered versions
-       *  where the minor is not the same as that of the base version.
+      /**
+       * If the major version is "0", Maven will return all the versions up to the next major. In
+       * this case we need to filter out all the discovered versions where the minor is not the same
+       * as that of the base version.
        */
       if (baseVersion.getMajor().equals("0")) {
         return versions.getVersions().stream()
