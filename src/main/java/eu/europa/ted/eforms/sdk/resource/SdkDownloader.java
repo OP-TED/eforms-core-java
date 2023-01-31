@@ -133,7 +133,7 @@ public class SdkDownloader {
 
     String minVersion = baseVersion.toString();
     String maxVersion = baseVersion.getNextMinor();
-    String searchPattern = "[{0},{1})";
+    String searchPattern = "[{0},{1}-SNAPSHOT)";
 
     if (baseVersion.isPatch()) {
       minVersion = maxVersion = baseVersion.toString();
