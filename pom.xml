@@ -44,9 +44,11 @@
   </distributionManagement>
 
   <properties>
+    <project.build.outputTimestamp>1</project.build.outputTimestamp>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <java.version>11</java.version>
 
+    <!-- Java compiler -->
+    <java.version>11</java.version>
     <maven.compiler.source>${java.version}</maven.compiler.source>
     <maven.compiler.target>${java.version}</maven.compiler.target>
 
