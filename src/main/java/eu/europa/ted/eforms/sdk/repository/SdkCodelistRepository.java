@@ -80,13 +80,8 @@ public class SdkCodelistRepository extends HashMap<String, SdkCodelist> {
 
   @Override
   public SdkCodelist getOrDefault(final Object codelistId, final SdkCodelist defaultValue) {
-    return computeIfAbsent((String) codelistId, key -> {
-      try {
-        return loadSdkCodelist(sdkVersion, key);
-      } catch (InstantiationException e) {
-        throw new RuntimeException(e);
-      }
-    });
+    SdkCodelist result = get(codelistId);
+    return result != null ? result : defaultValue;
   }
 
   private SdkCodelist loadSdkCodelist(final String sdkVersion, final String codeListId)
