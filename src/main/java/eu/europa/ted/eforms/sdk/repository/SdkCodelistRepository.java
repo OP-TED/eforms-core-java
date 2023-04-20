@@ -34,7 +34,7 @@ public class SdkCodelistRepository extends HashMap<String, SdkCodelist> {
   private transient Path codelistsDir;
   private String sdkVersion;
 
-  private final Map<String, Path> codelistFiles;
+  private final Map<String, Path> codelistFilesByCodelistId;
   private final Genericode10CodeListMarshaller marshaller;
 
   @SuppressWarnings("unused")
@@ -49,7 +49,7 @@ public class SdkCodelistRepository extends HashMap<String, SdkCodelist> {
     marshaller = GenericodeTools.getMarshaller();
 
     try {
-      this.codelistFiles = getCodelistPaths(codelistsDir);
+      this.codelistFilesByCodelistId = getCodelistPaths(codelistsDir);
     } catch (IOException e) {
       throw new RuntimeException(
           MessageFormat.format("Failed to load codelists from [{0}]", codelistsDir), e);
@@ -98,7 +98,7 @@ public class SdkCodelistRepository extends HashMap<String, SdkCodelist> {
     // Stream the data from that file.
     final Genericode10CodeListMarshaller marshaller = GenericodeTools.getMarshaller();
 
-    final Path filepath = codelistFiles.get(codeListId);
+    final Path filepath = codelistFilesByCodelistId.get(codeListId);
     assert filepath != null : "filepath is null";
 
     try (InputStream is = Files.newInputStream(codelistsDir.resolve(filepath))) {
