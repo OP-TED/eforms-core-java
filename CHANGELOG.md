@@ -1,12 +1,9 @@
-# eForms Core Library 1.0.1 Release Notes
+# eForms Core Library 1.0.2 Release Notes
 
 _The library is a collection of utilities that are used by our sample applications as well as the EFX Toolkit for Java Developers._
 
 ## In this release:
-This patch fixes the Sdk Downloader facility to handle the case where a VERSION file already exists on the root folder of the downloaded eForms SDK.
-It also fixes the following two issues:
-- The SDK Downloader was considering a snapshot of a minor version to be the latest of the previous minor version.
-- SdkComponentFactory was scanning for implementation classes only in the current classloader. It now scans in all available (loaded) classloaders.
+This patch fixes an issue in SdkCodelistRepository which unnecessarily affected performance when retrieving codelists.
 
 ## Download
 
