@@ -1,4 +1,4 @@
-# eForms Core Library 1.0.1 Release Notes
+# eForms Core Library 1.0.2 Release Notes
 
 _The library is a collection of utilities that are used by our sample applications as well as the EFX Toolkit for Java Developers._
 
