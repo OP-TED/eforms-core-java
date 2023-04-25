@@ -1,7 +1,7 @@
 package eu.europa.ted.eforms.sdk.repository;
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.text.MessageFormat;
@@ -21,7 +21,6 @@ import org.apache.commons.lang3.Validate;
 import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import com.helger.genericode.Genericode10CodeListMarshaller;
 import com.helger.genericode.v10.CodeListDocument;
 import com.helger.genericode.v10.Identification;
 import com.helger.genericode.v10.LongName;
@@ -40,8 +39,7 @@ public class SdkCodelistRepository extends HashMap<String, SdkCodelist> {
   private transient Path codelistsDir;
   private String sdkVersion;
 
-  private final Map<String, Path> codelistFilesByCodelistId;
-  private final Genericode10CodeListMarshaller marshaller;
+  private final Map<String, CodeListDocument> codelistContentsByCodelistId;
 
   @SuppressWarnings("unused")
   private SdkCodelistRepository() {
@@ -55,10 +53,8 @@ public class SdkCodelistRepository extends HashMap<String, SdkCodelist> {
     Validate.isTrue(Files.isDirectory(codelistsDir),
         "Codelists directory [%s] is not found or not a directory", codelistsDir);
 
-    marshaller = GenericodeTools.getMarshaller();
-
     try {
-      this.codelistFilesByCodelistId = getCodelistPaths(codelistsDir);
+      this.codelistContentsByCodelistId = getCodelistContentsByCodelistIds(codelistsDir);
     } catch (IOException e) {
       throw new RuntimeException(
           MessageFormat.format("Failed to load codelists from [{0}]", codelistsDir), e);
@@ -101,52 +97,46 @@ public class SdkCodelistRepository extends HashMap<String, SdkCodelist> {
 
     // Find the SDK codelist .gc file that corresponds to the passed reference.
     // Stream the data from that file.
-    final Path filepath = codelistFilesByCodelistId.get(codeListId);
-    assert filepath != null : "filepath is null";
+    final Optional<CodeListDocument> codelist =
+        Optional.ofNullable(codelistContentsByCodelistId.get(codeListId));
 
-    try (InputStream is = Files.newInputStream(codelistsDir.resolve(filepath))) {
-      final Optional<CodeListDocument> codelist = Optional.ofNullable(marshaller.read(is));
-
-      if (codelist.isEmpty()) {
-        return Optional.empty();
-      }
-
-      // Get all the code values in a list.
-      // We assume there are no duplicate code values in the referenced
-      // codelists.
-      final List<String> codes = codelist
-          .map(CodeListDocument::getSimpleCodeList)
-          .map(SimpleCodeList::getRow)
-          .map((List<Row> rows) -> rows.stream()
-              .map(Row::getValue)
-              .map((List<Value> rowValues) -> rowValues.stream()
-                  .filter((Value rowValue) -> GenericodeTools.KEY_CODE
-                      .equals(GenericodeTools.extractColRefId(rowValue)))
-                  .findFirst()
-                  .map((Value rowValue) -> StringUtils.strip(rowValue.getSimpleValueValue()))
-                  .orElse(null))
-              .filter(StringUtils::isNotBlank)
-              .collect(Collectors.toList()))
-          .orElseGet(ArrayList<String>::new);
-
-      final Optional<Identification> identification =
-          Optional.ofNullable(codelist.get().getIdentification());
-
-      // Version tag of the genericode (gc) file.
-      final Optional<String> codelistVersion = identification.map(Identification::getVersion);
-
-      final Optional<String> parentId = extractParentId(identification);
-
-      Optional<SdkCodelist> result = Optional.of(SdkEntityFactory.getSdkCodelist(sdkVersion,
-          codeListId, codelistVersion.orElse(null), codes, parentId));
-
-      logger.debug("Finished loading SDK codelist with ID [{}] for SDK version [{}] from path [{}]",
-          codeListId, sdkVersion, codelistsDir);
-
-      return result;
-    } catch (final IOException e) {
-      throw new RuntimeException(e);
+    if (codelist.isEmpty()) {
+      return Optional.empty();
     }
+
+    // Get all the code values in a list.
+    // We assume there are no duplicate code values in the referenced
+    // codelists.
+    final List<String> codes = codelist
+        .map(CodeListDocument::getSimpleCodeList)
+        .map(SimpleCodeList::getRow)
+        .map((List<Row> rows) -> rows.stream()
+            .map(Row::getValue)
+            .map((List<Value> rowValues) -> rowValues.stream()
+                .filter((Value rowValue) -> GenericodeTools.KEY_CODE
+                    .equals(GenericodeTools.extractColRefId(rowValue)))
+                .findFirst()
+                .map((Value rowValue) -> StringUtils.strip(rowValue.getSimpleValueValue()))
+                .orElse(null))
+            .filter(StringUtils::isNotBlank)
+            .collect(Collectors.toList()))
+        .orElseGet(ArrayList<String>::new);
+
+    final Optional<Identification> identification =
+        Optional.ofNullable(codelist.get().getIdentification());
+
+    // Version tag of the genericode (gc) file.
+    final Optional<String> codelistVersion = identification.map(Identification::getVersion);
+
+    final Optional<String> parentId = extractParentId(identification);
+
+    final Optional<SdkCodelist> result = Optional.of(SdkEntityFactory.getSdkCodelist(sdkVersion,
+        codeListId, codelistVersion.orElse(null), codes, parentId));
+
+    logger.debug("Finished loading SDK codelist with ID [{}] for SDK version [{}] from path [{}]",
+        codeListId, sdkVersion, codelistsDir);
+
+    return result;
   }
 
   /**
@@ -173,30 +163,70 @@ public class SdkCodelistRepository extends HashMap<String, SdkCodelist> {
 
   }
 
-  private Map<String, Path> getCodelistPaths(final Path pathFolder) throws IOException {
+  /**
+   * Loads all of the codelists by reading codelist files under a given a folder.
+   *
+   * @param codelistsDir The folder containing all codelist files
+   * @return A map of codelist IDs to codelist contents
+   * @throws IOException If there are failures when discovering and parsing the files
+   */
+  private Map<String, CodeListDocument> getCodelistContentsByCodelistIds(final Path codelistsDir)
+      throws IOException {
+    Validate.notNull(codelistsDir, "Undefined codelists directory");
+    Validate.isTrue(Files.isDirectory(codelistsDir),
+        MessageFormat.format("Not a directory: {0}", codelistsDir));
+
+    logger.debug("Getting codelist file paths from directory [{}]", codelistsDir);
+
     final int depth = 1; // Flat folder, not recursive for now.
 
-    Validate.isTrue(Files.isDirectory(pathFolder),
-        MessageFormat.format("Not a directory: {0}", pathFolder));
-
-    try (Stream<Path> walk = Files.walk(pathFolder, depth)) {
+    try (Stream<Path> walk = Files.walk(codelistsDir, depth)) {
       return walk
           .filter(this::isGenericodeFile)
           .map((@Nonnull Path path) -> {
-            final CodeListDocument cl = marshaller.read(path);
-            // We use the longName as a ID, PK in the the DB.
-            // But for the filenames we do not always follow this convention.
-            // So we need to map.
-            final Optional<String> longName = Optional.ofNullable(cl)
-                .map(CodeListDocument::getIdentification)
-                .map((Identification i) -> i.getLongNameAtIndex(0))
-                .map(LongName::getValue);
-
-            return longName.isPresent() ? Pair.of(longName.get(), path) : null;
+            try {
+              return getCodelistIdAndContents(path);
+            } catch (FileNotFoundException e) {
+              throw new RuntimeException(e);
+            }
           })
           .filter(Objects::nonNull)
           .collect(Collectors.toMap(Pair::getKey, Pair::getValue));
     }
+  }
+
+  /**
+   * Gets the codelist ID from a codelist file.
+   *
+   * @param codelistPath The codelist file's path
+   * @return The codelist ID and the codelist file's contents as a key/value pair
+   * @throws FileNotFoundException If the codelist file's path is undefined or not an existing file
+   */
+  @Nullable
+  private Pair<String, CodeListDocument> getCodelistIdAndContents(@Nonnull Path codelistPath)
+      throws FileNotFoundException {
+    Validate.notNull(codelistPath, "Undefined codelist path");
+
+    if (!Files.isRegularFile(codelistPath)) {
+      throw new FileNotFoundException(codelistPath.toString());
+    }
+
+    final Optional<CodeListDocument> codelist =
+        Optional.ofNullable(GenericodeTools.getMarshaller().read(codelistPath));
+
+    if (codelist.isPresent()) {
+      // We use the longName as a ID, PK in the the DB.
+      // But for the filenames we do not always follow this convention.
+      // So we need to map.
+      return codelist
+          .map(CodeListDocument::getIdentification)
+          .map((Identification identification) -> identification.getLongNameAtIndex(0))
+          .map(LongName::getValue)
+          .map((String longName) -> Pair.of(longName, codelist.get()))
+          .orElse(null);
+    }
+
+    return null;
   }
 
   private boolean isGenericodeFile(@Nullable final Path path) {
