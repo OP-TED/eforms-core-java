@@ -35,8 +35,8 @@ public class SdkComponentDescriptor<T> implements Serializable {
       Class<?>[] paramTypes = Arrays.asList(Optional.ofNullable(initArgs).orElse(new Object[0]))
           .stream().map(Object::getClass).collect(Collectors.toList()).toArray(new Class[0]);
 
-      logger.trace("Creating an instance of [{}] using constructor with parameter types: {}", implType,
-          paramTypes);
+      logger.trace("Creating an instance of [{}] using constructor with parameter types: {}",
+          implType, paramTypes);
 
       return (T) Arrays.asList(implType.getDeclaredConstructors()).stream()
           .filter((Constructor<?> c) -> {

@@ -15,11 +15,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * A factory for instantiating classes annotated with {@link SdkComponent}. 
+ * A factory for instantiating classes annotated with {@link SdkComponent}.
  */
 public abstract class SdkComponentFactory {
-  private static final Logger logger =
-      LoggerFactory.getLogger(SdkComponentFactory.class);
+  private static final Logger logger = LoggerFactory.getLogger(SdkComponentFactory.class);
 
   private Map<String, Map<SdkComponentType, SdkComponentDescriptor<?>>> componentsMap;
 
@@ -67,8 +66,7 @@ public abstract class SdkComponentFactory {
                 componentsMap.get(sdkVersion);
 
             if (components != null) {
-              SdkComponentDescriptor<?> existingComponent =
-                  components.get(componentType);
+              SdkComponentDescriptor<?> existingComponent = components.get(componentType);
 
               if (existingComponent != null && !existingComponent.equals(component)) {
                 throw new IllegalArgumentException(MessageFormat.format(
@@ -87,22 +85,20 @@ public abstract class SdkComponentFactory {
   }
 
   @SuppressWarnings("unchecked")
-  protected <T> T getComponentImpl(String sdkVersion,
-      final SdkComponentType componentType,
+  protected <T> T getComponentImpl(String sdkVersion, final SdkComponentType componentType,
       final Class<T> intf, Object... initArgs) throws InstantiationException {
 
     String normalizedVersion = normalizeVersion(sdkVersion);
 
     SdkComponentDescriptor<T> descriptor =
-        (SdkComponentDescriptor<T>) Optional
-            .ofNullable(componentsMap.get(normalizedVersion))
+        (SdkComponentDescriptor<T>) Optional.ofNullable(componentsMap.get(normalizedVersion))
             .orElseGet(Collections::emptyMap).get(componentType);
 
     if (descriptor == null) {
       logger.error("Failed to load required components of SDK [{}]", sdkVersion);
-      throw new IllegalArgumentException(MessageFormat
-          .format("No implementation found for component type [{0}] of SDK [{1}].", componentType,
-              sdkVersion));
+      throw new IllegalArgumentException(
+          MessageFormat.format("No implementation found for component type [{0}] of SDK [{1}].",
+              componentType, sdkVersion));
     }
 
     return descriptor.createInstance(initArgs);

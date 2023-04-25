@@ -49,7 +49,7 @@ class SdkDownloaderTest extends MavenTestSetup {
 
     SdkDownloader.downloadSdk("1.1", SDK_ROOT_DIR);
     checkVersions("1.1.0", "1.1.3", "1.1");
-}
+  }
 
   @Test
   void testDownloadSdkPatch() throws IOException {

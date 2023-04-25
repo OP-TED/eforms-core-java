@@ -25,15 +25,16 @@ public class ConsoleTransferListener extends AbstractTransferListener {
 
   private int lastLength;
 
-  public ConsoleTransferListener() {
-  }
+  public ConsoleTransferListener() {}
 
   @Override
   public void transferInitiated(TransferEvent event) {
     requireNonNull(event, "event cannot be null");
-    String message = event.getRequestType() == TransferEvent.RequestType.PUT ? "Uploading" : "Downloading";
+    String message =
+        event.getRequestType() == TransferEvent.RequestType.PUT ? "Uploading" : "Downloading";
 
-    logger.debug("{}: {}{}", message, event.getResource().getRepositoryUrl(), event.getResource().getResourceName());
+    logger.debug("{}: {}{}", message, event.getResource().getRepositoryUrl(),
+        event.getResource().getResourceName());
   }
 
   @Override
@@ -88,7 +89,8 @@ public class ConsoleTransferListener extends AbstractTransferListener {
     TransferResource resource = event.getResource();
     long contentLength = event.getTransferredBytes();
     if (contentLength >= 0) {
-      String type = (event.getRequestType() == TransferEvent.RequestType.PUT ? "Uploaded" : "Downloaded");
+      String type =
+          (event.getRequestType() == TransferEvent.RequestType.PUT ? "Uploaded" : "Downloaded");
       String len = contentLength >= 1024 ? toKB(contentLength) + " KB" : contentLength + " B";
 
       String throughput = "";
@@ -100,7 +102,8 @@ public class ConsoleTransferListener extends AbstractTransferListener {
         throughput = " at " + format.format(kbPerSec) + " KB/sec";
       }
 
-      logger.debug("{}: {}{} ({}{})", type, resource.getRepositoryUrl(), resource.getResourceName(), len, throughput);
+      logger.debug("{}: {}{} ({}{})", type, resource.getRepositoryUrl(), resource.getResourceName(),
+          len, throughput);
     }
   }
 

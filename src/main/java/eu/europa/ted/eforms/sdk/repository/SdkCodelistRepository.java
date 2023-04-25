@@ -120,8 +120,7 @@ public class SdkCodelistRepository extends HashMap<String, SdkCodelist> {
       final Optional<String> parentId = extractParentId(codelist.getIdentification());
 
       SdkCodelist result =
-          SdkEntityFactory.getSdkCodelist(sdkVersion, codeListId, codelistVersion, codes,
-              parentId);
+          SdkEntityFactory.getSdkCodelist(sdkVersion, codeListId, codelistVersion, codes, parentId);
 
       logger.debug("Finished loading SDK codelist with ID [{}] for SDK version [{}] from path [{}]",
           codeListId, sdkVersion, codelistsDir);
@@ -145,8 +144,7 @@ public class SdkCodelistRepository extends HashMap<String, SdkCodelist> {
   public static Optional<String> extractLongNameWithIdentifier(final Identification identity,
       final String identifierStr) {
     final Optional<LongName> valueOpt = identity.getLongName().stream()
-        .filter(item -> Objects.equals(item.getIdentifier(), identifierStr))
-        .findFirst();
+        .filter(item -> Objects.equals(item.getIdentifier(), identifierStr)).findFirst();
 
     if (valueOpt.isPresent()) {
       final String parentId = valueOpt.get().getValue();

@@ -15,8 +15,8 @@ public class SdkResourceLoader {
   private SdkResourceLoader() {}
 
   /**
-   * Returns the path to a resource under the given subfolder.
-   * The subfolder is meant to exist under the defined root path.
+   * Returns the path to a resource under the given subfolder. The subfolder is meant to exist under
+   * the defined root path.
    *
    * @param sdkVersion The target SDK version
    * @param resourceType The resource type

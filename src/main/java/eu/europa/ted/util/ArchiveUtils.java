@@ -28,8 +28,8 @@ public class ArchiveUtils {
   private ArchiveUtils() {}
 
   /**
-   * Unpacks a zipfile to a given directory.
-   * If the directory already exists, it will be deleted first.
+   * Unpacks a zipfile to a given directory. If the directory already exists, it will be deleted
+   * first.
    * 
    * @param archive Path of the zipfile to unpack
    * @param targetDir Target directory for unpacking

@@ -14,8 +14,9 @@ public class SdkEntityFactory extends SdkComponentFactory {
   }
 
   public static SdkCodelist getSdkCodelist(final String sdkVersion, final String codelistId,
-      final String codelistVersion, final List<String> codes, final Optional<String> parentId) throws InstantiationException {
-    return SdkEntityFactory.INSTANCE.getComponentImpl(sdkVersion, SdkComponentType.CODELIST, 
+      final String codelistVersion, final List<String> codes, final Optional<String> parentId)
+      throws InstantiationException {
+    return SdkEntityFactory.INSTANCE.getComponentImpl(sdkVersion, SdkComponentType.CODELIST,
         SdkCodelist.class, codelistId, codelistVersion, codes, parentId);
   }
 

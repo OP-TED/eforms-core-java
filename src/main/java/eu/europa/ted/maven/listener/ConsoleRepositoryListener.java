@@ -13,8 +13,7 @@ import org.slf4j.LoggerFactory;
 public class ConsoleRepositoryListener extends AbstractRepositoryListener {
   private static final Logger logger = LoggerFactory.getLogger(ConsoleRepositoryListener.class);
 
-  public ConsoleRepositoryListener() {
-  }
+  public ConsoleRepositoryListener() {}
 
   @Override
   public void artifactDeployed(RepositoryEvent event) {
@@ -31,7 +30,8 @@ public class ConsoleRepositoryListener extends AbstractRepositoryListener {
   @Override
   public void artifactDescriptorInvalid(RepositoryEvent event) {
     requireNonNull(event, "event cannot be null");
-    logger.debug("Invalid artifact descriptor for {}: {}", event.getArtifact(), event.getException().getMessage());
+    logger.debug("Invalid artifact descriptor for {}: {}", event.getArtifact(),
+        event.getException().getMessage());
   }
 
   public void artifactDescriptorMissing(RepositoryEvent event) {
