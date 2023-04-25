@@ -13,6 +13,7 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.RegExUtils;
 import org.apache.commons.lang3.Validate;
+import org.jooq.lambda.Unchecked;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -53,11 +54,11 @@ public class ArchiveUtils {
       Files.createDirectories(targetDir);
 
       file.stream().filter((ZipEntry entry) -> entry.getName().startsWith("eforms-sdk/"))
-          .forEach((ZipEntry entry) -> {
-            Path targetEntryPath = Path.of(targetDir.toString(),
-                RegExUtils.removeFirst(entry.getName(), "eforms-sdk/"));
-
+          .forEach(Unchecked.consumer((ZipEntry entry) -> {
             try {
+              Path targetEntryPath = Path.of(targetDir.toString(),
+                  RegExUtils.removeFirst(entry.getName(), "eforms-sdk/"));
+
               if (entry.isDirectory()) {
                 logger.trace("Creating directory [{}]", targetEntryPath);
                 Files.createDirectories(targetEntryPath);
@@ -70,10 +71,10 @@ public class ArchiveUtils {
                 logger.trace("Written file [{}]", targetEntryPath);
               }
             } catch (IOException e) {
-              throw new RuntimeException(MessageFormat.format(
-                  "Failed to extract files from archive [{0}]. Reason was: {1}", archive, e));
+              logger.error("Failed to extract files from archive [{}].", archive);
+              throw e;
             }
-          });
+          }));
     }
 
     logger.debug("Successfully unpacked artifact file [{}] onto [{}]", archive,

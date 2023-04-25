@@ -21,6 +21,7 @@ import org.apache.commons.lang3.Validate;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.lang3.tuple.Pair;
+import org.jooq.lambda.Unchecked;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import com.helger.genericode.v10.CodeListDocument;
@@ -77,13 +78,8 @@ public class SdkCodelistRepository extends HashMap<String, SdkCodelist> {
       return null;
     }
 
-    return computeIfAbsent((String) codelistId, (String key) -> {
-      try {
-        return loadSdkCodelist(key).orElse(null);
-      } catch (InstantiationException e) {
-        throw new RuntimeException(e);
-      }
-    });
+    return computeIfAbsent((String) codelistId,
+        Unchecked.function((String key) -> loadSdkCodelist(key).orElse(null)));
   }
 
   @Nullable
@@ -185,13 +181,7 @@ public class SdkCodelistRepository extends HashMap<String, SdkCodelist> {
     try (Stream<Path> walk = Files.walk(codelistsDir, depth)) {
       return walk
           .filter(this::isGenericodeFile)
-          .map((@Nonnull Path path) -> {
-            try {
-              return getCodelistIdAndContents(path);
-            } catch (FileNotFoundException e) {
-              throw new RuntimeException(e);
-            }
-          })
+          .map(Unchecked.function(this::getCodelistIdAndContents))
           .filter(Objects::nonNull)
           .collect(Collectors.toMap(Pair::getKey, Pair::getValue));
     }

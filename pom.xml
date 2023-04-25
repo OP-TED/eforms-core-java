@@ -58,6 +58,7 @@
     <version.commons-lang3>3.12.0</version.commons-lang3>
     <version.jackson>2.13.4</version.jackson>
     <version.jackson-databind>2.13.4.2</version.jackson-databind>
+    <version.jool>0.9.15</version.jool>
     <version.jsr305>3.0.2</version.jsr305>
     <version.junit>5.7.2</version.junit>
     <version.logback>1.4.4</version.logback>
@@ -208,6 +209,11 @@
         <version>${version.jsr305}</version>
       </dependency>
       <dependency>
+        <groupId>org.jooq</groupId>
+        <artifactId>jool</artifactId>
+        <version>${version.jool}</version>
+      </dependency>
+      <dependency>
         <groupId>org.junit.jupiter</groupId>
         <artifactId>junit-jupiter-api</artifactId>
         <version>${version.junit}</version>
@@ -323,6 +329,10 @@
       <groupId>com.google.code.findbugs</groupId>
       <artifactId>jsr305</artifactId>
       <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.jooq</groupId>
+      <artifactId>jool</artifactId>
     </dependency>
     <dependency>
       <groupId>org.junit.jupiter</groupId>
