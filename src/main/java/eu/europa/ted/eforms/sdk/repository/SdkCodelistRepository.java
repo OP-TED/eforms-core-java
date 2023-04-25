@@ -18,6 +18,8 @@ import javax.annotation.Nullable;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
+import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -234,5 +236,15 @@ public class SdkCodelistRepository extends HashMap<String, SdkCodelist> {
         && Files.isRegularFile(path)
         && GenericodeTools.EXTENSION_DOT_GC
             .equals(MessageFormat.format(".{0}", FilenameUtils.getExtension(path.toString())));
+  }
+
+  @Override
+  public int hashCode() {
+    return HashCodeBuilder.reflectionHashCode(this);
+  }
+
+  @Override
+  public boolean equals(Object obj) {
+    return EqualsBuilder.reflectionEquals(this, obj);
   }
 }
