@@ -1,6 +1,8 @@
 package eu.europa.ted.util;
 
 import java.nio.charset.StandardCharsets;
+import java.util.Optional;
+import javax.annotation.Nullable;
 import com.helger.genericode.Genericode10CodeListMarshaller;
 import com.helger.genericode.v10.Column;
 import com.helger.genericode.v10.Value;
@@ -32,7 +34,13 @@ public class GenericodeTools {
     return marshaller;
   }
 
-  public static String extractColRefId(final Value value) {
-    return ((Column) value.getColumnRef()).getId();
+  @Nullable
+  public static String extractColRefId(@Nullable final Value value) {
+    if (value == null) {
+      return null;
+    }
+
+    return Optional.ofNullable((Column) value.getColumnRef())
+        .orElse(new Column()).getId();
   }
 }
