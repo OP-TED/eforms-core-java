@@ -11,6 +11,7 @@ import org.eclipse.aether.transport.http.HttpTransporterFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+@SuppressWarnings("deprecation")
 public class ManualRepositorySystemFactory {
   private static final Logger logger = LoggerFactory.getLogger(ManualRepositorySystemFactory.class);
 

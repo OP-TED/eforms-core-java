@@ -16,7 +16,7 @@ public abstract class SdkField implements Comparable<SdkField> {
     throw new UnsupportedOperationException();
   }
 
-  public SdkField(final String id, final String type, final String parentNodeId,
+  protected SdkField(final String id, final String type, final String parentNodeId,
       final String xpathAbsolute, final String xpathRelative, final String codelistId) {
     this.id = id;
     this.parentNodeId = parentNodeId;
@@ -26,7 +26,7 @@ public abstract class SdkField implements Comparable<SdkField> {
     this.codelistId = codelistId;
   }
 
-  public SdkField(final JsonNode fieldNode) {
+  protected SdkField(final JsonNode fieldNode) {
     this.id = fieldNode.get("id").asText(null);
     this.parentNodeId = fieldNode.get("parentNodeId").asText(null);
     this.xpathAbsolute = fieldNode.get("xpathAbsolute").asText(null);

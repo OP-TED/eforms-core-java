@@ -33,8 +33,10 @@ public class SdkResourceLoader {
     final String sdkDir =
         sdkVersion.isPatch() ? sdkVersion.toString() : sdkVersion.toStringWithoutPatch();
 
-    final String resourcePath = Optional.ofNullable(resourceType).map(PathResource::getPath)
-        .orElse(Path.of(StringUtils.EMPTY)).toString();
+    final String resourcePath = Optional.ofNullable(resourceType)
+        .map(PathResource::getPath)
+        .map(Path::toString)
+        .orElse(StringUtils.EMPTY);
 
     filename = Optional.ofNullable(filename).orElse(StringUtils.EMPTY);
 

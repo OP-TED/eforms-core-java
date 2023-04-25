@@ -155,7 +155,7 @@ public class SdkDownloader {
             .map((Version version) -> new SdkVersion(version.toString()))
             .filter((SdkVersion v) -> v.getMajor().equals(baseVersion.getMajor())
                 && v.getMinor().equals(baseVersion.getMinor()))
-            .max((SdkVersion i, SdkVersion j) -> i.compareTo(j)).orElseThrow();
+            .max(Comparable::compareTo).orElseThrow();
       } else {
         Version highestVersion = versions.getHighestVersion();
 
