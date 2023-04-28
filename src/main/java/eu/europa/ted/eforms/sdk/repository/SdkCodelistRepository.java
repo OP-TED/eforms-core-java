@@ -13,8 +13,6 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
@@ -49,7 +47,7 @@ public class SdkCodelistRepository extends HashMap<String, SdkCodelist> {
     throw new UnsupportedOperationException();
   }
 
-  public SdkCodelistRepository(@Nonnull final String sdkVersion, final Path codelistsDir) {
+  public SdkCodelistRepository(final String sdkVersion, final Path codelistsDir) {
     this.sdkVersion = Validate.notBlank(sdkVersion, "Undefined SDK version");
     this.codelistsDir = Validate.notNull(codelistsDir, "Undefined codelists directory");
 
@@ -71,7 +69,6 @@ public class SdkCodelistRepository extends HashMap<String, SdkCodelist> {
    * @param codelistId A reference to an SDK codelist.
    * @return The EFX string representation of the list of all the codes of the referenced codelist.
    */
-  @Nullable
   @Override
   public final SdkCodelist get(final Object codelistId) {
     if (codelistId == null) {
@@ -82,13 +79,12 @@ public class SdkCodelistRepository extends HashMap<String, SdkCodelist> {
         Unchecked.function((String key) -> loadSdkCodelist(key).orElse(null)));
   }
 
-  @Nullable
   @Override
   public SdkCodelist getOrDefault(final Object codelistId, final SdkCodelist defaultValue) {
     return Optional.ofNullable(get(codelistId)).orElse(defaultValue);
   }
 
-  private Optional<SdkCodelist> loadSdkCodelist(@Nullable final String codeListId)
+  private Optional<SdkCodelist> loadSdkCodelist(final String codeListId)
       throws InstantiationException {
     logger.debug("Loading SDK codelist with ID [{}] for SDK version [{}] from path [{}]",
         codeListId, sdkVersion, codelistsDir);
@@ -194,8 +190,7 @@ public class SdkCodelistRepository extends HashMap<String, SdkCodelist> {
    * @return The codelist ID and the codelist file's contents as a key/value pair
    * @throws FileNotFoundException If the codelist file's path is undefined or not an existing file
    */
-  @Nullable
-  private Pair<String, CodeListDocument> getCodelistIdAndContents(@Nonnull Path codelistPath)
+  private Pair<String, CodeListDocument> getCodelistIdAndContents(Path codelistPath)
       throws FileNotFoundException {
     Validate.notNull(codelistPath, "Undefined codelist path");
 
@@ -221,7 +216,7 @@ public class SdkCodelistRepository extends HashMap<String, SdkCodelist> {
     return null;
   }
 
-  private boolean isGenericodeFile(@Nullable final Path path) {
+  private boolean isGenericodeFile(final Path path) {
     return path != null
         && Files.isRegularFile(path)
         && GenericodeTools.EXTENSION_DOT_GC

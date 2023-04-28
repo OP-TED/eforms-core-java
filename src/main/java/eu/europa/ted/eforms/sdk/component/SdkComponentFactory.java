@@ -8,7 +8,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Stream;
-import javax.annotation.Nonnull;
 import org.reflections.Reflections;
 import org.reflections.util.ClasspathHelper;
 import org.reflections.util.ConfigurationBuilder;
@@ -59,7 +58,7 @@ public abstract class SdkComponentFactory {
           logger.trace("Class [{}] has a component type of [{}] and supports SDK versions [{}]",
               clazz, componentType, supportedSdkVersions);
 
-          Arrays.asList(supportedSdkVersions).forEach((@Nonnull String sdkVersion) -> {
+          Arrays.asList(supportedSdkVersions).forEach((String sdkVersion) -> {
             SdkComponentDescriptor<?> component =
                 new SdkComponentDescriptor<>(sdkVersion, componentType, clazz);
 

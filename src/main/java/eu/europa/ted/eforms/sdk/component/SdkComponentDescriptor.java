@@ -9,7 +9,6 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
-import javax.annotation.Nonnull;
 import org.apache.commons.lang3.Validate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -25,8 +24,8 @@ public class SdkComponentDescriptor<T> implements Serializable {
 
   private Class<T> implType;
 
-  public SdkComponentDescriptor(@Nonnull String sdkVersion, @Nonnull SdkComponentType componentType,
-      @Nonnull Class<T> implType) {
+  public SdkComponentDescriptor(String sdkVersion, SdkComponentType componentType,
+      Class<T> implType) {
     this.sdkVersion = Validate.notBlank(sdkVersion, "Undefined SDK version");
     this.componentType = Validate.notNull(componentType, "Undefined component type");
     this.implType = Validate.notNull(implType, "Undefined implementation type");
@@ -60,8 +59,7 @@ public class SdkComponentDescriptor<T> implements Serializable {
     }
   }
 
-  private Constructor<?> getConstructorAfterAmbiguityCheck(
-      @Nonnull List<Constructor<?>> constructors) {
+  private Constructor<?> getConstructorAfterAmbiguityCheck(List<Constructor<?>> constructors) {
     Validate.notNull(constructors, "No constructors found");
 
     if (constructors.size() != 1) {
