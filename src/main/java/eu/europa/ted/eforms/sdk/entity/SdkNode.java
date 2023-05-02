@@ -13,7 +13,7 @@ public abstract class SdkNode implements Comparable<SdkNode> {
   private final String parentId;
   private final boolean repeatable;
 
-  public SdkNode(final String id, final String parentId, final String xpathAbsolute,
+  protected SdkNode(final String id, final String parentId, final String xpathAbsolute,
       final String xpathRelative, final boolean repeatable) {
     this.id = id;
     this.parentId = parentId;
@@ -22,13 +22,13 @@ public abstract class SdkNode implements Comparable<SdkNode> {
     this.repeatable = repeatable;
   }
 
-  public SdkNode(JsonNode node) {
+  protected SdkNode(JsonNode node) {
     this.id = node.get("id").asText(null);
     this.parentId = node.has("parentId") ? node.get("parentId").asText(null) : null;
     this.xpathAbsolute = node.get("xpathAbsolute").asText(null);
     this.xpathRelative = node.get("xpathRelative").asText(null);
     this.repeatable =
-        node.hasNonNull("repeatable") ? node.get("repeatable").asBoolean(false) : false;
+        node.hasNonNull("repeatable") && node.get("repeatable").asBoolean(false);
   }
 
   public String getId() {

@@ -34,7 +34,7 @@ public abstract class SdkCodelist implements Comparable<SdkCodelist> {
    *        the SDK version. It can be useful for debug purposes and to avoid conflicts.
    * @param parentId The identifier of the parent codelist, (required only for tailored codelists).
    */
-  public SdkCodelist(final String codelistId, final String codelistVersion,
+  protected SdkCodelist(final String codelistId, final String codelistVersion,
       final List<String> codes, final Optional<String> parentId) {
     this.codelistId = codelistId;
     this.codelistVersion = codelistVersion;

@@ -15,8 +15,8 @@ public class SdkResourceLoader {
   private SdkResourceLoader() {}
 
   /**
-   * Returns the path to a resource under the given subfolder.
-   * The subfolder is meant to exist under the defined root path.
+   * Returns the path to a resource under the given subfolder. The subfolder is meant to exist under
+   * the defined root path.
    *
    * @param sdkVersion The target SDK version
    * @param resourceType The resource type
@@ -33,8 +33,10 @@ public class SdkResourceLoader {
     final String sdkDir =
         sdkVersion.isPatch() ? sdkVersion.toString() : sdkVersion.toStringWithoutPatch();
 
-    final String resourcePath = Optional.ofNullable(resourceType).map(PathResource::getPath)
-        .orElse(Path.of(StringUtils.EMPTY)).toString();
+    final String resourcePath = Optional.ofNullable(resourceType)
+        .map(PathResource::getPath)
+        .map(Path::toString)
+        .orElse(StringUtils.EMPTY);
 
     filename = Optional.ofNullable(filename).orElse(StringUtils.EMPTY);
 

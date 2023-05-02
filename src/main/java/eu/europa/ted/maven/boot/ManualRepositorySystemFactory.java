@@ -11,17 +11,17 @@ import org.eclipse.aether.transport.http.HttpTransporterFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+@SuppressWarnings("deprecation")
 public class ManualRepositorySystemFactory {
   private static final Logger logger = LoggerFactory.getLogger(ManualRepositorySystemFactory.class);
 
-  private ManualRepositorySystemFactory() {
-  }
+  private ManualRepositorySystemFactory() {}
 
   public static RepositorySystem newRepositorySystem() {
     /*
-     * Aether's components implement org.eclipse.aether.spi.locator.Service to ease
-     * manual wiring and using the prepopulated DefaultServiceLocator, we only need
-     * to register the repository connector and transporter factories.
+     * Aether's components implement org.eclipse.aether.spi.locator.Service to ease manual wiring
+     * and using the prepopulated DefaultServiceLocator, we only need to register the repository
+     * connector and transporter factories.
      */
     DefaultServiceLocator locator = MavenRepositorySystemUtils.newServiceLocator()
         .addService(RepositoryConnectorFactory.class, BasicRepositoryConnectorFactory.class)
@@ -31,7 +31,8 @@ public class ManualRepositorySystemFactory {
     locator.setErrorHandler(new DefaultServiceLocator.ErrorHandler() {
       @Override
       public void serviceCreationFailed(Class<?> type, Class<?> impl, Throwable exception) {
-        logger.debug("Service creation failed for {} with implementation {}", type, impl, exception);
+        logger.debug("Service creation failed for {} with implementation {}", type, impl,
+            exception);
       }
     });
 

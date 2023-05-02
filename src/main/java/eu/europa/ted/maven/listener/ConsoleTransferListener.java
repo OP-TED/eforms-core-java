@@ -1,13 +1,11 @@
 package eu.europa.ted.maven.listener;
 
 import static java.util.Objects.requireNonNull;
-
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-
 import org.eclipse.aether.transfer.AbstractTransferListener;
 import org.eclipse.aether.transfer.MetadataNotFoundException;
 import org.eclipse.aether.transfer.TransferEvent;
@@ -21,28 +19,33 @@ import org.slf4j.LoggerFactory;
 public class ConsoleTransferListener extends AbstractTransferListener {
   private static final Logger logger = LoggerFactory.getLogger(ConsoleTransferListener.class);
 
+  private static final String EVENT_CANNOT_BE_NULL = "event cannot be null";
+
   private final Map<TransferResource, Long> downloads = new ConcurrentHashMap<>();
 
   private int lastLength;
 
   public ConsoleTransferListener() {
+    // Default Constructor
   }
 
   @Override
   public void transferInitiated(TransferEvent event) {
-    requireNonNull(event, "event cannot be null");
-    String message = event.getRequestType() == TransferEvent.RequestType.PUT ? "Uploading" : "Downloading";
+    requireNonNull(event, EVENT_CANNOT_BE_NULL);
+    String message =
+        event.getRequestType() == TransferEvent.RequestType.PUT ? "Uploading" : "Downloading";
 
-    logger.debug("{}: {}{}", message, event.getResource().getRepositoryUrl(), event.getResource().getResourceName());
+    logger.debug("{}: {}{}", message, event.getResource().getRepositoryUrl(),
+        event.getResource().getResourceName());
   }
 
   @Override
   public void transferProgressed(TransferEvent event) {
-    requireNonNull(event, "event cannot be null");
+    requireNonNull(event, EVENT_CANNOT_BE_NULL);
     TransferResource resource = event.getResource();
     downloads.put(resource, event.getTransferredBytes());
 
-    StringBuilder buffer = new StringBuilder(64);
+    final StringBuilder buffer = new StringBuilder(64);
 
     for (Map.Entry<TransferResource, Long> entry : downloads.entrySet()) {
       long total = entry.getKey().getContentLength();
@@ -56,7 +59,8 @@ public class ConsoleTransferListener extends AbstractTransferListener {
     pad(buffer, pad);
     buffer.append('\r');
 
-    logger.debug(buffer.toString());
+    final String message = buffer.toString();
+    logger.debug(message);
   }
 
   private String getStatus(long complete, long total) {
@@ -82,13 +86,14 @@ public class ConsoleTransferListener extends AbstractTransferListener {
 
   @Override
   public void transferSucceeded(TransferEvent event) {
-    requireNonNull(event, "event cannot be null");
+    requireNonNull(event, EVENT_CANNOT_BE_NULL);
     transferCompleted(event);
 
     TransferResource resource = event.getResource();
     long contentLength = event.getTransferredBytes();
     if (contentLength >= 0) {
-      String type = (event.getRequestType() == TransferEvent.RequestType.PUT ? "Uploaded" : "Downloaded");
+      String type =
+          (event.getRequestType() == TransferEvent.RequestType.PUT ? "Uploaded" : "Downloaded");
       String len = contentLength >= 1024 ? toKB(contentLength) + " KB" : contentLength + " B";
 
       String throughput = "";
@@ -100,13 +105,14 @@ public class ConsoleTransferListener extends AbstractTransferListener {
         throughput = " at " + format.format(kbPerSec) + " KB/sec";
       }
 
-      logger.debug("{}: {}{} ({}{})", type, resource.getRepositoryUrl(), resource.getResourceName(), len, throughput);
+      logger.debug("{}: {}{} ({}{})", type, resource.getRepositoryUrl(), resource.getResourceName(),
+          len, throughput);
     }
   }
 
   @Override
   public void transferFailed(TransferEvent event) {
-    requireNonNull(event, "event cannot be null");
+    requireNonNull(event, EVENT_CANNOT_BE_NULL);
     transferCompleted(event);
 
     if (!(event.getException() instanceof MetadataNotFoundException)) {
@@ -115,18 +121,20 @@ public class ConsoleTransferListener extends AbstractTransferListener {
   }
 
   private void transferCompleted(TransferEvent event) {
-    requireNonNull(event, "event cannot be null");
+    requireNonNull(event, EVENT_CANNOT_BE_NULL);
     downloads.remove(event.getResource());
 
-    StringBuilder buffer = new StringBuilder(64);
+    final StringBuilder buffer = new StringBuilder(64);
     pad(buffer, lastLength);
     buffer.append('\r');
-    logger.debug(buffer.toString());
+
+    final String message = buffer.toString();
+    logger.debug(message);
   }
 
   @Override
   public void transferCorrupted(TransferEvent event) {
-    requireNonNull(event, "event cannot be null");
+    requireNonNull(event, EVENT_CANNOT_BE_NULL);
     logger.debug("Transfer corrupted.", event.getException());
   }
 
