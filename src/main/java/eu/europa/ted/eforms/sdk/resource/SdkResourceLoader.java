@@ -6,6 +6,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.text.MessageFormat;
 import java.util.Optional;
+import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
 import eu.europa.ted.eforms.sdk.SdkConstants;
@@ -24,11 +25,9 @@ public class SdkResourceLoader {
    * @param sdkRootPath Path of the root SDK folder
    * @return The target resource's path
    */
-  public static Path getResourceAsPath(final SdkVersion sdkVersion, final PathResource resourceType,
-      String filename, Path sdkRootPath) {
+  public static Path getResourceAsPath(final SdkVersion sdkVersion,
+      final PathResource resourceType, String filename, Path sdkRootPath) {
     Validate.notNull(sdkVersion, "Undefined SDK version");
-
-    sdkRootPath = Optional.ofNullable(sdkRootPath).orElse(SdkConstants.DEFAULT_SDK_ROOT);
 
     final String sdkDir =
         sdkVersion.isPatch() ? sdkVersion.toString() : sdkVersion.toStringWithoutPatch();
@@ -38,7 +37,8 @@ public class SdkResourceLoader {
         .map(Path::toString)
         .orElse(StringUtils.EMPTY);
 
-    filename = Optional.ofNullable(filename).orElse(StringUtils.EMPTY);
+    sdkRootPath = ObjectUtils.defaultIfNull(sdkRootPath, SdkConstants.DEFAULT_SDK_ROOT);
+    filename = ObjectUtils.defaultIfNull(filename, StringUtils.EMPTY);
 
     final Path result =
         Path.of(sdkRootPath.toString(), sdkDir, resourcePath, filename).toAbsolutePath();
@@ -49,18 +49,19 @@ public class SdkResourceLoader {
     return result;
   }
 
-  public static Path getResourceAsPath(final SdkVersion sdkVersion, final PathResource resourceType,
+  public static Path getResourceAsPath(final SdkVersion sdkVersion,
+      final PathResource resourceType,
       Path sdkRootPath) {
     return getResourceAsPath(sdkVersion, resourceType, null, sdkRootPath);
   }
 
-  public static Path getResourceAsPath(final String sdkVersion, final PathResource resourceType,
-      String filename, Path sdkRootPath) {
+  public static Path getResourceAsPath(final String sdkVersion,
+      final PathResource resourceType, String filename, Path sdkRootPath) {
     return getResourceAsPath(new SdkVersion(sdkVersion), resourceType, filename, sdkRootPath);
   }
 
-  public static Path getResourceAsPath(final String sdkVersion, final PathResource resourceType,
-      Path sdkRootPath) {
+  public static Path getResourceAsPath(final String sdkVersion,
+      final PathResource resourceType, Path sdkRootPath) {
     return getResourceAsPath(new SdkVersion(sdkVersion), resourceType, sdkRootPath);
   }
 

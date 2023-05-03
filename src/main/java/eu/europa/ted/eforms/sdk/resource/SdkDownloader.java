@@ -152,10 +152,12 @@ public class SdkDownloader {
        */
       if (baseVersion.getMajor().equals("0")) {
         return versions.getVersions().stream()
-            .map((Version version) -> new SdkVersion(version.toString()))
+            .map(Object::toString)
+            .map(SdkVersion::new)
             .filter((SdkVersion v) -> v.getMajor().equals(baseVersion.getMajor())
                 && v.getMinor().equals(baseVersion.getMinor()))
-            .max(Comparable::compareTo).orElseThrow();
+            .max(Comparable::compareTo)
+            .orElseThrow();
       } else {
         Version highestVersion = versions.getHighestVersion();
 

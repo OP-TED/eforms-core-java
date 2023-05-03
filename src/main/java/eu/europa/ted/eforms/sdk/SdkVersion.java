@@ -12,7 +12,9 @@ public class SdkVersion implements Comparable<SdkVersion> {
   private static final String FORMAT_PATTERN = "{0}.{1}.{2}";
 
   private String major = "0";
+
   private String minor = "0";
+
   private String patch = "0";
 
   private boolean isPatch = false;
