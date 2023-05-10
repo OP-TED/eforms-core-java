@@ -35,17 +35,19 @@
   <distributionManagement>
     <snapshotRepository>
       <id>ossrh</id>
-      <url>https://s01.oss.sonatype.org/content/repositories/snapshots</url>
+      <url>https://${sonatype.server.url}/content/repositories/snapshots</url>
     </snapshotRepository>
     <repository>
       <id>ossrh</id>
-      <url>https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/</url>
+      <url>https://${sonatype.server.url}/service/local/staging/deploy/maven2/</url>
     </repository>
   </distributionManagement>
 
   <properties>
     <project.build.outputTimestamp>2023-01-31T18:04:53Z</project.build.outputTimestamp>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+
+    <sonatype.server.url>s01.oss.sonatype.org</sonatype.server.url>
 
     <!-- Java compiler -->
     <java.version>11</java.version>
@@ -77,6 +79,7 @@
     <version.source.plugin>3.2.1</version.source.plugin>
     <version.jar.plugin>3.3.0</version.jar.plugin>
     <version.surefire.plugin>3.0.0-M7</version.surefire.plugin> <!-- Versions prior to 3.0.x do not pick up Junit 5 tests correctly. -->
+    <version.nexus-staging.plugin>1.6.7</version.nexus-staging.plugin>
   </properties>
 
   <dependencyManagement>
@@ -375,6 +378,11 @@
           <artifactId>maven-gpg-plugin</artifactId>
           <version>${version.gpg.plugin}</version>
         </plugin>
+        <plugin>
+          <groupId>org.sonatype.plugins</groupId>
+          <artifactId>nexus-staging-maven-plugin</artifactId>
+          <version>${version.nexus-staging.plugin}</version>
+        </plugin>
       </plugins>
     </pluginManagement>
   </build>
@@ -430,6 +438,16 @@
               </gpgArguments>
             </configuration>
           </plugin>
+           <plugin>
+              <groupId>org.sonatype.plugins</groupId>
+              <artifactId>nexus-staging-maven-plugin</artifactId>
+              <extensions>true</extensions>
+              <configuration>
+                <serverId>ossrh</serverId>
+                <nexusUrl>https://${sonatype.server.url}/</nexusUrl>
+                <autoReleaseAfterClose>true</autoReleaseAfterClose>
+              </configuration>
+           </plugin>
         </plugins>
       </build>
     </profile>
