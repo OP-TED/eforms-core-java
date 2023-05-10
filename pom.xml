@@ -3,7 +3,7 @@
 
   <groupId>eu.europa.ted.eforms</groupId>
   <artifactId>eforms-core-java</artifactId>
-  <version>1.0.4-SNAPSHOT</version>
+  <version>1.0.5-SNAPSHOT</version>
 
   <name>eForms Core Library</name>
   <description>API and tools for eForms applications.</description>
@@ -44,7 +44,7 @@
   </distributionManagement>
 
   <properties>
-    <project.build.outputTimestamp>2023-01-31T18:04:53Z</project.build.outputTimestamp>
+    <project.build.outputTimestamp>2023-05-10T15:47:46Z</project.build.outputTimestamp>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
     <sonatype.server.url>s01.oss.sonatype.org</sonatype.server.url>
