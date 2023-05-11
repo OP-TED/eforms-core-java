@@ -44,11 +44,7 @@
   </distributionManagement>
 
   <properties>
-<<<<<<< HEAD
     <project.build.outputTimestamp>2023-05-10T15:47:46Z</project.build.outputTimestamp>
-=======
-    <project.build.outputTimestamp>2023-05-10T15:13:30Z</project.build.outputTimestamp>
->>>>>>> origin/main
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
     <sonatype.server.url>s01.oss.sonatype.org</sonatype.server.url>
