@@ -1,0 +1,19 @@
+{
+  "ublVersion" : "2.3",
+  "sdkVersion" : "1.6.0",
+  "metadataDatabase" : {
+    "version" : "1.6.0",
+    "createdOn" : "2023-02-17T12:00:00"
+  },
+  "codelists" : [{
+    "id" : "accessibility",
+    "filename" : "accessibility.gc",
+    "description" : "This table provides a list of options for the use of accessibility criteria for person with disabilities in the technical specifications within the domain of public procurement.",
+    "_label" : "codelist|name|accessibility"
+  }, {
+    "id" : "criterion",
+    "filename" : "criterion.gc",
+    "description" : "This table provides criteria used for public procurement procedures.",
+    "_label" : "codelist|name|criterion"
+  }]
+}
