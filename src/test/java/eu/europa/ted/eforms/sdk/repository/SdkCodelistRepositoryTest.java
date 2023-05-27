@@ -11,14 +11,10 @@ import com.helger.genericode.v10.LongName;
 import eu.europa.ted.eforms.sdk.entity.SdkCodelist;
 
 class SdkCodelistRepositoryTest {
-  private SdkCodelistRepository repository;
   private Identification identification;
 
   @BeforeEach
   public void setUp() {
-    repository =
-        new SdkCodelistRepository("999.0", Path.of("src", "test", "resources", "codelists", "/"));
-
     identification = new Identification();
 
     final LongName longName1 = new LongName("test-codelist-parentId");
@@ -31,20 +27,32 @@ class SdkCodelistRepositoryTest {
 
   @Test
   void testGetObject() {
-    Optional<SdkCodelist> codelist = Optional.ofNullable(repository.get("test-codelist"));
+    final SdkCodelistRepository repository =
+        new SdkCodelistRepository("999.0", Path.of("src", "test", "resources", "codelists", "/"));
 
-    assertEquals("test-codelist", codelist.map(SdkCodelist::getCodelistId).orElse(null));
-    assertEquals(Arrays.asList("inc"), codelist.map(SdkCodelist::getCodes).orElse(null));
+    Optional<SdkCodelist> codelist = Optional.ofNullable(repository.get("accessibility"));
+
+    assertEquals("accessibility", codelist.map(SdkCodelist::getCodelistId).orElse(null));
+    assertEquals(Arrays.asList("inc", "n-inc", "n-inc-just"),
+        codelist.map(SdkCodelist::getCodes).orElse(null));
+
+    codelist = Optional.ofNullable(repository.get("criterion"));
+    assertEquals("criterion", codelist.map(SdkCodelist::getCodelistId).orElse(null));
+    assertEquals(Arrays.asList("autorisation", "aver-year-to", "bankr-nat", "bankruptcy"),
+        codelist.map(SdkCodelist::getCodes).orElse(null));
   }
 
   @Test
   void testGetOrDefaultObjectSdkCodelist() {
-    SdkCodelist defaultCodelist =
+    final SdkCodelistRepository repository =
+        new SdkCodelistRepository("999.0", Path.of("src", "test", "resources", "codelists", "/"));
+
+    final SdkCodelist defaultCodelist =
         new DummySdkCodelist("default-codelist", "1", Arrays.asList("code1", "code2"), null);
 
     Optional<SdkCodelist> codelist =
-        Optional.ofNullable(repository.getOrDefault("test-codelist", defaultCodelist));
-    assertEquals("test-codelist", codelist.map(SdkCodelist::getCodelistId).orElse(null));
+        Optional.ofNullable(repository.getOrDefault("accessibility", defaultCodelist));
+    assertEquals("accessibility", codelist.map(SdkCodelist::getCodelistId).orElse(null));
 
     codelist =
         Optional.ofNullable(repository.getOrDefault("nonexisting-codelist", defaultCodelist));
