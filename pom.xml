@@ -68,6 +68,7 @@
     <version.ph-genericode>6.2.0</version.ph-genericode>
     <version.reflections>0.10.2</version.reflections>
     <version.resolver>1.8.2</version.resolver>
+    <version.semver4j>3.1.0</version.semver4j>
     <version.slf4j>2.0.3</version.slf4j>
 
     <!-- Versions - Plugins -->
@@ -220,6 +221,11 @@
         <artifactId>junit-jupiter-api</artifactId>
         <version>${version.junit}</version>
       </dependency>
+      <dependency>
+        <groupId>com.vdurmont</groupId>
+        <artifactId>semver4j</artifactId>
+        <version>${version.semver4j}</version>
+      </dependency>
     </dependencies>
   </dependencyManagement>
 
@@ -340,6 +346,10 @@
       <groupId>org.junit.jupiter</groupId>
       <artifactId>junit-jupiter-api</artifactId>
       <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>com.vdurmont</groupId>
+      <artifactId>semver4j</artifactId>
     </dependency>
   </dependencies>
 

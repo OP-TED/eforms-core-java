@@ -1,79 +1,60 @@
 package eu.europa.ted.eforms.sdk;
 
-import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
-import java.util.Optional;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
 
+import com.vdurmont.semver4j.Semver;
+import com.vdurmont.semver4j.Semver.SemverType;
+
 public class SdkVersion implements Comparable<SdkVersion> {
-  private static final String FORMAT_PATTERN = "{0}.{1}.{2}";
 
-  private String major = "0";
-
-  private String minor = "0";
-
-  private String patch = "0";
-
-  private boolean isPatch = false;
-
-  @SuppressWarnings("unused")
-  private SdkVersion() {}
+  private final Semver version;
 
   public SdkVersion(final String version) {
     Validate.notBlank(version, "Undefined version");
-    Validate.matchesPattern(version, "[0-9]+(\\.[0-9]+)*(-SNAPSHOT)?", "Invalid version format");
 
-    String[] versionParts = version.split("\\.");
+    // LOOSE because we need to accept MAJOR.MINOR
+    this.version = new Semver(version, SemverType.LOOSE);
 
-    this.major = versionParts[0];
-
-    if (versionParts.length > 1) {
-      this.minor = versionParts[1];
-    }
-
-    if (versionParts.length > 2) {
-      this.isPatch = true;
-      this.patch = versionParts[2];
-    }
+    // Check that we did get a MINOR part
+    Validate.notNull(this.version.getMinor());
   }
 
   public String getMajor() {
-    return major;
+    return version.getMajor().toString();
   }
 
   public String getMinor() {
-    return minor;
+    return version.getMinor().toString();
   }
 
   public String getPatch() {
-    return patch;
+    return version.getPatch() == null ? "0" : version.getPatch().toString();
   }
 
   public String getNextMajor() {
-    return new SdkVersion(MessageFormat.format(FORMAT_PATTERN, getAsInt(major) + 1, minor, patch))
-        .toString();
+    return version.withIncMajor().toString();
   }
 
   public String getNextMinor() {
-    return new SdkVersion(MessageFormat.format(FORMAT_PATTERN, major, getAsInt(minor) + 1, patch))
-        .toString();
+    return version.withIncMinor().toString();
   }
 
   public boolean isPatch() {
-    return isPatch;
+    return version.getPatch() != null;
   }
 
   public String toNormalisedString(boolean withPatch) {
     List<String> parts = new ArrayList<>();
 
-    parts.add(major);
-    parts.add(minor);
+    parts.add(getMajor());
+    parts.add(getMinor());
 
     if (withPatch) {
-      parts.add(patch);
+      parts.add(getPatch());
     }
 
     return StringUtils.join(parts, ".");
@@ -85,7 +66,7 @@ public class SdkVersion implements Comparable<SdkVersion> {
 
   @Override
   public String toString() {
-    return toNormalisedString(true);
+    return version.toString();
   }
 
   @Override
@@ -98,24 +79,12 @@ public class SdkVersion implements Comparable<SdkVersion> {
       return 0;
     }
 
-    if (getAsInt(this.getMajor()) == getAsInt(that.getMajor())) {
-      if (getAsInt(this.getMinor()) == getAsInt(that.getMinor())) {
-        return getAsInt(this.getPatch()) < getAsInt(that.getPatch()) ? -1 : 1;
-      } else {
-        return getAsInt(this.getMinor()) < getAsInt(that.getMinor()) ? -1 : 1;
-      }
-    } else {
-      return getAsInt(this.getMajor()) < getAsInt(that.getMajor()) ? -1 : 1;
-    }
-  }
-
-  private int getAsInt(String versionPart) {
-    return Integer.parseInt(Optional.ofNullable(versionPart).orElse("0").replace("-SNAPSHOT", ""));
+    return version.compareTo(that.version);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(major, minor, patch);
+    return Objects.hash(version);
   }
 
   @Override
@@ -127,7 +96,6 @@ public class SdkVersion implements Comparable<SdkVersion> {
     if (getClass() != obj.getClass())
       return false;
     SdkVersion other = (SdkVersion) obj;
-    return Objects.equals(major, other.major) && Objects.equals(minor, other.minor)
-        && Objects.equals(patch, other.patch);
+    return Objects.equals(version, other.version);
   }
 }
