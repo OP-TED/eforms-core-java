@@ -3,7 +3,9 @@
 _The library is a collection of utilities that are used by our sample applications as well as the EFX Toolkit for Java Developers._
 
 ## In this release:
-This patch improves performance by lazy-loading odelists.
+This patch 
+- improves performance by lazy-loading codelists,
+- improves handling of SemVer 2.0 version numbers.
 
 ## Download
 
