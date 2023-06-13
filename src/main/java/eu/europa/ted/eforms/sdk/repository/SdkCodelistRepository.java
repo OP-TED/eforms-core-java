@@ -12,8 +12,6 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
-import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
 import org.apache.commons.lang3.builder.EqualsBuilder;
@@ -22,12 +20,16 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.jooq.lambda.Unchecked;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.helger.genericode.v10.CodeListDocument;
 import com.helger.genericode.v10.Identification;
 import com.helger.genericode.v10.LongName;
 import com.helger.genericode.v10.Row;
 import com.helger.genericode.v10.SimpleCodeList;
 import com.helger.genericode.v10.Value;
+import eu.europa.ted.eforms.sdk.domain.codelist.CodelistForIndex;
+import eu.europa.ted.eforms.sdk.domain.codelist.CodelistsIndex;
 import eu.europa.ted.eforms.sdk.entity.SdkCodelist;
 import eu.europa.ted.eforms.sdk.entity.SdkEntityFactory;
 import eu.europa.ted.util.GenericodeTools;
@@ -40,7 +42,7 @@ public class SdkCodelistRepository extends HashMap<String, SdkCodelist> {
   private transient Path codelistsDir;
   private String sdkVersion;
 
-  private final Map<String, CodeListDocument> codelistContentsByCodelistId;
+  private final Map<String, Pair<Path, CodeListDocument>> codelistInfoByCodelistIds;
 
   @SuppressWarnings("unused")
   private SdkCodelistRepository() {
@@ -55,7 +57,7 @@ public class SdkCodelistRepository extends HashMap<String, SdkCodelist> {
         "Codelists directory [%s] is not found or not a directory", codelistsDir);
 
     try {
-      this.codelistContentsByCodelistId = getCodelistContentsByCodelistIds(codelistsDir);
+      this.codelistInfoByCodelistIds = getCodelistInfoByCodelistIds(codelistsDir);
     } catch (IOException e) {
       throw new RuntimeException(
           MessageFormat.format("Failed to load codelists from [{0}]", codelistsDir), e);
@@ -86,13 +88,15 @@ public class SdkCodelistRepository extends HashMap<String, SdkCodelist> {
 
   private Optional<SdkCodelist> loadSdkCodelist(final String codeListId)
       throws InstantiationException {
-    logger.debug("Loading SDK codelist with ID [{}] for SDK version [{}] from path [{}]",
-        codeListId, sdkVersion, codelistsDir);
+    logger.debug("Loading SDK codelist with ID [{}] for SDK version [{}]", codeListId, sdkVersion);
 
     // Find the SDK codelist .gc file that corresponds to the passed reference.
     // Stream the data from that file.
     final Optional<CodeListDocument> codelist =
-        Optional.ofNullable(codelistContentsByCodelistId.get(codeListId));
+        Optional.ofNullable(codelistInfoByCodelistIds.get(codeListId))
+            .map(Unchecked.function((Pair<Path, CodeListDocument> codelistInfo) -> Optional
+                .ofNullable(codelistInfo.getValue())
+                .orElse(getCodelistContents(codelistInfo.getKey()))));
 
     if (codelist.isEmpty()) {
       return Optional.empty();
@@ -127,8 +131,8 @@ public class SdkCodelistRepository extends HashMap<String, SdkCodelist> {
     final Optional<SdkCodelist> result = Optional.of(SdkEntityFactory.getSdkCodelist(sdkVersion,
         codeListId, codelistVersion.orElse(null), codes, parentId));
 
-    logger.debug("Finished loading SDK codelist with ID [{}] for SDK version [{}] from path [{}]",
-        codeListId, sdkVersion, codelistsDir);
+    logger.debug("Finished loading SDK codelist with ID [{}] for SDK version [{}]", codeListId,
+        sdkVersion);
 
     return result;
   }
@@ -158,69 +162,67 @@ public class SdkCodelistRepository extends HashMap<String, SdkCodelist> {
   }
 
   /**
-   * Loads all of the codelists by reading codelist files under a given a folder.
+   * Loads the paths of all of the codelists by looking for and reading the codelists index.
+   * <p>
+   * The result is a map which associates information (file path and a placeholder for contents) for
+   * each codelist with its ID.
    *
-   * @param codelistsDir The folder containing all codelist files
-   * @return A map of codelist IDs to codelist contents
+   * @param codelistsDir The folder containing the codelists index and files
+   * @return A map of codelist IDs to pairs of codelist file paths and contents
    * @throws IOException If there are failures when discovering and parsing the files
    */
-  private Map<String, CodeListDocument> getCodelistContentsByCodelistIds(final Path codelistsDir)
-      throws IOException {
+  private Map<String, Pair<Path, CodeListDocument>> getCodelistInfoByCodelistIds(
+      final Path codelistsDir) throws IOException {
     Validate.notNull(codelistsDir, "Undefined codelists directory");
     Validate.isTrue(Files.isDirectory(codelistsDir),
         MessageFormat.format("Not a directory: {0}", codelistsDir));
 
-    logger.debug("Getting codelist file paths from directory [{}]", codelistsDir);
+    final Path indexFile = Path.of(codelistsDir.toString(), "codelists.json");
 
-    final int depth = 1; // Flat folder, not recursive for now.
+    logger.debug("Loading codelists index from [{}]", indexFile);
+    CodelistsIndex codelistsIndex =
+        createObjectMapper().readValue(indexFile.toFile(), CodelistsIndex.class);
 
-    try (Stream<Path> walk = Files.walk(codelistsDir, depth)) {
-      return walk
-          .filter(this::isGenericodeFile)
-          .map(Unchecked.function(this::getCodelistIdAndContents))
-          .filter(Objects::nonNull)
-          .collect(Collectors.toMap(Pair::getKey, Pair::getValue));
-    }
+    final Map<String, Pair<Path, CodeListDocument>> result = new HashMap<>();
+    codelistsIndex.getCodelists().stream().forEach((CodelistForIndex codelist) -> {
+      final String codelistId = codelist.getId();
+      final Path codelistPath = Path.of(codelistsDir.toString(), codelist.getFilename());
+
+      logger.trace("Adding path [{}] for codelist [{}]", codelistPath, codelistId);
+      if (!Files.isRegularFile(codelistPath)) {
+        logger.warn("Codelist file [{}] not found. Codelist [{}] will be skipped", codelistPath,
+            codelistId);
+      } else {
+        // We're only interested in populating the codelist filepaths for now.
+        // The contents of each document will be populated for each codelist later, on demand.
+        result.put(codelistId, Pair.of(codelistPath, null));
+      }
+    });
+
+    return result;
+
   }
 
   /**
-   * Gets the codelist ID from a codelist file.
+   * Gets the codelist contents from a codelist file.
    *
    * @param codelistPath The codelist file's path
-   * @return The codelist ID and the codelist file's contents as a key/value pair
+   * @return The codelist file's contents
    * @throws FileNotFoundException If the codelist file's path is undefined or not an existing file
    */
-  private Pair<String, CodeListDocument> getCodelistIdAndContents(Path codelistPath)
-      throws FileNotFoundException {
+  private CodeListDocument getCodelistContents(Path codelistPath) throws FileNotFoundException {
     Validate.notNull(codelistPath, "Undefined codelist path");
 
     if (!Files.isRegularFile(codelistPath)) {
       throw new FileNotFoundException(codelistPath.toString());
     }
 
-    final Optional<CodeListDocument> codelist =
-        Optional.ofNullable(GenericodeTools.getMarshaller().read(codelistPath));
-
-    if (codelist.isPresent()) {
-      // We use the longName as a ID, PK in the the DB.
-      // But for the filenames we do not always follow this convention.
-      // So we need to map.
-      return codelist
-          .map(CodeListDocument::getIdentification)
-          .map((Identification identification) -> identification.getLongNameAtIndex(0))
-          .map(LongName::getValue)
-          .map((String longName) -> Pair.of(longName, codelist.get()))
-          .orElse(null);
-    }
-
-    return null;
+    logger.debug("Reading from file [{}]", codelistPath);
+    return Optional.ofNullable(GenericodeTools.getMarshaller().read(codelistPath)).orElse(null);
   }
 
-  private boolean isGenericodeFile(final Path path) {
-    return path != null
-        && Files.isRegularFile(path)
-        && GenericodeTools.EXTENSION_DOT_GC
-            .equals(MessageFormat.format(".{0}", FilenameUtils.getExtension(path.toString())));
+  private ObjectMapper createObjectMapper() {
+    return new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
   }
 
   @Override

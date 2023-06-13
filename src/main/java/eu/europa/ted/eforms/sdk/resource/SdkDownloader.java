@@ -168,7 +168,7 @@ public class SdkDownloader {
         return new SdkVersion(highestVersion.toString());
       }
     } catch (NoSuchElementException e) {
-      String snapshotVersion = MessageFormat.format("{0}-SNAPSHOT", baseVersion);
+      String snapshotVersion = MessageFormat.format("{0}.{1}.{2}-SNAPSHOT", baseVersion.getMajor(), baseVersion.getMinor(), baseVersion.getPatch());
       logger.warn("No artifacts were found for SDK version [{}]. Trying with [{}]", baseVersion,
           snapshotVersion);
 
