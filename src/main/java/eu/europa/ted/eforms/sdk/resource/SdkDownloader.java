@@ -7,6 +7,8 @@ import java.text.MessageFormat;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Optional;
+import java.util.stream.Collectors;
+
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.Validate;
 import org.eclipse.aether.artifact.Artifact;
@@ -203,18 +205,10 @@ public class SdkDownloader {
 
     try {
       // First look for a release version (e.g., 1.0.0)
-      return getHighestVersion(resolveVersionRange(releaseSearchPattern(baseVersion)));
+      return getHighestVersion(resolveVersionRange(getSearchPattern(baseVersion)), includeSnapshots);
     } catch (NoSuchElementException e1) {
-      logger.warn("No artifacts were found for SDK {}. Looking for latest pre-release...", baseVersion);
-
-      try {
-        // If no release version was found, then look for a pre-release version (e.g.,
-        // 1.0.0-alpha.1, or 1.0.0-SNAPSHOT)
-        return getHighestVersion(resolveVersionRange(preReleaseSearchPattern(baseVersion, includeSnapshots)));
-      } catch (NoSuchElementException e2) {
-        throw new IllegalArgumentException(
-            MessageFormat.format("No release or pre-release artifacts found for SDK {0}.", baseVersion));
-      }
+      throw new IllegalArgumentException(
+          MessageFormat.format("No artifacts found for SDK {0}.", baseVersion));
     }
   }
 
@@ -224,22 +218,11 @@ public class SdkDownloader {
    * @param sdkVersion The base version to construct the search pattern for.
    * @return A search pattern for release versions of the given base version.
    */
-  private static String releaseSearchPattern(SdkVersion sdkVersion) {
+  private static String getSearchPattern(SdkVersion sdkVersion) {
     if (sdkVersion.isPatch()) {
-      return MessageFormat.format("[{0},{0}]", sdkVersion.toString());
+      return MessageFormat.format("[{0}]", sdkVersion.toString());
     }
-    return MessageFormat.format("[{0},{1}-SNAPSHOT)", sdkVersion.toString(), sdkVersion.getNextMinor());
-  }
-
-  /**
-   * Defines the search pattern for pre-release versions of a given SDK version.
-   * 
-   * @param sdkVersion       The base version to construct the search pattern for.
-   * @param includeSnapshots
-   * @return
-   */
-  private static String preReleaseSearchPattern(SdkVersion sdkVersion, boolean includeSnapshots) {
-    return MessageFormat.format("[{0}-alpha,{0}-SNAPSHOT{1}", sdkVersion.toString(), includeSnapshots ? "]" : ")");
+    return MessageFormat.format("[{0}.*]", sdkVersion.toString());
   }
 
   /**
@@ -270,29 +253,52 @@ public class SdkDownloader {
    * @return The highest version found.
    * @throws NoSuchElementException If the version range is empty.
    */
-  private static SdkVersion getHighestVersion(VersionRangeResult versionRange) throws NoSuchElementException {
+  private static SdkVersion getHighestVersion(VersionRangeResult versionRange, boolean includeSnapshots) throws NoSuchElementException {
+  
+    List<Version> rangeVersions = versionRange.getVersions();
 
-    List<Version> versions = versionRange.getVersions();
-
-    if (CollectionUtils.isEmpty(versions)) {
+    if (CollectionUtils.isEmpty(rangeVersions)) {
       throw new NoSuchElementException();
     }
 
-    SdkVersion baseVersion = new SdkVersion(versions.get(0).toString());
+    // Get all the versions in the rage into a list of SdkVersion objects.
+    // Exclude snapshots if requested.
+    List<SdkVersion> allVersions = rangeVersions.stream()
+        .map(Object::toString)
+        .map(SdkVersion::new)
+        .filter(v -> includeSnapshots || !v.isSnapshot())
+        .collect(Collectors.toList());
 
+    // Get all the release versions into a separate list.
+    // Make sure to include snapshots if requested.
+    List<SdkVersion> releaseVersions = allVersions.stream()
+        .filter(v -> !v.isPreRelease() || (v.isSnapshot() && includeSnapshots))
+        .collect(Collectors.toList());
+
+    // We will only consider pre-release versions if there are no release versions.
+    List<SdkVersion> eligibleVersions = CollectionUtils.isEmpty(releaseVersions) ? allVersions : releaseVersions;
+
+    // If there are no eligible versions, then throw an exception.
+    if (CollectionUtils.isEmpty(eligibleVersions)) {
+      throw new NoSuchElementException();
+    }
+
+    // First, check if we are dealing with major version zero.
+    SdkVersion baseVersion = eligibleVersions.get(eligibleVersions.size() -1);
+
+    // If the major version is "0", Maven will return all the versions up to the
+    // next major. In this case we need to filter out all the discovered versions
+    // where the minor is not the same as that of the base version.
     if (baseVersion.getMajor().equals("0")) {
-      // If the major version is "0", Maven will return all the versions up to the
-      // next major. In this case we need to filter out all the discovered versions
-      // where the minor is not the same as that of the base version.
-      return versionRange.getVersions().stream()
-          .map(Object::toString)
-          .map(SdkVersion::new)
+      String baseMinor = baseVersion.getMinor();
+      return eligibleVersions.stream()
           .filter(v -> v.getMajor().equals("0")
-              && v.getMinor().equals(baseVersion.getMinor()))
+              && v.getMinor().equals(baseMinor))
           .max(Comparable::compareTo)
           .orElseThrow();
     }
 
-    return new SdkVersion(versionRange.getHighestVersion().toString());
+    // If the major version is not "0", then we can simply return the last version from the list.
+    return eligibleVersions.get(eligibleVersions.size() -1);
   }
 }

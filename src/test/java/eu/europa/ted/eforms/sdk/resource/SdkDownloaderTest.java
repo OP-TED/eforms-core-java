@@ -47,8 +47,14 @@ class SdkDownloaderTest extends MavenTestSetup {
     SdkDownloader.downloadSdk("1.0", SDK_ROOT_DIR);
     checkVersions("1.0.0", "1.0.2", "1.0");
 
-    SdkDownloader.downloadSdk("1.1", SDK_ROOT_DIR);
+    SdkDownloader.downloadSdk("1.1", SDK_ROOT_DIR, false);
     checkVersions("1.1.0", "1.1.3", "1.1");
+    
+    SdkDownloader.downloadSdk("1.1", SDK_ROOT_DIR, true);
+    checkVersions("1.1.4", "1.1.4-SNAPSHOT", "1.1");
+    
+    SdkDownloader.downloadSdk("2.0", SDK_ROOT_DIR, false);
+    checkVersions("2.0.0", "2.0.0-rc.1", "2.0");
   }
 
   @Test
