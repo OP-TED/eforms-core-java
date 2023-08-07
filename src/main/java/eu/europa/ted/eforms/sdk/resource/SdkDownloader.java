@@ -241,15 +241,10 @@ public class SdkDownloader {
 
   /**
    * Gets the highest version from a version range.
-   * Correctly handles the special case where the major version is zero.
-   * 
-   * If the major version number is zero, then minor versions are considered to
-   * have breaking changes and therefore a treated as if they were major versions.
-   * Examples: For base version 0.6, the result is the largest version number
-   * found between 0.6 and 0.7 * For base version 1.0, the result is the largest
-   * version number found between 1.0 and 1.1
+   * A pre-release version will be returned only if there is no released version in the range.
    * 
    * @param versionRange The version range to search.
+   * @param includeSnapshots Whether to include SNAPSHOT versions.
    * @return The highest version found.
    * @throws NoSuchElementException If the version range is empty.
    */
@@ -283,22 +278,7 @@ public class SdkDownloader {
       throw new NoSuchElementException();
     }
 
-    // First, check if we are dealing with major version zero.
-    SdkVersion baseVersion = eligibleVersions.get(eligibleVersions.size() -1);
-
-    // If the major version is "0", Maven will return all the versions up to the
-    // next major. In this case we need to filter out all the discovered versions
-    // where the minor is not the same as that of the base version.
-    if (baseVersion.getMajor().equals("0")) {
-      String baseMinor = baseVersion.getMinor();
-      return eligibleVersions.stream()
-          .filter(v -> v.getMajor().equals("0")
-              && v.getMinor().equals(baseMinor))
-          .max(Comparable::compareTo)
-          .orElseThrow();
-    }
-
-    // If the major version is not "0", then we can simply return the last version from the list.
+    // We can simply return the last version from the list, as Maven sorts versions as we need.
     return eligibleVersions.get(eligibleVersions.size() -1);
   }
 }
