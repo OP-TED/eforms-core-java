@@ -35,8 +35,8 @@ public class SdkDownloader {
    * Downloads a SDK version from Maven Central (or local Maven repository) and
    * unpacks it in a subfolder under the given root directory.
    * 
-   * If the given version is not specific enough (e.g. 1, or 1.0), its latest
-   * minor/patch version will be downloaded.
+   * If the given version is not specific enough (e.g. 1.0), its latest
+   * patch version will be downloaded.
    *
    * @param sdkVersion       The SDK version to download.
    * @param rootDir          The root directory where the SDK will be downloaded
@@ -204,7 +204,6 @@ public class SdkDownloader {
     Validate.notNull(baseVersion, "Undefined base version");
 
     try {
-      // First look for a release version (e.g., 1.0.0)
       return getHighestVersion(resolveVersionRange(getSearchPattern(baseVersion)), includeSnapshots);
     } catch (NoSuchElementException e1) {
       throw new IllegalArgumentException(
@@ -256,7 +255,7 @@ public class SdkDownloader {
       throw new NoSuchElementException();
     }
 
-    // Get all the versions in the rage into a list of SdkVersion objects.
+    // Get all the versions in the range into a list of SdkVersion objects.
     // Exclude snapshots if requested.
     List<SdkVersion> allVersions = rangeVersions.stream()
         .map(Object::toString)
