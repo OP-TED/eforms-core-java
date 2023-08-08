@@ -1,6 +1,7 @@
 package eu.europa.ted.eforms.sdk;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 import org.apache.commons.lang3.StringUtils;
@@ -24,27 +25,43 @@ public class SdkVersion implements Comparable<SdkVersion> {
   }
 
   public String getMajor() {
-    return version.getMajor().toString();
+    return this.version.getMajor().toString();
   }
 
   public String getMinor() {
-    return version.getMinor().toString();
+    return this.version.getMinor().toString();
   }
 
   public String getPatch() {
-    return version.getPatch() == null ? "0" : version.getPatch().toString();
+    return this.version.getPatch() == null ? "0" : this.version.getPatch().toString();
   }
 
   public String getNextMajor() {
-    return version.withIncMajor().toString();
+    return this.version.withIncMajor().toString();
   }
 
   public String getNextMinor() {
-    return version.withIncMinor().toString();
+    return this.version.withIncMinor().toString();
+  }
+
+  public boolean isMajor() {
+    return !this.isMinor() &&  this.version.getMajor() != null;
+  }
+
+  public boolean isMinor() {
+    return !this.isPatch() && this.version.getMinor() != null;
   }
 
   public boolean isPatch() {
-    return version.getPatch() != null;
+    return this.version.getPatch() != null;
+  }
+
+  public boolean isPreRelease() {
+    return this.version.getSuffixTokens().length > 0;
+  }
+
+  public boolean isSnapshot() {
+    return Arrays.asList(this.version.getSuffixTokens()).contains("SNAPSHOT");
   }
 
   public String toNormalisedString(boolean withPatch) {
@@ -66,7 +83,7 @@ public class SdkVersion implements Comparable<SdkVersion> {
 
   @Override
   public String toString() {
-    return version.toString();
+    return this.version.toString();
   }
 
   @Override
@@ -79,12 +96,12 @@ public class SdkVersion implements Comparable<SdkVersion> {
       return 0;
     }
 
-    return version.compareTo(that.version);
+    return this.version.compareTo(that.version);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(version);
+    return Objects.hash(this.version);
   }
 
   @Override
@@ -96,6 +113,6 @@ public class SdkVersion implements Comparable<SdkVersion> {
     if (getClass() != obj.getClass())
       return false;
     SdkVersion other = (SdkVersion) obj;
-    return Objects.equals(version, other.version);
+    return Objects.equals(this.version, other.version);
   }
 }
