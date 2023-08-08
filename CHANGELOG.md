@@ -1,11 +1,9 @@
-# eForms Core Library 1.0.5 Release Notes
+# eForms Core Library 1.0.6 Release Notes
 
 _The library is a collection of utilities that are used by our sample applications as well as the EFX Toolkit for Java Developers._
 
-## In this release:
-This patch 
-- improves performance by lazy-loading codelists,
-- improves handling of SemVer 2.0 version numbers.
+## In this release
+This release updates the SdkDownloader to simplify its logic and make sure it resolves pre-release versions of the SDK correctly. 
 
 ## Download
 
