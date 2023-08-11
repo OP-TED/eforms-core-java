@@ -19,7 +19,7 @@ import eu.europa.ted.eforms.sdk.SdkConstants;
 
 class MavenBooterTest extends MavenTestSetup {
   private static final List<String> availableVersions = Arrays.asList("0.6.0", "0.6.1", "0.6.2",
-      "0.7.0", "0.7.3", "1.0.0", "1.0.2", "1.1.0", "1.1.3");
+      "0.7.0", "0.7.3", "1.0.0-beta.1", "1.0.0", "1.0.2", "1.1.0", "1.1.3", "1.1.4-SNAPSHOT", "2.0.0-rc.1", "2.0.0-SNAPSHOT");
 
   @Test
   void testResolveVersionRange()

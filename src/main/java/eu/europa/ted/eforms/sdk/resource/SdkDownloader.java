@@ -4,8 +4,11 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.text.MessageFormat;
+import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Optional;
+import java.util.stream.Collectors;
+
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.Validate;
 import org.eclipse.aether.artifact.Artifact;
@@ -25,31 +28,29 @@ import eu.europa.ted.util.ArchiveUtils;
 public class SdkDownloader {
   private static final Logger logger = LoggerFactory.getLogger(SdkDownloader.class);
 
-  private SdkDownloader() {}
+  private SdkDownloader() {
+  }
 
   /**
-   * Downloads a SDK version from Maven Central (or local Maven repository) and unpacks it under the
-   * given root directory. - If a major version is requested (e.g., "1"), then the latest
-   * minor/patch will be fetched and will be stored under a directory
-   * "&lt;root_directory&gt;/&lt;minor&gt;". - If a minor version is requested (e.g., "1.1"), then
-   * the latest patch for this minor will be fetched and will be stored under a directory
-   * "&lt;root_directory&gt;/&lt;minor&gt;" - If a patch is request (e.g., "1.1.2"), then that patch
-   * will be fetched and will be stored under a directory
-   * "&lt;root_directory&gt;/&lt;minor&gt;/&lt;patch&gt;". If the requested patch is not found, then
-   * an {@link IllegalArgumentException} will be thrown.
+   * Downloads a SDK version from Maven Central (or local Maven repository) and
+   * unpacks it in a subfolder under the given root directory.
+   * 
+   * If the given version is not specific enough (e.g. 1.0), its latest
+   * patch version will be downloaded.
    *
-   * @param sdkVersion The target SDK version (&lt;major&gt;.&lt;minor&gt;.&lt;patch&gt;)
-   * @param rootDir The root directory
-   * @throws IOException if the download fails
+   * @param sdkVersion       The SDK version to download.
+   * @param rootDir          The root directory where the SDK will be downloaded
+   * @param includeSnapshots If true, the latest snapshot version will be
+   *                         downloaded if the given version is not found
+   * @throws IOException If the download fails.
    */
-  public static void downloadSdk(final SdkVersion sdkVersion, final Path rootDir)
+  public static void downloadSdk(final SdkVersion sdkVersion, final Path rootDir, boolean includeSnapshots)
       throws IOException {
-    Path sdkDir =
-        Path.of(Optional.ofNullable(rootDir).orElse(SdkConstants.DEFAULT_SDK_ROOT).toString(),
-            sdkVersion.isPatch() ? sdkVersion.toString() : sdkVersion.toStringWithoutPatch());
+    Path sdkDir = Path.of(Optional.ofNullable(rootDir).orElse(SdkConstants.DEFAULT_SDK_ROOT).toString(),
+        sdkVersion.isPatch() ? sdkVersion.toString() : sdkVersion.toStringWithoutPatch());
 
     try {
-      SdkVersion artifactVersion = getLatestSdkVersion(sdkVersion);
+      SdkVersion artifactVersion = getLatestSdkVersion(sdkVersion, includeSnapshots);
 
       if (sdkExistsAt(artifactVersion, sdkDir)) {
         logger.debug("SDK [{}] found at [{}]. No download required.", artifactVersion, sdkDir);
@@ -77,16 +78,88 @@ public class SdkDownloader {
     }
   }
 
+  /**
+   * Overload of {@link #downloadSdk(SdkVersion, Path, boolean)} that excludes snapshot versions.
+   * 
+   * @param sdkVersion    The SDK version to download.
+   * @param rootDir       The root directory where the SDK will be downloaded.
+   * @throws IOException  If the download fails.
+   */
+  public static void downloadSdk(final SdkVersion sdkVersion, final Path rootDir)
+      throws IOException {
+    downloadSdk(sdkVersion, rootDir, false);
+  }
+
+  /**
+   * Overload of {@link #downloadSdk(SdkVersion, Path, boolean)}.
+   * 
+   * @param sdkVersion The SDK version to download.
+   * @throws IOException If the download fails.
+   */
   public static void downloadSdk(final String sdkVersion) throws IOException {
-    downloadSdk(sdkVersion, SdkConstants.DEFAULT_SDK_ROOT);
+    downloadSdk(sdkVersion, false);
   }
 
+  /**
+   * Overload of {@link #downloadSdk(SdkVersion, Path, boolean)}.
+   * 
+   * @param sdkVersion       The SDK version to download.
+   * @param includeSnapshots If true, then SNAPSHOT versions will be downloaded if
+   *                         no other version is available.
+   * @throws IOException If the download fails.
+   */
+  public static void downloadSdk(final String sdkVersion, boolean includeSnapshots) throws IOException {
+    downloadSdk(sdkVersion, SdkConstants.DEFAULT_SDK_ROOT, includeSnapshots);
+  }
+
+  /**
+   * Overload of {@link #downloadSdk(SdkVersion, Path, boolean)}.
+   * 
+   * @param sdkVersion The SDK version to download.
+   * @throws IOException If the download fails.
+   */
   public static void downloadSdk(final SdkVersion sdkVersion) throws IOException {
-    downloadSdk(sdkVersion, SdkConstants.DEFAULT_SDK_ROOT);
+    downloadSdk(sdkVersion, false);
   }
 
+  /**
+   * Overload of {@link #downloadSdk(SdkVersion, Path, boolean)}.
+   * 
+   * @param sdkVersion       The SDK version to download.
+   * @param includeSnapshots If true, then SNAPSHOT versions will be downloaded if
+   *                         no other version is available.
+   * @throws IOException If the download fails.
+   */
+  public static void downloadSdk(final SdkVersion sdkVersion, boolean includeSnapshots) throws IOException {
+    downloadSdk(sdkVersion, SdkConstants.DEFAULT_SDK_ROOT, includeSnapshots);
+  }
+
+  /**
+   * Overload of {@link #downloadSdk(SdkVersion, Path, boolean)}.
+   * 
+   * @param sdkVersion The SDK version to download.
+   * @param rootDir    The root directory to download the SDK to.
+   * @throws IOException If the download fails.
+   */
   public static void downloadSdk(final String sdkVersion, final Path rootDir) throws IOException {
-    downloadSdk(new SdkVersion(sdkVersion), rootDir);
+    downloadSdk(sdkVersion, rootDir, false);
+  }
+
+  /**
+   * Overload of {@link #downloadSdk(SdkVersion, Path, boolean)}.
+   * 
+   * If the version is not specific enough (i.e. does not include a patch
+   * version), then the latest available version will be downloaded.
+   * 
+   * @param sdkVersion       The SDK version to download.
+   * @param rootDir          The root directory to download the SDK to.
+   * @param includeSnapshots If true, then SNAPSHOT versions will be downloaded if
+   *                         no other version is available.
+   * @throws IOException If the download fails.
+   */
+  public static void downloadSdk(final String sdkVersion, final Path rootDir, boolean includeSnapshots)
+      throws IOException {
+    downloadSdk(new SdkVersion(sdkVersion), rootDir, includeSnapshots);
   }
 
   private static Path createVersionFile(final SdkVersion sdkVersion, final Path sdkDir)
@@ -119,70 +192,92 @@ public class SdkDownloader {
   }
 
   /**
-   * Discovers the latest available version for a given base version. If the major of the base
-   * version is zero, then the second digit is regarded as major. E.g.: - For base version 0.6, the
-   * result is the largest found version number between 0.6 and 0.7 - For base version 1.0, the
-   * result is the largest found version number between 1.0 and 1.1
+   * Discovers the latest available version for a given base version. 
    * 
-   * @param sdkVersion The base version
-   * @return
+   * @param sdkVersion       The base version to look for.
+   * @param includeSnapshots Whether to resolve SNAPSHOT versions if needed (e.g.,
+   *                         1.0.0-SNAPSHOT)
+   * @return The latest available version.
    */
-  private static SdkVersion getLatestSdkVersion(final SdkVersion baseVersion)
+  private static SdkVersion getLatestSdkVersion(final SdkVersion baseVersion, final boolean includeSnapshots)
       throws VersionRangeResolutionException {
     Validate.notNull(baseVersion, "Undefined base version");
 
-    String minVersion = baseVersion.toString();
-    String maxVersion = baseVersion.getNextMinor();
-    String searchPattern = "[{0},{1}-SNAPSHOT)";
-
-    if (baseVersion.isPatch()) {
-      minVersion = maxVersion = baseVersion.toString();
-      searchPattern = "[{0},{1}]";
-    }
-
-    Artifact artifact = new DefaultArtifact(SdkConstants.SDK_GROUP_ID, SdkConstants.SDK_ARTIFACT_ID,
-        "jar", MessageFormat.format(searchPattern, minVersion, maxVersion));
-
-    VersionRangeResult versions = MavenBooter.resolveVersionRange(artifact);
     try {
-      /**
-       * If the major version is "0", Maven will return all the versions up to the next major. In
-       * this case we need to filter out all the discovered versions where the minor is not the same
-       * as that of the base version.
-       */
-      if (baseVersion.getMajor().equals("0")) {
-        return versions.getVersions().stream()
-            .map(Object::toString)
-            .map(SdkVersion::new)
-            .filter((SdkVersion v) -> v.getMajor().equals(baseVersion.getMajor())
-                && v.getMinor().equals(baseVersion.getMinor()))
-            .max(Comparable::compareTo)
-            .orElseThrow();
-      } else {
-        Version highestVersion = versions.getHighestVersion();
-
-        if (highestVersion == null) {
-          throw new NoSuchElementException();
-        }
-
-        return new SdkVersion(highestVersion.toString());
-      }
-    } catch (NoSuchElementException e) {
-      String snapshotVersion = MessageFormat.format("{0}.{1}.{2}-SNAPSHOT", baseVersion.getMajor(), baseVersion.getMinor(), baseVersion.getPatch());
-      logger.warn("No artifacts were found for SDK version [{}]. Trying with [{}]", baseVersion,
-          snapshotVersion);
-
-      artifact = new DefaultArtifact(MessageFormat.format("{0}:{1}:{2}", SdkConstants.SDK_GROUP_ID,
-          SdkConstants.SDK_ARTIFACT_ID, snapshotVersion));
-
-      versions = MavenBooter.resolveVersionRange(artifact);
-
-      if (CollectionUtils.isEmpty(versions.getVersions())) {
-        throw new IllegalArgumentException(
-            MessageFormat.format("No artifacts were found for SDK version [{0}]", snapshotVersion));
-      }
-
-      return new SdkVersion(versions.getVersions().get(0).toString());
+      return getHighestVersion(resolveVersionRange(getSearchPattern(baseVersion)), includeSnapshots);
+    } catch (NoSuchElementException e1) {
+      throw new IllegalArgumentException(
+          MessageFormat.format("No artifacts found for SDK {0}.", baseVersion));
     }
+  }
+
+  /**
+   * Defines the search pattern for release versions of a given SDK version.
+   * 
+   * @param sdkVersion The base version to construct the search pattern for.
+   * @return A search pattern for release versions of the given base version.
+   */
+  private static String getSearchPattern(SdkVersion sdkVersion) {
+    if (sdkVersion.isPatch()) {
+      return MessageFormat.format("[{0}]", sdkVersion.toString());
+    }
+    return MessageFormat.format("[{0}.*]", sdkVersion.toString());
+  }
+
+  /**
+   * Uses Maven to resolve a version range from a given search pattern.
+   * 
+   * @param searchPattern The search pattern to resolve.
+   * @return A version range result.
+   * @throws VersionRangeResolutionException If the version range could not be
+   *                                         resolved.
+   */
+  private static VersionRangeResult resolveVersionRange(String searchPattern) throws VersionRangeResolutionException {
+    Artifact artifact = new DefaultArtifact(SdkConstants.SDK_GROUP_ID, SdkConstants.SDK_ARTIFACT_ID, "jar",
+        searchPattern);
+    return MavenBooter.resolveVersionRange(artifact);
+  }
+
+  /**
+   * Gets the highest version from a version range.
+   * A pre-release version will be returned only if there is no released version in the range.
+   * 
+   * @param versionRange The version range to search.
+   * @param includeSnapshots Whether to include SNAPSHOT versions.
+   * @return The highest version found.
+   * @throws NoSuchElementException If the version range is empty.
+   */
+  private static SdkVersion getHighestVersion(VersionRangeResult versionRange, boolean includeSnapshots) throws NoSuchElementException {
+  
+    List<Version> rangeVersions = versionRange.getVersions();
+
+    if (CollectionUtils.isEmpty(rangeVersions)) {
+      throw new NoSuchElementException();
+    }
+
+    // Get all the versions in the range into a list of SdkVersion objects.
+    // Exclude snapshots if requested.
+    List<SdkVersion> allVersions = rangeVersions.stream()
+        .map(Object::toString)
+        .map(SdkVersion::new)
+        .filter(v -> includeSnapshots || !v.isSnapshot())
+        .collect(Collectors.toList());
+
+    // Get all the release versions into a separate list.
+    // Make sure to include snapshots if requested.
+    List<SdkVersion> releaseVersions = allVersions.stream()
+        .filter(v -> !v.isPreRelease() || (v.isSnapshot() && includeSnapshots))
+        .collect(Collectors.toList());
+
+    // We will only consider pre-release versions if there are no release versions.
+    List<SdkVersion> eligibleVersions = CollectionUtils.isEmpty(releaseVersions) ? allVersions : releaseVersions;
+
+    // If there are no eligible versions, then throw an exception.
+    if (CollectionUtils.isEmpty(eligibleVersions)) {
+      throw new NoSuchElementException();
+    }
+
+    // We can simply return the last version from the list, as Maven sorts versions as we need.
+    return eligibleVersions.get(eligibleVersions.size() -1);
   }
 }
