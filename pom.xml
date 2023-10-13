@@ -77,6 +77,7 @@
     <version.compiler.plugin>3.10.1</version.compiler.plugin>
     <version.gpg.plugin>1.5</version.gpg.plugin>
     <version.install.plugin>2.5.2</version.install.plugin>
+    <version.jacoco.plugin>0.8.10</version.jacoco.plugin>
     <version.javadoc.plugin>3.4.0</version.javadoc.plugin>
     <version.source.plugin>3.2.1</version.source.plugin>
     <version.jar.plugin>3.3.0</version.jar.plugin>
@@ -409,6 +410,11 @@
           <version>${version.gpg.plugin}</version>
         </plugin>
         <plugin>
+          <groupId>org.jacoco</groupId>
+          <artifactId>jacoco-maven-plugin</artifactId>
+          <version>${version.jacoco.plugin}</version>
+        </plugin>
+        <plugin>
           <groupId>org.sonatype.plugins</groupId>
           <artifactId>nexus-staging-maven-plugin</artifactId>
           <version>${version.nexus-staging.plugin}</version>
@@ -445,6 +451,30 @@
                 <source>${project.build.directory}/generated-sources/antlr4/</source>
               </sources>
             </configuration>
+          </execution>
+        </executions>
+      </plugin>
+
+      <plugin>
+        <groupId>org.jacoco</groupId>
+        <artifactId>jacoco-maven-plugin</artifactId>
+        <configuration>
+          <excludes>
+            <exclude>**/XPath20*.class</exclude>
+          </excludes>
+        </configuration>
+        <executions>
+          <execution>
+            <goals>
+              <goal>prepare-agent</goal>
+            </goals>
+          </execution>
+          <execution>
+            <id>report</id>
+            <phase>prepare-package</phase>
+            <goals>
+              <goal>report</goal>
+            </goals>
           </execution>
         </executions>
       </plugin>
