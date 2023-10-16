@@ -4,7 +4,7 @@ import java.util.LinkedList;
 import java.util.List;
 
 public class XPathInfo {
-	private LinkedList<XPathStep> steps = new LinkedList<>();
+  private LinkedList<XPathStep> steps = new LinkedList<>();
   private String pathToLastElement;
   private String attributeName;
 

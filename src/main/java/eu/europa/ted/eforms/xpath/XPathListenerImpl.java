@@ -125,8 +125,8 @@ class XPathListenerImpl extends XPath20BaseListener {
    * because {@link ParserRuleContext#getText()} omits whitespace and other lexer tokens in the
    * HIDDEN channel.
    *
-   * @param context
-   * @return
+   * @param context Information on a rule that matched
+   * @return The input text that matched the rule corresponding to the specified context
    */
   private String getInputText(ParserRuleContext context) {
     return this.inputStream

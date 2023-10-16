@@ -13,15 +13,15 @@ public class XPathStep implements Comparable<XPathStep> {
   private final List<String> predicates;
 
   public XPathStep(String stepText, List<String> predicates) {
-		this.stepText = StringUtils.strip(stepText);
+    this.stepText = StringUtils.strip(stepText);
     this.predicates = predicates;
-	}
+  }
 
   public String getStepText() {
     return stepText;
   }
 
-	public List<String> getPredicates() {
+  public List<String> getPredicates() {
     return predicates;
   }
 
