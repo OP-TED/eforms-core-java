@@ -39,6 +39,13 @@ Execute the following on the root folder of this project:
 
     mvn clean install
 
+## Testing
+
+Unit tests are available under `src/test/java/`.
+
+After running the unit tests with `mvn test`, you can generate a coverage report with `mvn jacoco:report`.
+The report is available under `target/site/jacoco/`, in HTML, CSV, and XML format.
+
 
 [^1]: _Copyright 2022 European Union_  
 _Licensed under the EUPL, Version 1.2 or – as soon they will be approved by the European Commission –
