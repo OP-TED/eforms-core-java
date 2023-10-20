@@ -56,6 +56,10 @@ public class SdkConstants {
      * Internationalisation, labels.
      */
     TRANSLATIONS(Path.of("translations")), //
+    /**
+     * The index file for translations, only present in SDK 1.10.0 and later.
+     */
+    TRANSLATIONS_JSON(Path.of("translations", "translations.json")), //
 
     VIEW_TEMPLATES(Path.of("view-templates")), //
     VIEW_TEMPLATES_JSON(Path.of("view-templates", "view-templates.json"));
