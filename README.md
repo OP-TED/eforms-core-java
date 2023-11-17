@@ -5,7 +5,8 @@
 This library provides a set of classes that can be used to solve some common "problems" in eForms Applications:
 
 * Automatically discovering and downloading new versions of the eForms SDK.
-* Maintaining and instantiating at runtime the correct application component versions for different major versions of the SDK.  
+* Maintaining and instantiating at runtime the correct application component versions for different major versions of the SDK.
+* Basic parsing and processing of XPath expressions.
 
 ## Using the eForms Core Library
 
