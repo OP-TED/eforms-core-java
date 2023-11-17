@@ -4,9 +4,9 @@
 
 This library provides a set of classes that can be used to solve some common "problems" in eForms Applications:
 
- * Automatically discovering and downloading new versions of the eForms SDK.
- * Maintaining and instantiating at runtime the correct application component versions for different major versions of the SDK.  
-
+* Automatically discovering and downloading new versions of the eForms SDK.
+* Maintaining and instantiating at runtime the correct application component versions for different major versions of the SDK.
+* Basic parsing and processing of XPath expressions.
 
 ## Using the eForms Core Library
 
@@ -14,7 +14,7 @@ The eForms Core library requires Java 11 or later.
 
 It is available as a Maven package on Maven Central and can be used by adding the following to the project's `pom.xml`.
 
-```
+```xml
 <dependencies>
   ...
   <dependency>
@@ -37,8 +37,16 @@ Requirements:
 
 Execute the following on the root folder of this project:
 
+```text
     mvn clean install
+```
 
+## Testing
+
+Unit tests are available under `src/test/java/`.
+
+After running the unit tests with `mvn test`, you can generate a coverage report with `mvn jacoco:report`.
+The report is available under `target/site/jacoco/`, in HTML, CSV, and XML format.
 
 [^1]: _Copyright 2022 European Union_  
 _Licensed under the EUPL, Version 1.2 or – as soon they will be approved by the European Commission –
