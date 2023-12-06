@@ -83,7 +83,7 @@ public class XPathStepTest {
 
     assertTrue(a.isTheSameAs(b));
 
-    assertTrue(a.isSameAsOrNarrowerThan(b));
+    assertTrue(b.isSameAsOrNarrowerThan(a));
   }
 
   private XPathStep buildStep(String elt, String... predicates) {

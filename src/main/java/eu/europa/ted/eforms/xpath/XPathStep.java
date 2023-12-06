@@ -130,8 +130,7 @@ public class XPathStep implements Comparable<XPathStep> {
       // step. In this case this step has the same predicates as the other one, plus
       // some more, which means it selects a subset of the nodes selected by the other
       // step and therefore it is "narrower".
-      return this.predicates.isEmpty() || other.predicates.isEmpty()
-          || this.predicates.containsAll(other.predicates);
+      return other.predicates.isEmpty() || this.predicates.containsAll(other.predicates);
     }
 
     assert !this.isTheSameAs(other) : "You should not be calling isSameAsOrNarrowerThan() without first checking isTheSameAs()";
