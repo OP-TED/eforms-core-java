@@ -75,7 +75,7 @@ public class XPathProcessor {
       // the context is more restrictive than the path. In this case we want to use a dot step
       // with the predicate of the path.
       if (!contextQueue.isEmpty() && !pathQueue.isEmpty()
-          && pathQueue.peek().isSimilarTo(contextQueue.peek())) {
+          && pathQueue.peek().isSameAsOrNarrowerThan(contextQueue.peek())) {
         contextQueue.poll();  // consume the same step from the contextQueue
         if (contextQueue.isEmpty()) {
           // Since there are no more steps in the contextQueue, the relative xpath should 
