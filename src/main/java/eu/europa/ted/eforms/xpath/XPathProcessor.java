@@ -72,8 +72,8 @@ public class XPathProcessor {
       // At this point there are no more matching nodes in the two queues.
 
       // We look at the first of the remaining steps in both queues and look if
-      // the context is more restrictive than the path. In this case we want to use a dot step
-      // with the predicate of the path.
+      // the context is the same as or less restrictive than the path. In this case
+      // we want to use a dot step with the predicate of the path.
       if (!contextQueue.isEmpty() && !pathQueue.isEmpty()
           && pathQueue.peek().isSameAsOrNarrowerThan(contextQueue.peek())) {
         contextQueue.poll();  // consume the same step from the contextQueue
