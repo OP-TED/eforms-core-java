@@ -116,7 +116,7 @@ public class XPathStep implements Comparable<XPathStep> {
     return pathPredicates.equals(contextPredicates);
   }
 
-  public boolean isSimilarTo(final XPathStep other) {
+  public boolean isSameAsOrNarrowerThan(final XPathStep other) {
 
     // First check the step texts are different.
     if (!Objects.equals(other.stepText, this.stepText)) {
@@ -125,13 +125,15 @@ public class XPathStep implements Comparable<XPathStep> {
 
     // If one of the two steps has more predicates that the other,
     if (this.predicates.size() != other.predicates.size()) {
-      // then the steps are similar if either of them has no predicates
-      // or all the predicates of this step are also found in the specific step.
-      return this.predicates.isEmpty() || other.predicates.isEmpty()
-          || other.predicates.containsAll(this.predicates);
+      // then this step is same as or narrower that the other, if either of them has
+      // no predicates or all the predicates of the other step are also found in this
+      // step. In this case this step has the same predicates as the other one, plus
+      // some more, which means it selects a subset of the nodes selected by the other
+      // step and therefore it is "narrower".
+      return other.predicates.isEmpty() || this.predicates.containsAll(other.predicates);
     }
 
-    assert !this.isTheSameAs(other) : "You should not be calling isSimilarTo() without first checking isTheSameAs()";
+    assert !this.isTheSameAs(other) : "You should not be calling isSameAsOrNarrowerThan() without first checking isTheSameAs()";
     return false;
   }
 

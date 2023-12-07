@@ -33,7 +33,7 @@ public class XPathStepTest {
 
     assertFalse(a.isTheSameAs(b));
 
-    assertFalse(a.isSimilarTo(b));
+    assertFalse(a.isSameAsOrNarrowerThan(b));
   }
 
   @Test
@@ -43,7 +43,7 @@ public class XPathStepTest {
 
     assertTrue(a.isTheSameAs(b));
 
-    assertTrue(a.isSimilarTo(b));
+    assertTrue(b.isSameAsOrNarrowerThan(a));
   }
 
   @Test
@@ -53,7 +53,7 @@ public class XPathStepTest {
 
     assertFalse(a.isTheSameAs(b));
 
-    assertFalse(a.isSimilarTo(b));
+    assertFalse(b.isSameAsOrNarrowerThan(a));
   }
 
   @Test
@@ -63,7 +63,7 @@ public class XPathStepTest {
 
     assertFalse(a.isTheSameAs(b));
 
-    assertFalse(a.isSimilarTo(b));
+    assertFalse(a.isSameAsOrNarrowerThan(b));
   }
 
   @Test
@@ -73,7 +73,7 @@ public class XPathStepTest {
 
     assertFalse(a.isTheSameAs(b));
 
-    assertTrue(a.isSimilarTo(b));
+    assertTrue(a.isSameAsOrNarrowerThan(b));
   }
 
   @Test
@@ -83,7 +83,7 @@ public class XPathStepTest {
 
     assertTrue(a.isTheSameAs(b));
 
-    assertTrue(a.isSimilarTo(b));
+    assertTrue(b.isSameAsOrNarrowerThan(a));
   }
 
   private XPathStep buildStep(String elt, String... predicates) {
