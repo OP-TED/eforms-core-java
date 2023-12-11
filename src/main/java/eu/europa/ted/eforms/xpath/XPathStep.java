@@ -116,6 +116,19 @@ public class XPathStep implements Comparable<XPathStep> {
     return pathPredicates.equals(contextPredicates);
   }
 
+  /*
+   * @deprecated Use {@link #isSameAsOrNarrowerThan(XPathStep)} instead.
+   *
+   * This method was renamed for clarity. It is marked as deprecated so that the
+   * library interface does not change. It will be removed in the next major
+   * version of the library.
+   * 
+   */
+  @Deprecated(since = "1.3.0", forRemoval = true)
+  public boolean isSimilarTo(final XPathStep other) {
+    return isSameAsOrNarrowerThan(other);
+  }
+
   public boolean isSameAsOrNarrowerThan(final XPathStep other) {
 
     // First check the step texts are different.
