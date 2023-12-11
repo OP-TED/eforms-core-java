@@ -4,7 +4,7 @@ The eForms Core Library is a collection of utilities that are used by our sample
 
 ## In this release
 
-This release improves XPathProcessor contextualisation by fixing an issue that caused unnecessary back-steps to be inserted in the contextulised output when both XPaths contain predicates.  
+This release improves XPathProcessor contextualisation by fixing an issue that caused unnecessary back-steps to be inserted in the contextualised output when both XPaths contain predicates.
 
 ## Download
 
