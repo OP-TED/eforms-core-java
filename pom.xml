@@ -62,9 +62,7 @@
     <version.jackson>2.15.1</version.jackson>
     <version.jaxb-impl>2.3.9</version.jaxb-impl>
     <version.jool>0.9.15</version.jool>
-    <version.jsr305>3.0.2</version.jsr305>
     <version.junit>5.7.2</version.junit>
-    <version.logback>1.4.14</version.logback>
     <version.maven>3.8.6</version.maven>
     <version.ph-jaxb>10.1.8</version.ph-jaxb>
     <version.ph-genericode>6.3.0</version.ph-genericode>
@@ -207,21 +205,6 @@
 
       <!-- Other -->
       <dependency>
-        <groupId>ch.qos.logback</groupId>
-        <artifactId>logback-classic</artifactId>
-        <version>${version.logback}</version>
-      </dependency>
-      <dependency>
-        <groupId>ch.qos.logback</groupId>
-        <artifactId>logback-core</artifactId>
-        <version>${version.logback}</version>
-      </dependency>
-      <dependency>
-        <groupId>com.google.code.findbugs</groupId>
-        <artifactId>jsr305</artifactId>
-        <version>${version.jsr305}</version>
-      </dependency>
-      <dependency>
         <groupId>org.antlr</groupId>
         <artifactId>antlr4-runtime</artifactId>
         <version>${version.antlr4}</version>
@@ -342,21 +325,6 @@
     </dependency>
 
     <!-- Other -->
-    <dependency>
-      <groupId>ch.qos.logback</groupId>
-      <artifactId>logback-classic</artifactId>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>ch.qos.logback</groupId>
-      <artifactId>logback-core</artifactId>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>com.google.code.findbugs</groupId>
-      <artifactId>jsr305</artifactId>
-      <scope>provided</scope>
-    </dependency>
     <dependency>
       <groupId>org.antlr</groupId>
       <artifactId>antlr4-runtime</artifactId>
