@@ -77,6 +77,7 @@
     <version.gpg.plugin>1.5</version.gpg.plugin>
     <version.install.plugin>2.5.2</version.install.plugin>
     <version.jacoco.plugin>0.8.10</version.jacoco.plugin>
+    <version.japicmp.plugin>0.20.0</version.japicmp.plugin>
     <version.javadoc.plugin>3.4.0</version.javadoc.plugin>
     <version.source.plugin>3.2.1</version.source.plugin>
     <version.jar.plugin>3.3.0</version.jar.plugin>
@@ -394,6 +395,11 @@
           <version>${version.jacoco.plugin}</version>
         </plugin>
         <plugin>
+          <groupId>com.github.siom79.japicmp</groupId>
+          <artifactId>japicmp-maven-plugin</artifactId>
+          <version>${version.japicmp.plugin}</version>
+        </plugin>
+        <plugin>
           <groupId>org.sonatype.plugins</groupId>
           <artifactId>nexus-staging-maven-plugin</artifactId>
           <version>${version.nexus-staging.plugin}</version>
@@ -453,6 +459,28 @@
             <phase>prepare-package</phase>
             <goals>
               <goal>report</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+
+      <plugin>
+        <groupId>com.github.siom79.japicmp</groupId>
+        <artifactId>japicmp-maven-plugin</artifactId>
+        <configuration>
+          <!-- Old and new versions are not specified, so we compare the latest released version with the build artefact -->
+          <parameter>
+            <!-- Break the build in case the semantic versioning is violated -->
+            <breakBuildBasedOnSemanticVersioning>true</breakBuildBasedOnSemanticVersioning>
+            <!-- Output only modified classes/methods in the report -->
+            <onlyModified>true</onlyModified>
+          </parameter>
+        </configuration>
+        <executions>
+          <execution>
+            <phase>verify</phase>
+            <goals>
+              <goal>cmp</goal>
             </goals>
           </execution>
         </executions>
