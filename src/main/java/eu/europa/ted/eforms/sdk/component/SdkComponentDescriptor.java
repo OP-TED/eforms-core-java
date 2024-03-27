@@ -94,7 +94,7 @@ public class SdkComponentDescriptor<T> implements Serializable {
 
   @Override
   public int hashCode() {
-    return Objects.hash(componentType, sdkVersion);
+    return Objects.hash(sdkVersion, componentType, implType);
   }
 
   @Override
@@ -106,7 +106,9 @@ public class SdkComponentDescriptor<T> implements Serializable {
     if (getClass() != obj.getClass())
       return false;
     SdkComponentDescriptor<?> other = (SdkComponentDescriptor<?>) obj;
-    return componentType == other.componentType && Objects.equals(sdkVersion, other.sdkVersion);
+    return componentType == other.componentType
+        && Objects.equals(sdkVersion, other.sdkVersion)
+        && Objects.equals(implType, other.implType);
   }
 
   public Class<T> getImplType() {
