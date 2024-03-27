@@ -23,12 +23,20 @@ public class SdkComponentDescriptor<T> implements Serializable {
 
   private SdkComponentType componentType;
 
+  private String qualifier;
+
   private Class<T> implType;
 
   public SdkComponentDescriptor(String sdkVersion, SdkComponentType componentType,
       Class<T> implType) {
+    this(sdkVersion, componentType, "", implType);
+  }
+
+  public SdkComponentDescriptor(String sdkVersion, SdkComponentType componentType, String qualifier,
+      Class<T> implType) {
     this.sdkVersion = Validate.notBlank(sdkVersion, "Undefined SDK version");
     this.componentType = Validate.notNull(componentType, "Undefined component type");
+    this.qualifier = Validate.notNull(qualifier, "Undefined qualifier");
     this.implType = Validate.notNull(implType, "Undefined implementation type");
   }
 
@@ -94,7 +102,7 @@ public class SdkComponentDescriptor<T> implements Serializable {
 
   @Override
   public int hashCode() {
-    return Objects.hash(componentType, sdkVersion);
+    return Objects.hash(componentType, sdkVersion, qualifier, implType);
   }
 
   @Override
@@ -106,7 +114,10 @@ public class SdkComponentDescriptor<T> implements Serializable {
     if (getClass() != obj.getClass())
       return false;
     SdkComponentDescriptor<?> other = (SdkComponentDescriptor<?>) obj;
-    return componentType == other.componentType && Objects.equals(sdkVersion, other.sdkVersion);
+    return componentType == other.componentType 
+        && Objects.equals(sdkVersion, other.sdkVersion)
+        && Objects.equals(qualifier, other.qualifier)
+        && Objects.equals(implType, other.implType);
   }
 
   public Class<T> getImplType() {
