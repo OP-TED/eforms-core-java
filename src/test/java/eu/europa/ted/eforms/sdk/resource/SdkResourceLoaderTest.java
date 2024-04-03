@@ -22,7 +22,7 @@ public class SdkResourceLoaderTest extends MavenTestSetup {
 
   @Test
   void testGetResourceAsPath() {
-    Path path = SdkResourceLoader.getResourceAsPath("1.1.3",
+    Path path = SdkResourceLoader.getResourceAsPath("1.1",
         SdkConstants.SdkResource.FIELDS_JSON, SDK_ROOT_DIR);
 
     assertTrue(path.endsWith("fields/fields.json"));
@@ -30,7 +30,7 @@ public class SdkResourceLoaderTest extends MavenTestSetup {
 
   @Test
   void testGetResourceAsStream() throws IOException {
-    InputStream is = SdkResourceLoader.getResourceAsStream("1.1.3",
+    InputStream is = SdkResourceLoader.getResourceAsStream("1.1",
         SdkConstants.SdkResource.FIELDS, "fields.json", SDK_ROOT_DIR);
 
     assertTrue(is.read() >= 0);
