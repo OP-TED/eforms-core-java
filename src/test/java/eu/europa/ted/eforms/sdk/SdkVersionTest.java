@@ -1,6 +1,8 @@
 package eu.europa.ted.eforms.sdk;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.junit.jupiter.api.Test;
 
@@ -28,6 +30,20 @@ public class SdkVersionTest {
 	@Test
 	void testGetNextMinor() {
 		assertEquals("1.3.3", new SdkVersion("1.2.3").getNextMinor());
+	}
+
+	@Test
+	void testIsMajor() {
+		// SdkVersion always has a minor version number, so isMajor can never be true
+		assertFalse(new SdkVersion("1.0").isMajor());
+		assertFalse(new SdkVersion("1.2").isMajor());
+	}
+
+	@Test
+	void testIsMinor() {
+		assertTrue(new SdkVersion("2.0").isMinor());
+
+		assertFalse(new SdkVersion("1.2.3").isMinor());
 	}
 
 	@Test
