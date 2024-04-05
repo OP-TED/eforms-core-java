@@ -13,4 +13,6 @@ public @interface SdkComponent {
   public String[] versions();
 
   public SdkComponentType componentType();
+
+  public String qualifier() default "";
 }
