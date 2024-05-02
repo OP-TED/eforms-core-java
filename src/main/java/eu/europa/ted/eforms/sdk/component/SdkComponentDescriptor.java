@@ -50,7 +50,7 @@ public class SdkComponentDescriptor<T> implements Serializable {
           .collect(Collectors.toList())
           .toArray(new Class[0]);
 
-      logger.debug("Creating an instance of [{}] using constructor with parameter types: {}",
+      logger.trace("Creating an instance of [{}] using constructor with parameter types: {}",
           implType, paramTypes);
 
       Constructor<T> constructor = Optional

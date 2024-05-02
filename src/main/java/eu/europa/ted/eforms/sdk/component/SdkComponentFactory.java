@@ -80,18 +80,10 @@ public abstract class SdkComponentFactory {
         .map(Package::getName)
         .toArray(String[]::new);
 
-    if (logger.isDebugEnabled()) {
+    if (logger.isTraceEnabled()) {
       final List<String> packages = Arrays.asList(availablePackages);
-
-      logger.debug("eforms eu packages:");
       packages.stream().sorted()
-          .filter(p -> p.contains("eu.") && !p.contains("digit"))
-          .forEach(p -> logger.debug(p));
-
-      logger.debug("viewer package");
-      packages.stream().sorted()
-          .filter(p -> p.contains("eu.europa.ted.eforms.viewer"))
-          .forEach(p -> logger.debug(p));
+          .forEach(p -> logger.trace(p));
     }
 
     new Reflections(ConfigurationBuilder.build().forPackages(availablePackages))
@@ -154,12 +146,12 @@ public abstract class SdkComponentFactory {
             .orElseGet(Collections::emptyMap);
 
     if (logger.isDebugEnabled()) {
-      logger.debug("selector componentType={}", selector.componentType);
-      logger.debug("selector qualifier={}", selector.qualifier);
-      logger.debug("normalized version={}", normalizedVersion);
+      logger.debug("Looking for component with version=[{}], componentType=[{}], qualifier=[{}]",
+          normalizedVersion, selector.componentType, selector.qualifier);
       for (Entry<ComponentSelector, SdkComponentDescriptor<?>> entry : map.entrySet()) {
         logger.debug(
-            "entry key componentType={}, key qualifier={}, value={}",
+            "Available component for this version: "
+                + "componentType=[{}], qualifier=[{}], value=[{}]",
             entry.getKey().componentType,
             entry.getKey().qualifier,
             entry.getValue().getImplType().getName());
@@ -169,7 +161,6 @@ public abstract class SdkComponentFactory {
     @SuppressWarnings("unchecked")
     SdkComponentDescriptor<T> descriptor =
         (SdkComponentDescriptor<T>) map.get(selector);
-    logger.debug("descriptor descriptor={}", descriptor);
 
     if (descriptor == null) {
       logger.error("Failed to load required components of SDK [{}]", sdkVersion);
