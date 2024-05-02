@@ -4,7 +4,9 @@ import java.text.MessageFormat;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Stream;
@@ -78,6 +80,20 @@ public abstract class SdkComponentFactory {
         .map(Package::getName)
         .toArray(String[]::new);
 
+    if (logger.isDebugEnabled()) {
+      final List<String> packages = Arrays.asList(availablePackages);
+
+      logger.debug("eforms eu packages:");
+      packages.stream().sorted()
+          .filter(p -> p.contains("eu.") && !p.contains("digit"))
+          .forEach(p -> logger.debug(p));
+
+      logger.debug("viewer package");
+      packages.stream().sorted()
+          .filter(p -> p.contains("eu.europa.ted.eforms.viewer"))
+          .forEach(p -> logger.debug(p));
+    }
+
     new Reflections(ConfigurationBuilder.build().forPackages(availablePackages))
         .getTypesAnnotatedWith(annotationType).stream()
         .forEach((Class<?> clazz) -> {
@@ -126,22 +142,40 @@ public abstract class SdkComponentFactory {
   }
 
   protected <T> T getComponentImpl(String sdkVersion, final SdkComponentType componentType,
-      final String qualifier, final Class<T> intf, Object... initArgs) throws InstantiationException {
+      final String qualifier, final Class<T> intf, Object... initArgs)
+      throws InstantiationException {
 
     String normalizedVersion = normalizeVersion(sdkVersion);
 
     ComponentSelector selector = new ComponentSelector(componentType, qualifier);
 
+    Map<ComponentSelector, SdkComponentDescriptor<?>> map =
+        Optional.ofNullable(componentsMap.get(normalizedVersion))
+            .orElseGet(Collections::emptyMap);
+
+    if (logger.isDebugEnabled()) {
+      logger.debug("selector componentType={}", selector.componentType);
+      logger.debug("selector qualifier={}", selector.qualifier);
+      logger.debug("normalized version={}", normalizedVersion);
+      for (Entry<ComponentSelector, SdkComponentDescriptor<?>> entry : map.entrySet()) {
+        logger.debug(
+            "entry key componentType={}, key qualifier={}, value={}",
+            entry.getKey().componentType,
+            entry.getKey().qualifier,
+            entry.getValue().getImplType().getName());
+      }
+    }
+
     @SuppressWarnings("unchecked")
     SdkComponentDescriptor<T> descriptor =
-        (SdkComponentDescriptor<T>) Optional.ofNullable(componentsMap.get(normalizedVersion))
-            .orElseGet(Collections::emptyMap).get(selector);
+        (SdkComponentDescriptor<T>) map.get(selector);
+    logger.debug("descriptor descriptor={}", descriptor);
 
     if (descriptor == null) {
       logger.error("Failed to load required components of SDK [{}]", sdkVersion);
       throw new IllegalArgumentException(
           MessageFormat.format(
-              "No implementation found for SDK [{0}], component type [{1}] and qualifier '{2}'.",
+              "No implementation found for SDK [{0}], component type [{1}] and qualifier [{2}].",
               sdkVersion, componentType, qualifier));
     }
 
