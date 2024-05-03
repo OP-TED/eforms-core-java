@@ -145,11 +145,11 @@ public abstract class SdkComponentFactory {
         Optional.ofNullable(componentsMap.get(normalizedVersion))
             .orElseGet(Collections::emptyMap);
 
-    if (logger.isDebugEnabled()) {
-      logger.debug("Looking for component with version=[{}], componentType=[{}], qualifier=[{}]",
+    if (logger.isTraceEnabled()) {
+      logger.trace("Looking for component with version=[{}], componentType=[{}], qualifier=[{}]",
           normalizedVersion, selector.componentType, selector.qualifier);
       for (Entry<ComponentSelector, SdkComponentDescriptor<?>> entry : map.entrySet()) {
-        logger.debug(
+        logger.trace(
             "Available component for this version: "
                 + "componentType=[{}], qualifier=[{}], value=[{}]",
             entry.getKey().componentType,
