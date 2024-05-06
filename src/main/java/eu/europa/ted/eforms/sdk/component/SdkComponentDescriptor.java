@@ -114,7 +114,7 @@ public class SdkComponentDescriptor<T> implements Serializable {
     if (getClass() != obj.getClass())
       return false;
     SdkComponentDescriptor<?> other = (SdkComponentDescriptor<?>) obj;
-    return componentType == other.componentType 
+    return componentType == other.componentType
         && Objects.equals(sdkVersion, other.sdkVersion)
         && Objects.equals(qualifier, other.qualifier)
         && Objects.equals(implType, other.implType);

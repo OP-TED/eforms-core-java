@@ -4,7 +4,9 @@ import java.text.MessageFormat;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Stream;
@@ -78,6 +80,12 @@ public abstract class SdkComponentFactory {
         .map(Package::getName)
         .toArray(String[]::new);
 
+    if (logger.isTraceEnabled()) {
+      final List<String> packages = Arrays.asList(availablePackages);
+      packages.stream().sorted()
+          .forEach(p -> logger.trace(p));
+    }
+
     new Reflections(ConfigurationBuilder.build().forPackages(availablePackages))
         .getTypesAnnotatedWith(annotationType).stream()
         .forEach((Class<?> clazz) -> {
@@ -126,22 +134,39 @@ public abstract class SdkComponentFactory {
   }
 
   protected <T> T getComponentImpl(String sdkVersion, final SdkComponentType componentType,
-      final String qualifier, final Class<T> intf, Object... initArgs) throws InstantiationException {
+      final String qualifier, final Class<T> intf, Object... initArgs)
+      throws InstantiationException {
 
     String normalizedVersion = normalizeVersion(sdkVersion);
 
     ComponentSelector selector = new ComponentSelector(componentType, qualifier);
 
+    Map<ComponentSelector, SdkComponentDescriptor<?>> map =
+        Optional.ofNullable(componentsMap.get(normalizedVersion))
+            .orElseGet(Collections::emptyMap);
+
+    if (logger.isTraceEnabled()) {
+      logger.trace("Looking for component with version=[{}], componentType=[{}], qualifier=[{}]",
+          normalizedVersion, selector.componentType, selector.qualifier);
+      for (Entry<ComponentSelector, SdkComponentDescriptor<?>> entry : map.entrySet()) {
+        logger.trace(
+            "Available component for this version: "
+                + "componentType=[{}], qualifier=[{}], value=[{}]",
+            entry.getKey().componentType,
+            entry.getKey().qualifier,
+            entry.getValue().getImplType().getName());
+      }
+    }
+
     @SuppressWarnings("unchecked")
     SdkComponentDescriptor<T> descriptor =
-        (SdkComponentDescriptor<T>) Optional.ofNullable(componentsMap.get(normalizedVersion))
-            .orElseGet(Collections::emptyMap).get(selector);
+        (SdkComponentDescriptor<T>) map.get(selector);
 
     if (descriptor == null) {
       logger.error("Failed to load required components of SDK [{}]", sdkVersion);
       throw new IllegalArgumentException(
           MessageFormat.format(
-              "No implementation found for SDK [{0}], component type [{1}] and qualifier '{2}'.",
+              "No implementation found for SDK [{0}], component type [{1}] and qualifier [{2}].",
               sdkVersion, componentType, qualifier));
     }
 
