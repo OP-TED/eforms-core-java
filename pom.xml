@@ -83,7 +83,7 @@
     <version.source.plugin>3.2.1</version.source.plugin>
     <version.jar.plugin>3.3.0</version.jar.plugin>
     <version.surefire.plugin>3.2.5</version.surefire.plugin>
-    <version.nexus-staging.plugin>1.6.7</version.nexus-staging.plugin>
+    <version.central-publishing.plugin>0.8.0</version.central-publishing.plugin>
   </properties>
 
   <dependencyManagement>
@@ -421,9 +421,9 @@
           <version>${version.japicmp.plugin}</version>
         </plugin>
         <plugin>
-          <groupId>org.sonatype.plugins</groupId>
-          <artifactId>nexus-staging-maven-plugin</artifactId>
-          <version>${version.nexus-staging.plugin}</version>
+          <groupId>org.sonatype.central</groupId>
+          <artifactId>central-publishing-maven-plugin</artifactId>
+          <version>${version.central-publishing.plugin}</version>
         </plugin>
       </plugins>
     </pluginManagement>
@@ -561,13 +561,11 @@
             </configuration>
           </plugin>
            <plugin>
-              <groupId>org.sonatype.plugins</groupId>
-              <artifactId>nexus-staging-maven-plugin</artifactId>
+              <groupId>org.sonatype.central</groupId>
+              <artifactId>central-publishing-maven-plugin</artifactId>
               <extensions>true</extensions>
               <configuration>
-                <serverId>ossrh</serverId>
-                <nexusUrl>https://${sonatype.server.url}/</nexusUrl>
-                <autoReleaseAfterClose>true</autoReleaseAfterClose>
+                <publishingServerId>ossrh</publishingServerId>
               </configuration>
            </plugin>
         </plugins>
