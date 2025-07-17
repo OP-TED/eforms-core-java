@@ -554,7 +554,7 @@
               <artifactId>central-publishing-maven-plugin</artifactId>
               <extensions>true</extensions>
               <configuration>
-                <publishingServerId>ossrh</publishingServerId>
+                <publishingServerId>central</publishingServerId>
                 <autoPublish>true</autoPublish>
               </configuration>
            </plugin>
