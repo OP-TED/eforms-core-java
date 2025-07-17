@@ -555,6 +555,7 @@
               <extensions>true</extensions>
               <configuration>
                 <publishingServerId>ossrh</publishingServerId>
+                <autoPublish>true</autoPublish>
               </configuration>
            </plugin>
         </plugins>
