@@ -65,7 +65,7 @@ class XPathProcessorTest {
 
   @Test
   void testIdentical_WithPredicates() {
-    assertEquals(".[d = e][f = g]", contextualize("/a/b/c[d = e]", "/a/b/c[d = e][f = g]"));
+    assertEquals(".[f = g]", contextualize("/a/b/c[d = e]", "/a/b/c[d = e][f = g]"));
   }
 
   @Test
@@ -181,7 +181,7 @@ class XPathProcessorTest {
 
   @Test
   void testPredicateMoreInXpath() {
-    assertEquals("..[e][f]/c/d", contextualize("/a/b[e]/c", "/a/b[e][f]/c/d"));
+    assertEquals("..[f]/c/d", contextualize("/a/b[e]/c", "/a/b[e][f]/c/d"));
   }
 
   @Test
