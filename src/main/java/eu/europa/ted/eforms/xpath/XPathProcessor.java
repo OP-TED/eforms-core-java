@@ -76,17 +76,20 @@ public class XPathProcessor {
       // we want to use a dot step with the predicate of the path.
       if (!contextQueue.isEmpty() && !pathQueue.isEmpty()
           && pathQueue.peek().isSameAsOrNarrowerThan(contextQueue.peek())) {
-        contextQueue.poll();  // consume the same step from the contextQueue
+        // Consume the same step from the contextQueue and get its predicates
+        List<String> contextPredicates = contextQueue.poll().getPredicates(); 
+        // Keep only the predicates that are not in the context.
+        String pathPredicates = pathQueue.poll().getPredicates().stream().filter(p -> !contextPredicates.contains(p)).collect(Collectors.joining(""));
         if (contextQueue.isEmpty()) {
           // Since there are no more steps in the contextQueue, the relative xpath should 
           // start with a dot step to provide a context for the predicate.
-          relativeXpath += "." + pathQueue.poll().getPredicateText();
+          relativeXpath += "." + pathPredicates;
         } else {
           // Since there are more steps in the contextQueue which we will need to navigate back to,
-          // using back-steps, we will use a back-step to provide context of the predicate.
+          // using back-steps, we will use a back-step to provide context for the predicate.
           // This avoids an output that looks like ../.[predicate] which is valid but silly.  
           contextQueue.poll();  // consume the step from the contextQueue
-          relativeXpath += ".." + pathQueue.poll().getPredicateText();
+          relativeXpath += ".." + pathPredicates;
         }
       }
 
