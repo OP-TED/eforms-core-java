@@ -14,6 +14,10 @@ import org.apache.commons.lang3.Validate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/**
+ * Descriptor that uniquely identifies an SDK component by its version, type, and qualifier.
+ * Used internally by {@link SdkComponentFactory} for component registry and lookup.
+ */
 public class SdkComponentDescriptor<T> implements Serializable {
   private static final long serialVersionUID = -6237218459963821365L;
 
@@ -27,17 +31,31 @@ public class SdkComponentDescriptor<T> implements Serializable {
 
   private Class<T> implType;
 
-  public SdkComponentDescriptor(String sdkVersion, SdkComponentType componentType,
-      Class<T> implType) {
-    this(sdkVersion, componentType, "", implType);
-  }
-
+  /**
+   * Creates a descriptor with the specified SDK version, component type, and qualifier.
+   * 
+   * @param sdkVersion the SDK version
+   * @param componentType the component type
+   * @param qualifier the qualifier (use empty string for default components)
+   */
   public SdkComponentDescriptor(String sdkVersion, SdkComponentType componentType, String qualifier,
       Class<T> implType) {
     this.sdkVersion = Validate.notBlank(sdkVersion, "Undefined SDK version");
     this.componentType = Validate.notNull(componentType, "Undefined component type");
     this.qualifier = Validate.notNull(qualifier, "Undefined qualifier");
     this.implType = Validate.notNull(implType, "Undefined implementation type");
+  }
+
+  /**
+   * Creates a descriptor with the specified SDK version and component type.
+   * The qualifier defaults to empty string.
+   * 
+   * @param sdkVersion the SDK version
+   * @param componentType the component type
+   */
+  public SdkComponentDescriptor(String sdkVersion, SdkComponentType componentType,
+      Class<T> implType) {
+    this(sdkVersion, componentType, "", implType);
   }
 
   @SuppressWarnings("unchecked")

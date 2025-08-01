@@ -6,6 +6,11 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
+/**
+ * Marks a class as an SDK component implementation for specific SDK versions.
+ * Each annotated class must correspond to a specific component type and can optionally
+ * specify a qualifier for multiple implementations of the same type.
+ */
 @Inherited
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.TYPE)
