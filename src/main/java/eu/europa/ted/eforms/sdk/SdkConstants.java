@@ -7,6 +7,7 @@ public class SdkConstants {
   public static final String FIELDS_JSON_XML_STRUCTURE_KEY = "xmlStructure";
   public static final String FIELDS_JSON_FIELDS_KEY = "fields";
 
+  public static final String NOTICE_TYPES_JSON_SUBTYPES_KEY = "noticeSubTypes";
   public static final String NOTICE_TYPES_JSON_DOCUMENT_TYPES_KEY = "documentTypes";
   public static final String NOTICE_TYPES_JSON_DOCUMENT_TYPE_KEY = "documentType";
   public static final String NOTICE_TYPES_JSON_NAMESPACE_KEY = "namespace";
