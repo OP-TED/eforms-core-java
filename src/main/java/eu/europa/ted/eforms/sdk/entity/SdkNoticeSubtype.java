@@ -6,7 +6,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 /**
  * Represents a notice subtype from the SDK's notice-types.json file.
  */
-public abstract class SdkNoticeSubtype {
+public abstract class SdkNoticeSubtype implements Comparable<SdkNoticeSubtype> {
   private final String subTypeId;
   private final String documentType;
   private final String type;
@@ -18,9 +18,9 @@ public abstract class SdkNoticeSubtype {
   }
 
   protected SdkNoticeSubtype(JsonNode json) {
-    this.subTypeId = json.get("subTypeId").asText();
-    this.documentType = json.get("documentType").asText();
-    this.type = json.get("type").asText();
+    this.subTypeId = json.get("subTypeId").asText(null);
+    this.documentType = json.get("documentType").asText(null);
+    this.type = json.get("type").asText(null);
   }
 
   /**
@@ -56,6 +56,11 @@ public abstract class SdkNoticeSubtype {
     }
     SdkNoticeSubtype other = (SdkNoticeSubtype) obj;
     return Objects.equals(subTypeId, other.subTypeId);
+  }
+
+  @Override
+  public int compareTo(SdkNoticeSubtype o) {
+    return this.subTypeId.compareTo(o.subTypeId);
   }
 
   @Override
