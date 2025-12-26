@@ -20,10 +20,10 @@ public class SdkNoticeTypeRepository extends MapFromJson<SdkNoticeSubtype> {
 
   @Override
   protected void populateMap(final JsonNode json) throws InstantiationException {
-    final ArrayNode noticeTypes = (ArrayNode) json.get(SdkConstants.NOTICE_TYPES_JSON_SUBTYPES_KEY);
-    for (final JsonNode noticeType : noticeTypes) {
-      final SdkNoticeSubtype sdkNoticeType = SdkEntityFactory.getSdkNoticeType(sdkVersion, noticeType);
-      put(sdkNoticeType.getId(), sdkNoticeType);
+    final ArrayNode noticeSubtypes = (ArrayNode) json.get(SdkConstants.NOTICE_TYPES_JSON_SUBTYPES_KEY);
+    for (final JsonNode noticeSubtype : noticeSubtypes) {
+      final SdkNoticeSubtype sdkNoticeSubtype = SdkEntityFactory.getSdkNoticeSubtype(sdkVersion, noticeSubtype);
+      put(sdkNoticeSubtype.getId(), sdkNoticeSubtype);
     }
   }
 }
