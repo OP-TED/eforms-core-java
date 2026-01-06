@@ -1,10 +1,11 @@
 # Common Entities
 
-The entities in this package can be used while reading data from the eForms SDK. Currently there are only three entities implemented here:
+The entities in this package can be used while reading data from the eForms SDK. Currently there are only four entities implemented here:
 
 * `SdkField`: Can hold basic information about a field.
 * `SdkNode`: Can hold basic information about a node and reconstruct the node hierarchy.
 * `SdkCodelist`: Can hold codelist information including its codes.
+* `SdkNoticeSubtype`: Can hold information about a notice subtype from the SDK's notice-types.json file.
 
 All the classes are abstract so that they can have specific implementations for different major versions of the eForms SDK if needed.
 
