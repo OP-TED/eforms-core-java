@@ -10,6 +10,8 @@ public abstract class SdkField implements Comparable<SdkField> {
   private final String parentNodeId;
   private final String type;
   private final String codelistId;
+  private final boolean repeatable;
+  private SdkNode parentNode;
 
   @SuppressWarnings("unused")
   private SdkField() {
@@ -18,12 +20,19 @@ public abstract class SdkField implements Comparable<SdkField> {
 
   protected SdkField(final String id, final String type, final String parentNodeId,
       final String xpathAbsolute, final String xpathRelative, final String codelistId) {
+    this(id, type, parentNodeId, xpathAbsolute, xpathRelative, codelistId, false);
+  }
+
+  protected SdkField(final String id, final String type, final String parentNodeId,
+      final String xpathAbsolute, final String xpathRelative, final String codelistId,
+      final boolean repeatable) {
     this.id = id;
     this.parentNodeId = parentNodeId;
     this.xpathAbsolute = xpathAbsolute;
     this.xpathRelative = xpathRelative;
     this.type = type;
     this.codelistId = codelistId;
+    this.repeatable = repeatable;
   }
 
   protected SdkField(final JsonNode fieldNode) {
@@ -33,6 +42,7 @@ public abstract class SdkField implements Comparable<SdkField> {
     this.xpathRelative = fieldNode.get("xpathRelative").asText(null);
     this.type = fieldNode.get("type").asText(null);
     this.codelistId = extractCodelistId(fieldNode);
+    this.repeatable = extractRepeatable(fieldNode);
   }
 
   protected String extractCodelistId(final JsonNode fieldNode) {
@@ -47,6 +57,20 @@ public abstract class SdkField implements Comparable<SdkField> {
     }
 
     return valueNode.get("id").asText(null);
+  }
+
+  protected boolean extractRepeatable(final JsonNode fieldNode) {
+    final JsonNode repeatableNode = fieldNode.get("repeatable");
+    if (repeatableNode == null) {
+      return false;
+    }
+
+    final JsonNode valueNode = repeatableNode.get("value");
+    if (valueNode == null) {
+      return false;
+    }
+
+    return valueNode.asBoolean(false);
   }
 
   public String getId() {
@@ -71,6 +95,18 @@ public abstract class SdkField implements Comparable<SdkField> {
 
   public String getCodelistId() {
     return codelistId;
+  }
+
+  public boolean isRepeatable() {
+    return repeatable;
+  }
+
+  public SdkNode getParentNode() {
+    return parentNode;
+  }
+
+  public void setParentNode(SdkNode parentNode) {
+    this.parentNode = parentNode;
   }
 
   /**

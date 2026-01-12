@@ -1,6 +1,9 @@
 package eu.europa.ted.eforms.sdk.entity;
 
+import java.util.Collections;
+import java.util.LinkedHashSet;
 import java.util.Objects;
+import java.util.Set;
 import com.fasterxml.jackson.databind.JsonNode;
 
 /**
@@ -12,6 +15,8 @@ public abstract class SdkNode implements Comparable<SdkNode> {
   private final String xpathRelative;
   private final String parentId;
   private final boolean repeatable;
+  private SdkNode parent;
+  private Set<String> cachedAncestry;
 
   protected SdkNode(final String id, final String parentId, final String xpathAbsolute,
       final String xpathRelative, final boolean repeatable) {
@@ -51,9 +56,31 @@ public abstract class SdkNode implements Comparable<SdkNode> {
     return repeatable;
   }
 
+  public SdkNode getParent() {
+    return parent;
+  }
+
+  public void setParent(SdkNode parent) {
+    this.parent = parent;
+    this.cachedAncestry = null;
+  }
+
+  public Set<String> getAncestry() {
+    if (cachedAncestry == null) {
+      Set<String> ancestry = new LinkedHashSet<>();
+      SdkNode current = this;
+      while (current != null) {
+        ancestry.add(current.getId());
+        current = current.getParent();
+      }
+      cachedAncestry = Collections.unmodifiableSet(ancestry);
+    }
+    return cachedAncestry;
+  }
+
   @Override
   public int compareTo(SdkNode o) {
-    return o.getId().compareTo(o.getId());
+    return this.getId().compareTo(o.getId());
   }
 
   @Override
