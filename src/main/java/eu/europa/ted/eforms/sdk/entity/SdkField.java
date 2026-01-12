@@ -2,6 +2,8 @@ package eu.europa.ted.eforms.sdk.entity;
 
 import java.util.Objects;
 import com.fasterxml.jackson.databind.JsonNode;
+import eu.europa.ted.eforms.xpath.XPathInfo;
+import eu.europa.ted.eforms.xpath.XPathProcessor;
 
 public abstract class SdkField implements Comparable<SdkField> {
   private final String id;
@@ -12,6 +14,7 @@ public abstract class SdkField implements Comparable<SdkField> {
   private final String codelistId;
   private final boolean repeatable;
   private SdkNode parentNode;
+  private XPathInfo xpathInfo;
 
   @SuppressWarnings("unused")
   private SdkField() {
@@ -107,6 +110,18 @@ public abstract class SdkField implements Comparable<SdkField> {
 
   public void setParentNode(SdkNode parentNode) {
     this.parentNode = parentNode;
+  }
+
+  /**
+   * Returns parsed XPath information for this field.
+   * Provides access to attribute info, path decomposition, and predicate checks.
+   * Lazily initialized on first access.
+   */
+  public XPathInfo getXpathInfo() {
+    if (this.xpathInfo == null) {
+      this.xpathInfo = XPathProcessor.parse(this.xpathAbsolute);
+    }
+    return this.xpathInfo;
   }
 
   /**
