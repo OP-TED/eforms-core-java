@@ -10,3 +10,4 @@ This package contains:
 * `SdkFieldRepository`: can populate a `HashMap` with `SdkField` objects read form `fields.json`
 * `SdkNodeRepository`: can populate a `HashMap` with `SdkNode` objects read form `fields.json`
 * `SdkCodelistRepository`: can populate a `HashMap` with `SdkCodelist` objects (including all codelist codes), by reading the `.gc` files from the `codelists` folder of the eForms SDK.
+* `SdkNoticeTypeRepository`: can populate a `HashMap` with `SdkNoticeSubtype` objects read from `notice-types.json`
