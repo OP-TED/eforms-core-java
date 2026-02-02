@@ -103,6 +103,6 @@ public abstract class SdkField implements Comparable<SdkField> {
 
   @Override
   public String toString() {
-    return "SdkField [id=" + id + "]";
+    return id;
   }
 }
