@@ -1,9 +1,9 @@
 package eu.europa.ted.eforms.sdk.entity;
 
+import java.util.ArrayList;
 import java.util.Collections;
-import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Objects;
-import java.util.Set;
 import com.fasterxml.jackson.databind.JsonNode;
 
 /**
@@ -16,7 +16,7 @@ public abstract class SdkNode implements Comparable<SdkNode> {
   private final String parentId;
   private final boolean repeatable;
   private SdkNode parent;
-  private Set<String> cachedAncestry;
+  private List<String> cachedAncestry;
 
   protected SdkNode(final String id, final String parentId, final String xpathAbsolute,
       final String xpathRelative, final boolean repeatable) {
@@ -60,20 +60,35 @@ public abstract class SdkNode implements Comparable<SdkNode> {
     return parent;
   }
 
+  /**
+   * Sets the parent node and invalidates the cached ancestry.
+   * Should only be called during SDK initialization (two-pass loading).
+   *
+   * @param parent the parent node
+   */
   public void setParent(SdkNode parent) {
     this.parent = parent;
     this.cachedAncestry = null;
   }
 
-  public Set<String> getAncestry() {
+  /**
+   * Returns the ancestry chain from this node to the root.
+   * The list includes this node as the first element, followed by its parent,
+   * grandparent, and so on up to the root node.
+   *
+   * The result is cached and recomputed only when the parent changes.
+   *
+   * @return unmodifiable list of node IDs ordered from child (this node) to root
+   */
+  public List<String> getAncestry() {
     if (cachedAncestry == null) {
-      Set<String> ancestry = new LinkedHashSet<>();
+      List<String> ancestry = new ArrayList<>();
       SdkNode current = this;
       while (current != null) {
         ancestry.add(current.getId());
         current = current.getParent();
       }
-      cachedAncestry = Collections.unmodifiableSet(ancestry);
+      cachedAncestry = Collections.unmodifiableList(ancestry);
     }
     return cachedAncestry;
   }
