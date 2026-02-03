@@ -39,7 +39,20 @@ public abstract class MapFromJson<T> extends HashMap<String, T> {
     }
   }
 
-  private final void populateMap(final Path jsonPath) throws IOException, InstantiationException {
+  protected MapFromJson(final String sdkVersion, final Path jsonPath, final Object... context)
+      throws InstantiationException {
+    this.sdkVersion = sdkVersion;
+
+    try {
+      populateMap(jsonPath, context);
+    } catch (IOException e) {
+      throw new RuntimeException(MessageFormat
+          .format("Failed to set resource filepath to [{0}]. Error was: {1}", jsonPath, e));
+    }
+  }
+
+  private final void populateMap(final Path jsonPath, final Object... context)
+      throws IOException, InstantiationException {
     logger.debug("Populating maps for context, jsonPath={}", jsonPath);
 
     final ObjectMapper mapper = buildStandardJacksonObjectMapper();
@@ -54,11 +67,23 @@ public abstract class MapFromJson<T> extends HashMap<String, T> {
       }
 
       final JsonNode json = mapper.readTree(fieldsJsonInputStream);
-      populateMap(json);
+      populateMap(json, context);
     }
   }
 
+  /**
+   * Abstract method for populating the map from JSON. Existing subclasses implement this.
+   */
   protected abstract void populateMap(final JsonNode json) throws InstantiationException;
+
+  /**
+   * Context-aware population method. Default implementation delegates to the abstract method,
+   * ignoring context. Subclasses that need context should override this method.
+   */
+  protected void populateMap(final JsonNode json, final Object... context)
+      throws InstantiationException {
+    populateMap(json);
+  }
 
   /**
    * @return A reusable Jackson object mapper instance.

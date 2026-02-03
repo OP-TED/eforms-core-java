@@ -14,12 +14,31 @@ public class SdkFieldRepository extends MapFromJson<SdkField> {
     super(sdkVersion, jsonPath);
   }
 
+  public SdkFieldRepository(String sdkVersion, Path jsonPath, SdkNodeRepository nodeRepository)
+      throws InstantiationException {
+    super(sdkVersion, jsonPath, nodeRepository);
+  }
+
   @Override
   protected void populateMap(final JsonNode json) throws InstantiationException {
+    populateMap(json, new Object[0]);
+  }
+
+  @Override
+  protected void populateMap(final JsonNode json, final Object... context)
+      throws InstantiationException {
+    SdkNodeRepository nodes = (context.length > 0 && context[0] instanceof SdkNodeRepository)
+        ? (SdkNodeRepository) context[0]
+        : null;
+
     final ArrayNode fields = (ArrayNode) json.get(SdkConstants.FIELDS_JSON_FIELDS_KEY);
     for (final JsonNode field : fields) {
       final SdkField sdkField = SdkEntityFactory.getSdkField(sdkVersion, field);
       put(sdkField.getId(), sdkField);
+
+      if (nodes != null && sdkField.getParentNodeId() != null) {
+        sdkField.setParentNode(nodes.get(sdkField.getParentNodeId()));
+      }
     }
   }
 }
