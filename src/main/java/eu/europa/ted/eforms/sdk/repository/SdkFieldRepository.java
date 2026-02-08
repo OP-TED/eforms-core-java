@@ -32,12 +32,35 @@ public class SdkFieldRepository extends MapFromJson<SdkField> {
         : null;
 
     final ArrayNode fields = (ArrayNode) json.get(SdkConstants.FIELDS_JSON_FIELDS_KEY);
+
+    // First pass: create all field entities and add them to the map
     for (final JsonNode field : fields) {
       final SdkField sdkField = SdkEntityFactory.getSdkField(sdkVersion, field);
       put(sdkField.getId(), sdkField);
 
       if (nodes != null && sdkField.getParentNodeId() != null) {
         sdkField.setParentNode(nodes.get(sdkField.getParentNodeId()));
+      }
+    }
+
+    // Second pass: resolve privacy field references
+    for (final SdkField sdkField : this.values()) {
+      if (sdkField.getPrivacySettings() != null) {
+        SdkField.PrivacySettings privacy = sdkField.getPrivacySettings();
+
+        if (privacy.getPrivacyCodeFieldId() != null) {
+          privacy.setPrivacyCodeField(this.get(privacy.getPrivacyCodeFieldId()));
+        }
+        if (privacy.getJustificationCodeFieldId() != null) {
+          privacy.setJustificationCodeField(this.get(privacy.getJustificationCodeFieldId()));
+        }
+        if (privacy.getJustificationDescriptionFieldId() != null) {
+          privacy.setJustificationDescriptionField(
+              this.get(privacy.getJustificationDescriptionFieldId()));
+        }
+        if (privacy.getPublicationDateFieldId() != null) {
+          privacy.setPublicationDateField(this.get(privacy.getPublicationDateFieldId()));
+        }
       }
     }
   }
