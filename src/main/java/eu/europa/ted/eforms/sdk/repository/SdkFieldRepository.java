@@ -1,6 +1,8 @@
 package eu.europa.ted.eforms.sdk.repository;
 
 import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.List;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import eu.europa.ted.eforms.sdk.SdkConstants;
@@ -43,7 +45,7 @@ public class SdkFieldRepository extends MapFromJson<SdkField> {
       }
     }
 
-    // Second pass: resolve privacy field references
+    // Second pass: resolve cross-field references
     for (final SdkField sdkField : this.values()) {
       if (sdkField.getPrivacySettings() != null) {
         SdkField.PrivacySettings privacy = sdkField.getPrivacySettings();
@@ -61,6 +63,21 @@ public class SdkFieldRepository extends MapFromJson<SdkField> {
         if (privacy.getPublicationDateFieldId() != null) {
           privacy.setPublicationDateField(this.get(privacy.getPublicationDateFieldId()));
         }
+      }
+
+      if (!sdkField.getAttributes().isEmpty()) {
+        List<SdkField> attrFields = new ArrayList<>();
+        for (String attrFieldId : sdkField.getAttributes()) {
+          SdkField attrField = this.get(attrFieldId);
+          if (attrField != null) {
+            attrFields.add(attrField);
+          }
+        }
+        sdkField.setAttributeFields(attrFields);
+      }
+
+      if (sdkField.getAttributeOf() != null) {
+        sdkField.setAttributeOfField(this.get(sdkField.getAttributeOf()));
       }
     }
   }

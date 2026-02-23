@@ -50,6 +50,7 @@ public class SdkDataTypeRepository extends HashMap<String, SdkDataType> {
     repository.addType("number", "-1");
     repository.addType("amount", "-1");
     repository.addType("measure", "-1");
+    repository.addType("duration", "-1");
 
     return repository;
   }

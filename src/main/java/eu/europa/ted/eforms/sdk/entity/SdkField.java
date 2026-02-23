@@ -1,5 +1,8 @@
 package eu.europa.ted.eforms.sdk.entity;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.Objects;
 import com.fasterxml.jackson.databind.JsonNode;
 import eu.europa.ted.eforms.xpath.XPathInfo;
@@ -15,7 +18,12 @@ public abstract class SdkField implements Comparable<SdkField> {
   private final boolean repeatable;
   private final String privacyCode;
   private final PrivacySettings privacySettings;
+  private final List<String> attributes;
+  private final String attributeOf;
+  private final String attributeName;
   private SdkNode parentNode;
+  private List<SdkField> attributeFields;
+  private SdkField attributeOfField;
   private XPathInfo xpathInfo;
 
   /**
@@ -111,6 +119,9 @@ public abstract class SdkField implements Comparable<SdkField> {
     this.repeatable = repeatable;
     this.privacyCode = null;
     this.privacySettings = null;
+    this.attributes = Collections.emptyList();
+    this.attributeOf = null;
+    this.attributeName = null;
   }
 
   protected SdkField(final JsonNode fieldNode) {
@@ -124,6 +135,21 @@ public abstract class SdkField implements Comparable<SdkField> {
     final JsonNode privacyNode = fieldNode.get("privacy");
     this.privacyCode = privacyNode != null ? privacyNode.get("code").asText(null) : null;
     this.privacySettings = extractPrivacy(privacyNode);
+    this.attributes = extractAttributes(fieldNode);
+    this.attributeOf = fieldNode.has("attributeOf") ? fieldNode.get("attributeOf").asText(null) : null;
+    this.attributeName = fieldNode.has("attributeName") ? fieldNode.get("attributeName").asText(null) : null;
+  }
+
+  protected List<String> extractAttributes(final JsonNode fieldNode) {
+    final JsonNode attributesNode = fieldNode.get("attributes");
+    if (attributesNode == null || !attributesNode.isArray()) {
+      return Collections.emptyList();
+    }
+    List<String> result = new ArrayList<>();
+    for (JsonNode attr : attributesNode) {
+      result.add(attr.asText());
+    }
+    return Collections.unmodifiableList(result);
   }
 
   protected String extractCodelistId(final JsonNode fieldNode) {
@@ -191,6 +217,50 @@ public abstract class SdkField implements Comparable<SdkField> {
 
   public String getCodelistId() {
     return this.codelistId;
+  }
+
+  public List<String> getAttributes() {
+    return this.attributes;
+  }
+
+  public String getAttributeOf() {
+    return this.attributeOf;
+  }
+
+  public String getAttributeName() {
+    return this.attributeName;
+  }
+
+  public List<SdkField> getAttributeFields() {
+    return this.attributeFields;
+  }
+
+  public void setAttributeFields(List<SdkField> attributeFields) {
+    this.attributeFields = Collections.unmodifiableList(attributeFields);
+  }
+
+  public SdkField getAttributeOfField() {
+    return this.attributeOfField;
+  }
+
+  public void setAttributeOfField(SdkField attributeOfField) {
+    this.attributeOfField = attributeOfField;
+  }
+
+  /**
+   * Returns the attribute field with the given XML attribute name (e.g. "unitCode", "listName"),
+   * or null if this field has no such attribute.
+   */
+  public SdkField getAttributeField(String attrName) {
+    if (this.attributeFields == null) {
+      return null;
+    }
+    for (SdkField attrField : this.attributeFields) {
+      if (attrName.equals(attrField.getAttributeName())) {
+        return attrField;
+      }
+    }
+    return null;
   }
 
   public boolean isRepeatable() {
