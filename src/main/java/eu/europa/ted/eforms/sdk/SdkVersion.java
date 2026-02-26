@@ -14,11 +14,15 @@ public class SdkVersion implements Comparable<SdkVersion> {
 
   private final Semver version;
 
+  private static final String SDK_PREFIX = "eforms-sdk-";
+
   public SdkVersion(final String version) {
     Validate.notBlank(version, "Undefined version");
 
+    String normalized = version.startsWith(SDK_PREFIX) ? version.substring(SDK_PREFIX.length()) : version;
+
     // LOOSE because we need to accept MAJOR.MINOR
-    this.version = new Semver(version, SemverType.LOOSE);
+    this.version = new Semver(normalized, SemverType.LOOSE);
 
     // Check that we did get a MINOR part
     Validate.notNull(this.version.getMinor());
