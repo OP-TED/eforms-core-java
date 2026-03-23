@@ -7,6 +7,8 @@ This library provides a set of classes that can be used to solve some common "pr
 * Automatically discovering and downloading new versions of the eForms SDK.
 * Maintaining and instantiating at runtime the correct application component versions for different major versions of the SDK.
 * Basic parsing and processing of XPath expressions.
+* Parsing eForms notice XML documents and extracting metadata (SDK version, subtype, languages).
+* Secure XML document building with XXE prevention (OWASP guidelines).
 
 ## Using the eForms Core Library
 
