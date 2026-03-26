@@ -7,7 +7,7 @@ The eForms Core Library is a collection of utilities used by the EFX Toolkit for
 ### SDK entity improvements
 
 - Versioned SDK entity classes (`SdkFieldV1`, `SdkFieldV2`, `SdkNodeV1`, `SdkNodeV2`, etc.) have been moved from the EFX Toolkit into the core library, consolidating version-specific implementations in a single location.
-- `SdkNode` now supports parent node references and ancestor chain traversal via `getAncestry()`. The return type is `List` (ordered) rather than `Set`.
+- `SdkNode` now supports parent node references and ancestor chain traversal via `getAncestry()`.
 - `SdkField` now exposes repeatability information, parent node references, and parsed XPath metadata via `getXpathInfo()`.
 - Repository classes (`SdkNodeRepository`, `SdkFieldRepository`) now use two-pass loading to wire parent-child relationships during initialization.
 
@@ -21,7 +21,6 @@ The eForms Core Library is a collection of utilities used by the EFX Toolkit for
 
 - Added `SdkNoticeSubtype` entity with intelligent ID parsing (prefix/number/suffix decomposition) and correct sorting order.
 - Added `SdkNoticeTypeRepository` to load and manage notice subtypes.
-- Renamed `getSdkNoticeType()` to `getSdkNoticeSubtype()` for semantic accuracy.
 
 ### Utilities
 
@@ -30,7 +29,6 @@ The eForms Core Library is a collection of utilities used by the EFX Toolkit for
 ### Component registry
 
 - Added component types for dependency extraction (`EFX_COMPUTE_DEPENDENCY_EXTRACTOR`, `EFX_VALIDATION_DEPENDENCY_EXTRACTOR`) and EFX rules translation (`EFX_RULES_TRANSLATOR`).
-- Renamed `VALIDATOR_MARKUP_GENERATOR` to `VALIDATOR_GENERATOR`.
 
 ### Dependencies
 
