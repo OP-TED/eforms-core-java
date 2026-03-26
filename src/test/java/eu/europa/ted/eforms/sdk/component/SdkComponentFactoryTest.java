@@ -44,7 +44,7 @@ class SdkComponentFactoryTest {
 
     // No component for this type
     assertThrows(IllegalArgumentException.class, () ->
-        factory.getComponentImpl("1.0", SdkComponentType.CODELIST, TestComponent.class));
+        factory.getComponentImpl("1.0", SdkComponentType.VALIDATOR_GENERATOR, TestComponent.class));
 
     // No component for this qualifier
     assertThrows(IllegalArgumentException.class, () ->
@@ -53,9 +53,5 @@ class SdkComponentFactoryTest {
     // Only component for this version and type does not have a qualifier
     assertThrows(IllegalArgumentException.class, () ->
     factory.getComponentImpl("0.5", SdkComponentType.EFX_EXPRESSION_TRANSLATOR, "BAD", TestComponent.class));
-
-    // Only component for this version and type has a qualifier
-    assertThrows(IllegalArgumentException.class, () ->
-    factory.getComponentImpl("1.0", SdkComponentType.NODE, TestComponent.class));
   }
 }

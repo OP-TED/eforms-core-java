@@ -10,6 +10,7 @@ import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Stream;
+import eu.europa.ted.eforms.sdk.SdkVersion;
 import org.reflections.Reflections;
 import org.reflections.util.ClasspathHelper;
 import org.reflections.util.ConfigurationBuilder;
@@ -174,19 +175,11 @@ public abstract class SdkComponentFactory {
   }
 
   private static String normalizeVersion(final String sdkVersion) {
-    String normalizedVersion = sdkVersion;
-
-    if (normalizedVersion.startsWith("eforms-sdk-")) {
-      normalizedVersion = normalizedVersion.substring(11);
+    SdkVersion version = new SdkVersion(sdkVersion);
+    int major = Integer.parseInt(version.getMajor());
+    if (major > 0) {
+      return version.getMajor();
     }
-
-    String[] numbers = normalizedVersion.split("\\.", -2);
-
-    if (numbers.length < 1) {
-      throw new IllegalArgumentException("Invalid SDK version: " + sdkVersion);
-    }
-
-    return numbers[0]
-        + ((numbers.length > 1 && Integer.parseInt(numbers[0]) > 0) ? "" : "." + numbers[1]);
+    return version.getMajor() + "." + version.getMinor();
   }
 }
