@@ -9,11 +9,9 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.stream.Stream;
 import eu.europa.ted.eforms.sdk.SdkVersion;
-import org.reflections.Reflections;
-import org.reflections.util.ClasspathHelper;
-import org.reflections.util.ConfigurationBuilder;
+import io.github.classgraph.ClassGraph;
+import io.github.classgraph.ScanResult;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -22,6 +20,26 @@ import org.slf4j.LoggerFactory;
  */
 public abstract class SdkComponentFactory {
   private static final Logger logger = LoggerFactory.getLogger(SdkComponentFactory.class);
+
+  /**
+   * Lazy-init holder for the JVM-wide classpath scan. Triggered the first time any
+   * {@link SdkComponentFactory} subclass is constructed; the resulting list is shared
+   * by all subclasses so that the (potentially expensive) classpath walk runs only once
+   * per JVM rather than once per factory subclass.
+   */
+  private static final class AnnotatedClassesHolder {
+    static final List<Class<?>> CLASSES = scan();
+
+    private static List<Class<?>> scan() {
+      logger.debug("Scanning the classpath for types annotated with {}", SdkComponent.class);
+      try (ScanResult result = new ClassGraph()
+          .enableAnnotationInfo()
+          .ignoreClassVisibility()
+          .scan()) {
+        return result.getClassesWithAnnotation(SdkComponent.class).loadClasses();
+      }
+    }
+  }
 
   private Map<String, Map<ComponentSelector, SdkComponentDescriptor<?>>> componentsMap;
 
@@ -65,67 +83,47 @@ public abstract class SdkComponentFactory {
   private void populateComponents() {
     Class<SdkComponent> annotationType = SdkComponent.class;
 
-    logger.debug("Looking in the classpath for types annotated with {}", annotationType);
-
     if (componentsMap == null) {
       componentsMap = new HashMap<>();
     }
 
-    // Get a list of all the packages loaded by the available classloaders.
-    // This can be a bit expensive in some situations, so this method factory should
-    // be ensured to run as less as possible (ideally only once).
-    String[] availablePackages = Arrays
-        .stream(ClasspathHelper.classLoaders())
-        .map(ClassLoader::getDefinedPackages)
-        .flatMap(Stream::of)
-        .map(Package::getName)
-        .toArray(String[]::new);
+    AnnotatedClassesHolder.CLASSES.forEach((Class<?> clazz) -> {
+      logger.trace("Processing type [{}]", clazz);
 
-    if (logger.isTraceEnabled()) {
-      final List<String> packages = Arrays.asList(availablePackages);
-      packages.stream().sorted()
-          .forEach(p -> logger.trace(p));
-    }
+      SdkComponent annotation = clazz.getAnnotation(annotationType);
 
-    new Reflections(ConfigurationBuilder.build().forPackages(availablePackages))
-        .getTypesAnnotatedWith(annotationType).stream()
-        .forEach((Class<?> clazz) -> {
-          logger.trace("Processing type [{}]", clazz);
+      String[] supportedSdkVersions = annotation.versions();
+      SdkComponentType componentType = annotation.componentType();
+      String qualifier = annotation.qualifier();
+      ComponentSelector selector = new ComponentSelector(componentType, qualifier);
 
-          SdkComponent annotation = clazz.getAnnotation(annotationType);
+      logger.trace("Class [{}] has a component type of [{}] and supports SDK versions [{}]",
+          clazz, componentType, supportedSdkVersions);
 
-          String[] supportedSdkVersions = annotation.versions();
-          SdkComponentType componentType = annotation.componentType();
-          String qualifier = annotation.qualifier();
-          ComponentSelector selector = new ComponentSelector(componentType, qualifier);
+      Arrays.asList(supportedSdkVersions).forEach((String sdkVersion) -> {
+        SdkComponentDescriptor<?> component =
+            new SdkComponentDescriptor<>(sdkVersion, componentType, clazz);
 
-          logger.trace("Class [{}] has a component type of [{}] and supports SDK versions [{}]",
-              clazz, componentType, supportedSdkVersions);
+        Map<ComponentSelector, SdkComponentDescriptor<?>> components =
+            componentsMap.get(sdkVersion);
 
-          Arrays.asList(supportedSdkVersions).forEach((String sdkVersion) -> {
-            SdkComponentDescriptor<?> component =
-                new SdkComponentDescriptor<>(sdkVersion, componentType, clazz);
+        if (components != null) {
+          SdkComponentDescriptor<?> existingComponent = components.get(selector);
 
-            Map<ComponentSelector, SdkComponentDescriptor<?>> components =
-                componentsMap.get(sdkVersion);
+          if (existingComponent != null && !existingComponent.equals(component)) {
+            throw new IllegalArgumentException(MessageFormat.format(
+                "More than one components of type [{0}] have been found for SDK version [{1}]:\n\t- {2}\n\t- {3}",
+                componentType, sdkVersion, existingComponent.getImplType().getName(),
+                clazz.getName()));
+          }
+        } else {
+          components = new HashMap<>();
+          componentsMap.put(sdkVersion, components);
+        }
 
-            if (components != null) {
-              SdkComponentDescriptor<?> existingComponent = components.get(selector);
-
-              if (existingComponent != null && !existingComponent.equals(component)) {
-                throw new IllegalArgumentException(MessageFormat.format(
-                    "More than one components of type [{0}] have been found for SDK version [{1}]:\n\t- {2}\n\t- {3}",
-                    componentType, sdkVersion, existingComponent.getImplType().getName(),
-                    clazz.getName()));
-              }
-            } else {
-              components = new HashMap<>();
-              componentsMap.put(sdkVersion, components);
-            }
-
-            components.put(selector, component);
-          });
-        });
+        components.put(selector, component);
+      });
+    });
   }
 
   protected <T> T getComponentImpl(String sdkVersion, final SdkComponentType componentType,
