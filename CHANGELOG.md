@@ -1,38 +1,20 @@
-# eForms Core Library 1.6.0 Release Notes
+# eForms Core Library 1.7.0 Release Notes
 
 The eForms Core Library is a collection of utilities used by the EFX Toolkit for Java Developers and other eForms applications.
 
 ## In this release
 
-### SDK entity improvements
+### SDK constants and resources
 
-- Versioned SDK entity classes (`SdkFieldV1`, `SdkFieldV2`, `SdkNodeV1`, `SdkNodeV2`, etc.) have been moved from the EFX Toolkit into the core library, consolidating version-specific implementations in a single location.
-- `SdkNode` now supports parent node references and ancestor chain traversal via `getAncestry()`.
-- `SdkField` now exposes repeatability information, parent node references, and parsed XPath metadata via `getXpathInfo()`.
-- Repository classes (`SdkNodeRepository`, `SdkFieldRepository`) now use two-pass loading to wire parent-child relationships during initialization.
+- Added new SDK path, filename, and resource constants, including support for the validation folder and the `fwd` forward folder used by SDK 2.
 
-### Privacy and data type support
+### Performance
 
-- Added `PrivacySettings` to `SdkField`, providing access to privacy code, justification, publication date, and related field references.
-- Introduced `SdkDataType` entity and `SdkDataTypeRepository` for field type-level metadata including privacy masking values.
-- Separated `duration` as a distinct data type from `measure`.
+- Replaced Reflections with ClassGraph for component scanning and share a single classpath scan across factories, reducing startup cost (`SdkComponentFactory`).
 
-### Notice subtype management
+### Fixes
 
-- Added `SdkNoticeSubtype` entity with intelligent ID parsing (prefix/number/suffix decomposition) and correct sorting order.
-- Added `SdkNoticeTypeRepository` to load and manage notice subtypes.
-
-### Utilities
-
-- Moved `NoticeDocument` and `SafeDocumentBuilder` from the eforms-notice-viewer into the core library. `NoticeDocument` provides secure XML parsing with accessors for notice subtype, SDK version, and language detection. `SafeDocumentBuilder` implements XXE prevention following OWASP guidelines.
-
-### Component registry
-
-- Added component types for dependency extraction (`EFX_COMPUTE_DEPENDENCY_EXTRACTOR`, `EFX_VALIDATION_DEPENDENCY_EXTRACTOR`) and EFX rules translation (`EFX_RULES_TRANSLATOR`).
-
-### Dependencies
-
-- Updated versions of various dependencies.
+- `SdkFieldV1` now maps the `measure` type to `duration`, consistent with the `duration`/`measure` split introduced in 1.6.0.
 
 ## Download
 
