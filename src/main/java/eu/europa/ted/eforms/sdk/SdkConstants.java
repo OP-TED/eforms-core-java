@@ -4,9 +4,9 @@ import java.nio.file.Path;
 import eu.europa.ted.eforms.sdk.resource.PathResource;
 
 public class SdkConstants {
-  
+
   public static final Path DEFAULT_SDK_ROOT = Path.of("eforms-sdk");
-  
+
   public static final String CODELISTS_DIR_NAME = "codelists";
   public static final String CODELISTS_JSON_FILE_NAME = "codelists.json";
 
@@ -14,13 +14,13 @@ public class SdkConstants {
   public static final String FIELDS_JSON_FIELDS_KEY = "fields";
   public static final String FIELDS_DIR_NAME = "fields";
 
-  public static final String NODES_JSON = "nodes.json";
-  public static final String FIELDS_JSON_FILENAME = "fields.json";
-  public static final String DATA_TYPES_JSON = "data-types.json";
-  public static final String BUSINESS_TERMS_JSON = "business-terms.json";
-  public static final String BUSINESS_ENTITIES_PROPERTIES_JSON = "business-entities-properties.json";
-  public static final String BUSINESS_ENTITIES_HIERARCHIES_JSON = "business-entities-hierarchies.json";
-  public static final String BUSINESS_ENTITIES_COMPOSITION_JSON = "business-entities-composition.json";
+  public static final String NODES_JSON_FILE_NAME = "nodes.json";
+  public static final String FIELDS_JSON_FILE_NAME = "fields.json";
+  public static final String DATA_TYPES_JSON_FILE_NAME = "data-types.json";
+  public static final String BUSINESS_TERMS_JSON_FILE_NAME = "business-terms.json";
+  public static final String BUSINESS_ENTITIES_PROPERTIES_JSON_FILE_NAME = "business-entities-properties.json";
+  public static final String BUSINESS_ENTITIES_HIERARCHIES_JSON_FILE_NAME = "business-entities-hierarchies.json";
+  public static final String BUSINESS_ENTITIES_COMPOSITION_JSON_FILE_NAME = "business-entities-composition.json";
 
   public static final String MIGRATION_DIR_NAME = "migration";
   public static final String MIGRATION_JSON_FILE_NAME = "migration.json";
@@ -37,11 +37,11 @@ public class SdkConstants {
   public static final String SDK_GROUP_ID = "eu.europa.ted.eforms";
   public static final String SDK_ARTIFACT_ID = "eforms-sdk";
   public static final String SDK_PACKAGING = "jar";
-  
+
   public static final String SCHEMAS_DIR_NAME = "schemas";
   public static final String SCHEMAS_JSON_FILE_NAME = "schemas.json";
   public static final String SCHEMATRONS_DIR_NAME = "schematrons";
-  
+
   public static final String TRANSLATIONS_DIR_NAME = "translations";
   public static final String TRANSLATIONS_JSON_FILE_NAME = "translations.json";
   public static final String VALIDATION_DIR_NAME = "validation";
@@ -52,10 +52,10 @@ public class SdkConstants {
   public static final String VIEW_TEMPLATES_JSON_FILE_NAME = "view-templates.json";
 
   /**
-   * Forward folder of SDK2+, it can exist in some folders. 
+   * Forward folder of SDK2+, it can exist in some folders.
    * Files in that folder can be used to preview SDK2 features.
    */
-  public static final String FWD = "fwd"; 
+  public static final String FWD_DIR_NAME = "fwd";
 
   private SdkConstants() {}
 
@@ -66,27 +66,28 @@ public class SdkConstants {
     EFX_GRAMMAR(Path.of("efx-grammar")),
 
     FIELDS(Path.of(FIELDS_DIR_NAME)),
-    
+    FIELDS_FWD(Path.of(FIELDS_DIR_NAME, FWD_DIR_NAME)),
+
     /**
      * Fields and nodes.
      */
-    FIELDS_JSON(Path.of(FIELDS_DIR_NAME, FIELDS_JSON_FILENAME)),
-    
-    BUSINESS_ENTITIES_COMPOSITION(Path.of(FIELDS_DIR_NAME, FWD, BUSINESS_ENTITIES_COMPOSITION_JSON)),
-    BUSINESS_ENTITIES_HIERARCHY(Path.of(FIELDS_DIR_NAME, FWD, BUSINESS_ENTITIES_HIERARCHIES_JSON)),
-    BUSINESS_ENTITIES_PROPERTIES(Path.of(FIELDS_DIR_NAME, FWD, BUSINESS_ENTITIES_PROPERTIES_JSON)),
-    BUSINESS_TERMS(Path.of(FIELDS_DIR_NAME, FWD, BUSINESS_TERMS_JSON)),
-    DATA_TYPES(Path.of(FIELDS_DIR_NAME, FWD, DATA_TYPES_JSON)),
-    
+    FIELDS_JSON(Path.of(FIELDS_DIR_NAME, FIELDS_JSON_FILE_NAME)),
+
+    FIELDS_FWD_BUSINESS_ENTITIES_COMPOSITION(Path.of(FIELDS_DIR_NAME, FWD_DIR_NAME, BUSINESS_ENTITIES_COMPOSITION_JSON_FILE_NAME)),
+    FIELDS_FWD_BUSINESS_ENTITIES_HIERARCHIES(Path.of(FIELDS_DIR_NAME, FWD_DIR_NAME, BUSINESS_ENTITIES_HIERARCHIES_JSON_FILE_NAME)),
+    FIELDS_FWD_BUSINESS_ENTITIES_PROPERTIES(Path.of(FIELDS_DIR_NAME, FWD_DIR_NAME, BUSINESS_ENTITIES_PROPERTIES_JSON_FILE_NAME)),
+    FIELDS_FWD_BUSINESS_TERMS(Path.of(FIELDS_DIR_NAME, FWD_DIR_NAME, BUSINESS_TERMS_JSON_FILE_NAME)),
+    FIELDS_FWD_DATA_TYPES(Path.of(FIELDS_DIR_NAME, FWD_DIR_NAME, DATA_TYPES_JSON_FILE_NAME)),
+
     /**
-     * JSON with array of fields.
+     * JSON with array of fields (forward folder).
      */
-    FIELDS_JSON_LIST(Path.of(FIELDS_DIR_NAME, FWD, FIELDS_JSON_FILENAME)),
-    
+    FIELDS_FWD_FIELDS_JSON(Path.of(FIELDS_DIR_NAME, FWD_DIR_NAME, FIELDS_JSON_FILE_NAME)),
+
     /**
-     * JSON with array of nodes.
+     * JSON with array of nodes (forward folder).
      */
-    NODES_JSON_LIST(Path.of(FIELDS_DIR_NAME, FWD, NODES_JSON)),
+    FIELDS_FWD_NODES_JSON(Path.of(FIELDS_DIR_NAME, FWD_DIR_NAME, NODES_JSON_FILE_NAME)),
 
     /**
      * Related to asset migration.
@@ -125,7 +126,7 @@ public class SdkConstants {
      * Internationalisation, labels.
      */
     TRANSLATIONS(Path.of(TRANSLATIONS_DIR_NAME)),
-    
+
     /**
      * The index file for translations, only present in SDK 1.10.0 and later.
      */
