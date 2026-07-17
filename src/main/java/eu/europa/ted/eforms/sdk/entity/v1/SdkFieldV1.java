@@ -34,6 +34,16 @@ public class SdkFieldV1 extends SdkField {
         getRepeatable(repeatable));
   }
 
+  // In SDK 1.x, "measure" semantically means "duration" (there was no "duration" type yet).
+  @Override
+  public String getType() {
+    String type = super.getType();
+    if ("measure".equals(type)) {
+      return "duration";
+    }
+    return type;
+  }
+
   protected static String getCodelistId(Map<String, Map<String, String>> codelist) {
     if (codelist == null) {
       return null;
