@@ -29,6 +29,16 @@ public class XPathStep implements Comparable<XPathStep> {
     return String.join("", predicates);
   }
 
+  /**
+   * The step as it was written in the path it was parsed from, predicates included. Use this
+   * wherever a step is put back into a path: the step text and its predicates are held separately,
+   * so composing a path from the step text alone silently discards the predicates.
+   */
+  @Override
+  public String toString() {
+    return getStepText() + getPredicateText();
+  }
+
   @Override
   public int hashCode() {
     return Objects.hash(stepText, predicates);
