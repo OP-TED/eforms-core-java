@@ -14,6 +14,7 @@ import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.tree.ParseTreeWalker;
 
 import eu.europa.ted.eforms.xpath.XPath20Parser.AbbrevforwardstepContext;
+import eu.europa.ted.eforms.xpath.XPath20Parser.PathexprContext;
 import eu.europa.ted.eforms.xpath.XPath20Parser.AxisstepContext;
 import eu.europa.ted.eforms.xpath.XPath20Parser.FilterexprContext;
 import eu.europa.ted.eforms.xpath.XPath20Parser.PredicateContext;
@@ -25,11 +26,13 @@ class XPathListenerImpl extends XPath20BaseListener {
   private CharStream inputStream;
   private LinkedList<StepInfo> steps;
   private int inPredicate = 0;
+  private boolean anchorFound;
 
   public XPathInfo parse(String xpathInput) {
     steps = new LinkedList<>();
     xpathInfo = new XPathInfo();
     inPredicate = 0;
+    anchorFound = false;
 
     this.inputText = xpathInput;
     this.inputStream = CharStreams.fromString(xpathInput);
@@ -93,6 +96,29 @@ class XPathListenerImpl extends XPath20BaseListener {
         this.steps.removeLast();
       }
       this.steps.offer(new StepInfo(ctx, this::getInputText));
+    }
+  }
+
+  /**
+   * The grammar spells the anchor out: {@code pathexpr : (SLASH relativepathexpr?) | (SS
+   * relativepathexpr) | relativepathexpr}. Reading it from the parse tree rather than from the
+   * start of the input keeps it right for paths the lexer has to look at first, such as one
+   * preceded by a comment. Only the outermost path expression is the path's own anchor; those
+   * inside a predicate belong to the predicate.
+   */
+  @Override
+  public void enterPathexpr(PathexprContext ctx) {
+    if (inPredicate > 0 || anchorFound) {
+      return;
+    }
+    anchorFound = true;
+
+    if (ctx.SS() != null) {
+      xpathInfo.setAnchor(XPathAnchor.DESCENDANT_FROM_ROOT);
+    } else if (ctx.SLASH() != null) {
+      xpathInfo.setAnchor(XPathAnchor.ROOT);
+    } else {
+      xpathInfo.setAnchor(XPathAnchor.RELATIVE);
     }
   }
 

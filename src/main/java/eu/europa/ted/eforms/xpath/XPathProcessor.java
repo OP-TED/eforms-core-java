@@ -1,5 +1,6 @@
 package eu.europa.ted.eforms.xpath;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
@@ -34,10 +35,20 @@ public class XPathProcessor {
       return first;
     }
 
-    LinkedList<XPathStep> firstPartSteps = new LinkedList<>(parse(first).getSteps());
+    final XPathInfo firstPart = parse(first);
+    LinkedList<XPathStep> firstPartSteps = new LinkedList<>(firstPart.getSteps());
     LinkedList<XPathStep> secondPartSteps = new LinkedList<>(parse(second).getSteps());
 
-    return getJoinedXPath(firstPartSteps, secondPartSteps);
+    final XPathAnchor anchor = firstPart.getAnchor();
+    final String joined = getJoinedXPath(firstPartSteps, secondPartSteps, anchor);
+
+    if (joined.isEmpty()) {
+      // The back-steps consumed both parts, so the join resolves to where it started from: the
+      // root of the document if the first part was anchored there, and the current context if not.
+      return anchor.isAbsolute() ? "/" : ".";
+    }
+
+    return anchor.getSeparator() + joined;
   }
 
   public static String contextualize(final String contextXpath, final String xpath) {
@@ -97,7 +108,7 @@ public class XPathProcessor {
       // remaining in the pathQueue.
       while (!pathQueue.isEmpty()) {
         final XPathStep step = pathQueue.poll();
-        relativeXpath += "/" + step.getStepText() + step.getPredicateText();
+        relativeXpath += "/" + step;
       }
 
       // We remove any leading forward slashes from the resulting xPath.
@@ -129,15 +140,26 @@ public class XPathProcessor {
   }
 
   private static String getJoinedXPath(LinkedList<XPathStep> first,
-      final LinkedList<XPathStep> second) {
+      final LinkedList<XPathStep> second, final XPathAnchor anchor) {
     List<String> dotSteps = Arrays.asList("..", ".");
-    while (second.getFirst().getStepText().equals("..")
+
+    // A path that searches from the root matches at any depth, so the position of its first step is
+    // not known. Cancelling that step against a parent step would claim a position it does not
+    // have, so it is left in place.
+    final int minimumStepsToKeep = anchor == XPathAnchor.DESCENDANT_FROM_ROOT ? 1 : 0;
+    while (!second.isEmpty() && first.size() > minimumStepsToKeep
+        && second.getFirst().getStepText().equals("..")
         && !dotSteps.contains(first.getLast().getStepText()) && !first.getLast().isVariableStep()) {
       second.removeFirst();
       first.removeLast();
     }
 
-    return first.stream().map(f -> f.getStepText()).collect(Collectors.joining("/"))
-        + "/" + second.stream().map(s -> s.getStepText()).collect(Collectors.joining("/"));
+    // Both parts are joined as one sequence of steps. Gluing the two halves together with a
+    // separator of our own would put one in front of the result whenever the first part is empty,
+    // which happens when the back-steps above consume all of it.
+    final List<XPathStep> steps = new ArrayList<>(first);
+    steps.addAll(second);
+
+    return steps.stream().map(s -> s.toString()).collect(Collectors.joining("/"));
   }
 }
