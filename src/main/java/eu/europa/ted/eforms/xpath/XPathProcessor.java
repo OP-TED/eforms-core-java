@@ -2,6 +2,7 @@ package eu.europa.ted.eforms.xpath;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
@@ -15,14 +16,34 @@ public class XPathProcessor {
     return parser.parse(xpathInput);
   }
 
-  public static String addAxis(String axis, String path) {
-    LinkedList<XPathStep> steps = new LinkedList<>(parse(path).getSteps());
+  /**
+   * Rewrites a path so that its first step looks along the given axis instead of along the child
+   * axis. The path is read as relative to the context the axis is applied from; an absolute path
+   * cannot keep its anchor, because an axis cannot be followed by a separator, so it is read the
+   * same way.
+   *
+   * <p>
+   * Where the path gives the axis nothing to name, a wildcard stands in for it, so that a valid
+   * path is always returned for a valid path given.
+   */
+  public static String addAxis(final String axis, final String path) {
+    final LinkedList<XPathStep> steps = new LinkedList<>(parse(path).getSteps());
 
-    while (steps.getFirst().getStepText().equals("..")) {
+    // An axis searches the document from the context node, so moving away from it beforehand makes
+    // no difference to what is found, and those steps are dropped. A step that carries a predicate
+    // is kept: the predicate describes the node it arrives at, which is part of what we look for.
+    while (!steps.isEmpty() && steps.getFirst().isNavigationStep()
+        && steps.getFirst().getPredicates().isEmpty()) {
       steps.removeFirst();
     }
 
-    return axis + "::" + steps.stream().map(s -> s.getStepText()).collect(Collectors.joining("/"));
+    // An axis has to be followed by the nodes to look for. Where the path does not begin by naming
+    // any, a wildcard names them instead and the path follows it unchanged.
+    if (steps.isEmpty() || !steps.getFirst().isNodeTest()) {
+      steps.addFirst(new XPathStep("*", Collections.emptyList()));
+    }
+
+    return axis + "::" + steps.stream().map(s -> s.toString()).collect(Collectors.joining("/"));
   }
 
   public static String join(final String first, final String second) {

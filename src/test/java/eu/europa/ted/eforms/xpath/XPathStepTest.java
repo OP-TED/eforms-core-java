@@ -86,6 +86,31 @@ public class XPathStepTest {
     assertTrue(b.isSameAsOrNarrowerThan(a));
   }
 
+  @Test
+  void testIsNodeTest() {
+    assertTrue(firstStepOf("foo/bar").isNodeTest());
+    assertTrue(firstStepOf("ns:foo").isNodeTest());
+    assertTrue(firstStepOf("*").isNodeTest());
+    assertTrue(firstStepOf("text()").isNodeTest());
+    assertTrue(firstStepOf("node()").isNodeTest());
+    assertTrue(firstStepOf("foo[x = 1]").isNodeTest());
+
+    assertFalse(firstStepOf(".").isNodeTest());
+    assertFalse(firstStepOf("..").isNodeTest());
+    assertFalse(firstStepOf(".[x = 1]").isNodeTest());
+    assertFalse(firstStepOf("@foo").isNodeTest());
+    assertFalse(firstStepOf("$var").isNodeTest());
+    assertFalse(firstStepOf("child::foo").isNodeTest());
+    assertFalse(firstStepOf("parent::foo").isNodeTest());
+    assertFalse(firstStepOf("doc('x')/foo").isNodeTest());
+    assertFalse(firstStepOf("id('x')").isNodeTest());
+    assertFalse(firstStepOf("(a | b)/c").isNodeTest());
+  }
+
+  private XPathStep firstStepOf(final String path) {
+    return XPathProcessor.parse(path).getSteps().get(0);
+  }
+
   private XPathStep buildStep(String elt, String... predicates) {
     return new XPathStep(elt, Arrays.asList(predicates));
   }

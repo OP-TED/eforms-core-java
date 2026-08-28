@@ -12,9 +12,29 @@ public class XPathStep implements Comparable<XPathStep> {
   private final String stepText;
   private final List<String> predicates;
 
+  /**
+   * Whether the step was written as a bare node test, as the parser read it from the grammar. It
+   * follows from the step itself rather than being a fact of its own, so it takes no part in
+   * equality or ordering.
+   */
+  private final boolean nodeTest;
+
+  /**
+   * Builds a step that names the nodes to look for, which is what a step written as an element name
+   * does. Steps read from a path are built by the parser instead, which tells the two apart from
+   * the grammar.
+   */
   public XPathStep(String stepText, List<String> predicates) {
+    this(stepText, predicates, true);
+  }
+
+  /**
+   * Reserved for the parser: it is the only place where the form of a step is known for certain.
+   */
+  XPathStep(String stepText, List<String> predicates, boolean nodeTest) {
     this.stepText = StringUtils.strip(stepText);
     this.predicates = predicates;
+    this.nodeTest = nodeTest;
   }
 
   public String getStepText() {
@@ -169,5 +189,22 @@ public class XPathStep implements Comparable<XPathStep> {
 
   public boolean isVariableStep() {
     return stepText.startsWith("$");
+  }
+
+  /**
+   * Whether this step only moves about, without naming anything: the current node or the parent
+   * node. Any predicate it carries still describes the node it arrives at.
+   */
+  public boolean isNavigationStep() {
+    return ".".equals(this.stepText) || "..".equals(this.stepText);
+  }
+
+  /**
+   * Whether this step names the nodes to look for, which is what an axis has to be followed by.
+   * A parent step, an attribute, an axis of the step's own, a variable, a function call, a literal
+   * and a parenthesised expression are all steps, but none of them can be written after an axis.
+   */
+  public boolean isNodeTest() {
+    return this.nodeTest;
   }
 }

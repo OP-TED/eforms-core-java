@@ -45,7 +45,7 @@ class XPathListenerImpl extends XPath20BaseListener {
     walker.walk(this, tree);
 
     steps.stream().forEach(s -> {
-      XPathStep step = new XPathStep(s.stepText, s.predicates);
+      XPathStep step = new XPathStep(s.stepText, s.predicates, s.nodeTest);
       xpathInfo.addStep(step);
     });
 
@@ -163,26 +163,45 @@ class XPathListenerImpl extends XPath20BaseListener {
     return inPredicate > 0;
   }
 
+  /**
+   * Whether the step is written as a bare node test, which the grammar spells out as
+   * {@code abbrevforwardstep : AT? nodetest}. That is the only form an axis can be followed by: a
+   * reverse step, a step carrying an axis of its own and an attribute are all steps, but none of
+   * them can be written after {@code axis::}.
+   */
+  private static boolean isBareNodeTest(final AxisstepContext ctx) {
+    return ctx.forwardstep() != null && ctx.forwardstep().abbrevforwardstep() != null
+        && ctx.forwardstep().abbrevforwardstep().AT() == null;
+  }
+
   private class StepInfo {
     String stepText;
     List<String> predicates;
+    boolean nodeTest;
     int a;
     int b;
 
     private StepInfo(AxisstepContext ctx, Function<ParserRuleContext, String> getInputText) {
       this(ctx.reversestep() != null ? getInputText.apply(ctx.reversestep()) : getInputText.apply(ctx.forwardstep()), 
           ctx.predicatelist().predicate().stream().map(getInputText).collect(Collectors.toList()),
-          ctx.getSourceInterval());
+          ctx.getSourceInterval(), isBareNodeTest(ctx));
     }
+
+    /**
+     * A filter expression is a literal, a variable, a parenthesised expression, the context item or
+     * a function call. None of them names nodes the way an axis needs.
+     */
     private StepInfo(FilterexprContext ctx, Function<ParserRuleContext, String> getInputText) {
       this(getInputText.apply(ctx.primaryexpr()),
           ctx.predicatelist().predicate().stream().map(getInputText).collect(Collectors.toList()),
-          ctx.getSourceInterval());
+          ctx.getSourceInterval(), false);
     }
 
-    private StepInfo(String stepText, List<String> predicates, Interval interval) {
+    private StepInfo(String stepText, List<String> predicates, Interval interval,
+        boolean nodeTest) {
       this.stepText = stepText;
       this.predicates = predicates;
+      this.nodeTest = nodeTest;
       this.a = interval.a;
       this.b = interval.b;
     }

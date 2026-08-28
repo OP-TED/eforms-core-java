@@ -207,6 +207,42 @@ class XPathProcessorTest {
   }
 
   @Test
+  void testAddAxis_MustPreserveThePredicates() {
+    assertEquals("preceding::b[x = 'y']/c",
+        XPathProcessor.addAxis("preceding", "b[x = 'y']/c"));
+    assertEquals("preceding::b/c[x = 'y']",
+        XPathProcessor.addAxis("preceding", "b/c[x = 'y']"));
+    assertEquals("preceding::b[e][f]/c[g]",
+        XPathProcessor.addAxis("preceding", "b[e][f]/c[g]"));
+    assertEquals("descendant::b[x = 'y']/c",
+        XPathProcessor.addAxis("descendant", "../../b[x = 'y']/c"));
+  }
+
+  @Test
+  void testAddAxis_MustNameSomethingAfterTheAxis() {
+    assertEquals("preceding::*", XPathProcessor.addAxis("preceding", "."));
+    assertEquals("preceding::*", XPathProcessor.addAxis("preceding", ".."));
+    assertEquals("preceding::*", XPathProcessor.addAxis("preceding", "../.."));
+    assertEquals("preceding::b", XPathProcessor.addAxis("preceding", "./b"));
+    assertEquals("preceding::*/.[x]/b", XPathProcessor.addAxis("preceding", ".[x]/b"));
+    assertEquals("preceding::*/..[x]/b", XPathProcessor.addAxis("preceding", "..[x]/b"));
+    assertEquals("preceding::*/@x", XPathProcessor.addAxis("preceding", "@x"));
+    assertEquals("preceding::*/child::b/c", XPathProcessor.addAxis("preceding", "child::b/c"));
+    assertEquals("preceding::*/doc('x')/b", XPathProcessor.addAxis("preceding", "doc('x')/b"));
+    assertEquals("preceding::*/id('x')/b", XPathProcessor.addAxis("preceding", "id('x')/b"));
+    assertEquals("preceding::*/(a | b)/c", XPathProcessor.addAxis("preceding", "(a | b)/c"));
+    assertEquals("preceding::*/$var/b", XPathProcessor.addAxis("preceding", "$var/b"));
+    assertEquals("preceding::text()/b", XPathProcessor.addAxis("preceding", "text()/b"));
+  }
+
+  @Test
+  void testAddAxis_MustReadAnAbsolutePathFromTheContext() {
+    assertEquals("preceding::a/b", XPathProcessor.addAxis("preceding", "/a/b"));
+    assertEquals("preceding::a/b", XPathProcessor.addAxis("preceding", "//a/b"));
+    assertEquals("preceding::a[x]/b", XPathProcessor.addAxis("preceding", "/a[x]/b"));
+  }
+
+  @Test
   void testJoin() {
     assertEquals("a/b/c/d", XPathProcessor.join("a/b", "c/d"));
     assertEquals("a/x/y", XPathProcessor.join("a/b/c", "../../x/y"));
