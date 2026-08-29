@@ -15,14 +15,35 @@ public class XPathProcessor {
     return parser.parse(xpathInput);
   }
 
-  public static String addAxis(String axis, String path) {
-    LinkedList<XPathStep> steps = new LinkedList<>(parse(path).getSteps());
+  /**
+   * Rewrites a path so that it looks along the given axis instead of along the one it was written
+   * for.
+   *
+   * <p>
+   * This serves the axis that can be written on an EFX-1 field reference, and nothing more. The
+   * axis is expected to be one that XPath knows, and the path to be relative to the context the
+   * axis is applied from; an absolute path cannot keep its anchor, because an axis cannot be
+   * followed by a separator, so it is read the same way. It is not a general way of rewriting
+   * XPath.
+   */
+  public static String addAxis(final String axis, final String path) {
+    final LinkedList<XPathStep> steps = new LinkedList<>(parse(path).getSteps());
 
-    while (steps.getFirst().getStepText().equals("..")) {
+    // Moving about before the axis makes no difference to what it finds, since it searches from the
+    // context node wherever the path would have gone first. Such steps are dropped, except for the
+    // one the axis is put on, and except where a predicate says which node was arrived at.
+    while (steps.size() > 1 && steps.getFirst().isNavigationStep()
+        && steps.getFirst().getPredicates().isEmpty()) {
       steps.removeFirst();
     }
 
-    return axis + "::" + steps.stream().map(s -> s.getStepText()).collect(Collectors.joining("/"));
+    if (steps.isEmpty()) {
+      return XPathStep.anyNodeOn(axis).toString();
+    }
+
+    steps.addAll(0, steps.removeFirst().onAxis(axis));
+
+    return steps.stream().map(s -> s.toString()).collect(Collectors.joining("/"));
   }
 
   public static String join(final String first, final String second) {

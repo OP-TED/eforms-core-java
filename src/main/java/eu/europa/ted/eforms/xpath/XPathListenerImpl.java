@@ -18,6 +18,11 @@ import eu.europa.ted.eforms.xpath.XPath20Parser.PathexprContext;
 import eu.europa.ted.eforms.xpath.XPath20Parser.AxisstepContext;
 import eu.europa.ted.eforms.xpath.XPath20Parser.FilterexprContext;
 import eu.europa.ted.eforms.xpath.XPath20Parser.PredicateContext;
+import eu.europa.ted.eforms.xpath.XPath20Parser.PredicatelistContext;
+import eu.europa.ted.eforms.xpath.XPath20Parser.ForwardaxisContext;
+import eu.europa.ted.eforms.xpath.XPath20Parser.ForwardstepContext;
+import eu.europa.ted.eforms.xpath.XPath20Parser.NodetestContext;
+import eu.europa.ted.eforms.xpath.XPath20Parser.ReversestepContext;
 
 class XPathListenerImpl extends XPath20BaseListener {
   private XPathInfo xpathInfo;
@@ -44,10 +49,7 @@ class XPathListenerImpl extends XPath20BaseListener {
     final ParseTreeWalker walker = new ParseTreeWalker();
     walker.walk(this, tree);
 
-    steps.stream().forEach(s -> {
-      XPathStep step = new XPathStep(s.stepText, s.predicates);
-      xpathInfo.addStep(step);
-    });
+    steps.stream().forEach(s -> xpathInfo.addStep(s.step));
 
     if (!xpathInfo.isAttribute()) {
       // The XPath does not point to an attribute, so it is the path to the last element
@@ -163,26 +165,89 @@ class XPathListenerImpl extends XPath20BaseListener {
     return inPredicate > 0;
   }
 
+  /**
+   * The step an axis step is written as, told apart by whether what it looks for could be looked
+   * for along another axis. A step is read the same way however it is spelled: {@code b} is
+   * {@code child::b}, {@code @x} is {@code attribute::x} and {@code ..} is {@code parent::node()}.
+   */
+  private XPathStep readAxisStep(final AxisstepContext ctx, final List<String> predicates) {
+    final ForwardstepContext forward = ctx.forwardstep();
+    if (forward != null) {
+      final AbbrevforwardstepContext abbreviated = forward.abbrevforwardstep();
+      if (abbreviated != null) {
+        return abbreviated.AT() != null
+            ? XPathStep.opaque(getInputText(forward), predicates)
+            : XPathStep.retargetable(getInputText(forward),
+                getInputText(abbreviated.nodetest()), predicates);
+      }
+
+      final ForwardaxisContext axis = forward.forwardaxis();
+      if (axis.KW_ATTRIBUTE() != null || axis.KW_NAMESPACE() != null) {
+        // An attribute and a namespace are found on the axis leading to them and nowhere else, so
+        // a node test naming one means nothing along another axis.
+        return XPathStep.opaque(getInputText(forward), predicates);
+      }
+      if (axis.KW_SELF() != null && namesAnyNode(forward.nodetest())) {
+        return XPathStep.navigation(getInputText(forward), predicates);
+      }
+      return XPathStep.retargetable(getInputText(forward), getInputText(forward.nodetest()),
+          predicates);
+    }
+
+    final ReversestepContext reverse = ctx.reversestep();
+    if (reverse.reverseaxis() == null) {
+      return XPathStep.navigation(getInputText(reverse), predicates);
+    }
+    if (reverse.reverseaxis().KW_PARENT() != null && namesAnyNode(reverse.nodetest())) {
+      return XPathStep.navigation(getInputText(reverse), predicates);
+    }
+    return XPathStep.retargetable(getInputText(reverse), getInputText(reverse.nodetest()),
+        predicates);
+  }
+
+  /**
+   * The step a filter expression is written as. The context item is the one of them that only moves
+   * about; the rest are evaluated for the nodes they return and stay where they are.
+   */
+  private XPathStep readFilterStep(final FilterexprContext ctx, final List<String> predicates) {
+    if (ctx.primaryexpr().contextitemexpr() != null) {
+      return XPathStep.navigation(getInputText(ctx.primaryexpr()), predicates);
+    }
+    return XPathStep.opaque(getInputText(ctx.primaryexpr()), predicates);
+  }
+
+  /**
+   * Whether the node test takes any node at all, which is what the steps that only move about look
+   * for. It is the {@code node()} of {@code self::node()} and {@code parent::node()}, written short
+   * as {@code .} and {@code ..}.
+   */
+  private static boolean namesAnyNode(final NodetestContext ctx) {
+    return ctx.kindtest() != null && ctx.kindtest().anykindtest() != null;
+  }
+
+  private static List<String> predicatesOf(final PredicatelistContext ctx,
+      final Function<ParserRuleContext, String> getInputText) {
+    return ctx.predicate().stream().map(getInputText).collect(Collectors.toList());
+  }
+
+
   private class StepInfo {
-    String stepText;
-    List<String> predicates;
+    XPathStep step;
     int a;
     int b;
 
     private StepInfo(AxisstepContext ctx, Function<ParserRuleContext, String> getInputText) {
-      this(ctx.reversestep() != null ? getInputText.apply(ctx.reversestep()) : getInputText.apply(ctx.forwardstep()), 
-          ctx.predicatelist().predicate().stream().map(getInputText).collect(Collectors.toList()),
-          ctx.getSourceInterval());
-    }
-    private StepInfo(FilterexprContext ctx, Function<ParserRuleContext, String> getInputText) {
-      this(getInputText.apply(ctx.primaryexpr()),
-          ctx.predicatelist().predicate().stream().map(getInputText).collect(Collectors.toList()),
+      this(readAxisStep(ctx, predicatesOf(ctx.predicatelist(), getInputText)),
           ctx.getSourceInterval());
     }
 
-    private StepInfo(String stepText, List<String> predicates, Interval interval) {
-      this.stepText = stepText;
-      this.predicates = predicates;
+    private StepInfo(FilterexprContext ctx, Function<ParserRuleContext, String> getInputText) {
+      this(readFilterStep(ctx, predicatesOf(ctx.predicatelist(), getInputText)),
+          ctx.getSourceInterval());
+    }
+
+    private StepInfo(XPathStep step, Interval interval) {
+      this.step = step;
       this.a = interval.a;
       this.b = interval.b;
     }
