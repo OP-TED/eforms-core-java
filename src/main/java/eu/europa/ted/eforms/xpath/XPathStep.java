@@ -1,6 +1,7 @@
 package eu.europa.ted.eforms.xpath;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
@@ -8,33 +9,119 @@ import java.util.Objects;
 
 import org.apache.commons.lang3.StringUtils;
 
+/**
+ * One step of a path.
+ *
+ * <p>
+ * A step read from a path is known well enough to say whether it can be looked for along another
+ * axis, which is all {@link XPathProcessor#addAxis} needs of it. A step built from its text alone
+ * says nothing of the sort and is taken at its word.
+ *
+ * <p>
+ * How a step was read is not part of what it is worth: two steps written the same way, carrying the
+ * same predicates, are the same step.
+ */
 public class XPathStep implements Comparable<XPathStep> {
+  /** The node test that matches any node, which the steps that only move about look for. */
+  private static final String ANY_NODE = "node()";
+
+  /**
+   * As much as is needed to know whether a step can be looked for along a different axis. This is
+   * not a reading of XPath's own grammar, which distinguishes far more than this: an explicit
+   * {@code child::b} and a plain {@code b} are told apart there and are the same thing here.
+   */
+  private enum StepKind {
+    /** The step names something that can be looked for along another axis. */
+    RETARGETABLE,
+
+    /** The step only moves about, naming nothing: the current node, or the parent node. */
+    NAVIGATION,
+
+    /**
+     * Anything else. An attribute, a namespace and an expression all name something that is only
+     * found where it already is, and a step built from text alone is not known at all. All of them
+     * stay where they are.
+     */
+    OPAQUE
+  }
+
   private final String stepText;
   private final List<String> predicates;
+  private final StepKind kind;
+
+  /** What the step looks for, where it looks for anything. */
+  private final String nodeTest;
 
   /**
-   * Whether the step was written as a bare node test, as the parser read it from the grammar. It
-   * follows from the step itself rather than being a fact of its own, so it takes no part in
-   * equality or ordering.
-   */
-  private final boolean nodeTest;
-
-  /**
-   * Builds a step that names the nodes to look for, which is what a step written as an element name
-   * does. Steps read from a path are built by the parser instead, which tells the two apart from
-   * the grammar.
+   * Builds a step from the text it is written as. Steps read from a path are built by the parser,
+   * which knows more about them than their text says.
    */
   public XPathStep(String stepText, List<String> predicates) {
-    this(stepText, predicates, true);
+    this(stepText, predicates, StepKind.OPAQUE, null);
+  }
+
+  private XPathStep(final String stepText, final List<String> predicates, final StepKind kind,
+      final String nodeTest) {
+    this.stepText = StringUtils.strip(stepText);
+    this.predicates = predicates == null ? Collections.emptyList() : predicates;
+    this.kind = kind;
+    this.nodeTest = nodeTest;
   }
 
   /**
-   * Reserved for the parser: it is the only place where the form of a step is known for certain.
+   * A step that names what it looks for, which can therefore be looked for along another axis. The
+   * node test is what it looks for, apart from however the step happens to be written.
    */
-  XPathStep(String stepText, List<String> predicates, boolean nodeTest) {
-    this.stepText = StringUtils.strip(stepText);
-    this.predicates = predicates;
-    this.nodeTest = nodeTest;
+  static XPathStep retargetable(final String stepText, final String nodeTest,
+      final List<String> predicates) {
+    return new XPathStep(stepText, predicates, StepKind.RETARGETABLE,
+        StringUtils.strip(nodeTest));
+  }
+
+  /**
+   * A step that only moves about: {@code .} or {@code ..}. It names nothing, so what it arrives at
+   * is any node at all, and any predicate it carries describes that node.
+   */
+  static XPathStep navigation(final String stepText, final List<String> predicates) {
+    return new XPathStep(stepText, predicates, StepKind.NAVIGATION, ANY_NODE);
+  }
+
+  /**
+   * A step that has to be left where it is: an attribute, a namespace, or an expression evaluated
+   * for the nodes it returns.
+   */
+  static XPathStep opaque(final String stepText, final List<String> predicates) {
+    return new XPathStep(stepText, predicates, StepKind.OPAQUE, null);
+  }
+
+  /**
+   * A step that walks the given axis and takes whatever it finds.
+   */
+  static XPathStep anyNodeOn(final String axis) {
+    return retargetable(axis + "::" + ANY_NODE, ANY_NODE, Collections.emptyList());
+  }
+
+  /**
+   * The same step, looked for along the given axis instead.
+   *
+   * <p>
+   * A step that names what it looks for is simply looked for elsewhere, and one step comes back. A
+   * step that has to stay where it is keeps its place behind a step that walks the axis, and two
+   * come back.
+   */
+  List<XPathStep> onAxis(final String axis) {
+    if (this.kind == StepKind.OPAQUE) {
+      return Arrays.asList(anyNodeOn(axis), this);
+    }
+    return Collections
+        .singletonList(retargetable(axis + "::" + this.nodeTest, this.nodeTest, this.predicates));
+  }
+
+  /**
+   * Whether the step only moves about, without naming anything to look for.
+   */
+  boolean isNavigationStep() {
+    return this.kind == StepKind.NAVIGATION;
   }
 
   public String getStepText() {
@@ -152,7 +239,7 @@ public class XPathStep implements Comparable<XPathStep> {
    * This method was renamed for clarity. It is marked as deprecated so that the
    * library interface does not change. It will be removed in the next major
    * version of the library.
-   * 
+   *
    */
   @Deprecated(since = "1.3.0", forRemoval = true)
   public boolean isSimilarTo(final XPathStep other) {
@@ -189,22 +276,5 @@ public class XPathStep implements Comparable<XPathStep> {
 
   public boolean isVariableStep() {
     return stepText.startsWith("$");
-  }
-
-  /**
-   * Whether this step only moves about, without naming anything: the current node or the parent
-   * node. Any predicate it carries still describes the node it arrives at.
-   */
-  public boolean isNavigationStep() {
-    return ".".equals(this.stepText) || "..".equals(this.stepText);
-  }
-
-  /**
-   * Whether this step names the nodes to look for, which is what an axis has to be followed by.
-   * A parent step, an attribute, an axis of the step's own, a variable, a function call, a literal
-   * and a parenthesised expression are all steps, but none of them can be written after an axis.
-   */
-  public boolean isNodeTest() {
-    return this.nodeTest;
   }
 }

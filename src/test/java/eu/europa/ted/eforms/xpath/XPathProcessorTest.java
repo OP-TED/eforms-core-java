@@ -219,20 +219,33 @@ class XPathProcessorTest {
   }
 
   @Test
-  void testAddAxis_MustNameSomethingAfterTheAxis() {
-    assertEquals("preceding::*", XPathProcessor.addAxis("preceding", "."));
-    assertEquals("preceding::*", XPathProcessor.addAxis("preceding", ".."));
-    assertEquals("preceding::*", XPathProcessor.addAxis("preceding", "../.."));
+  void testAddAxis_MustAimTheStepTheAxisLandsOn() {
+    assertEquals("preceding::node()", XPathProcessor.addAxis("preceding", "."));
+    assertEquals("preceding::node()", XPathProcessor.addAxis("preceding", ".."));
+    assertEquals("preceding::node()", XPathProcessor.addAxis("preceding", "../.."));
     assertEquals("preceding::b", XPathProcessor.addAxis("preceding", "./b"));
-    assertEquals("preceding::*/.[x]/b", XPathProcessor.addAxis("preceding", ".[x]/b"));
-    assertEquals("preceding::*/..[x]/b", XPathProcessor.addAxis("preceding", "..[x]/b"));
-    assertEquals("preceding::*/@x", XPathProcessor.addAxis("preceding", "@x"));
-    assertEquals("preceding::*/child::b/c", XPathProcessor.addAxis("preceding", "child::b/c"));
-    assertEquals("preceding::*/doc('x')/b", XPathProcessor.addAxis("preceding", "doc('x')/b"));
-    assertEquals("preceding::*/id('x')/b", XPathProcessor.addAxis("preceding", "id('x')/b"));
-    assertEquals("preceding::*/(a | b)/c", XPathProcessor.addAxis("preceding", "(a | b)/c"));
-    assertEquals("preceding::*/$var/b", XPathProcessor.addAxis("preceding", "$var/b"));
+    assertEquals("preceding::node()[x]/b", XPathProcessor.addAxis("preceding", ".[x]/b"));
+    assertEquals("preceding::node()[x]/b", XPathProcessor.addAxis("preceding", "..[x]/b"));
+    assertEquals("preceding::b/c", XPathProcessor.addAxis("preceding", "child::b/c"));
+    assertEquals("preceding::b/c", XPathProcessor.addAxis("preceding", "following::b/c"));
     assertEquals("preceding::text()/b", XPathProcessor.addAxis("preceding", "text()/b"));
+  }
+
+  @Test
+  void testAddAxis_MustKeepAStepThatCannotBeAimed() {
+    assertEquals("preceding::node()/@x", XPathProcessor.addAxis("preceding", "@x"));
+    assertEquals("preceding::node()/$var/b", XPathProcessor.addAxis("preceding", "$var/b"));
+    assertEquals("preceding::node()/doc('x')/b", XPathProcessor.addAxis("preceding", "doc('x')/b"));
+    assertEquals("preceding::node()/id('x')/b", XPathProcessor.addAxis("preceding", "id('x')/b"));
+    assertEquals("preceding::node()/(a | b)/c", XPathProcessor.addAxis("preceding", "(a | b)/c"));
+    assertEquals("preceding::node()/namespace::x",
+        XPathProcessor.addAxis("preceding", "namespace::x"));
+  }
+
+  @Test
+  void testJoin_MustNotRewriteTheStepsItWasGiven() {
+    assertEquals("child::a/attribute::x", XPathProcessor.join("child::a", "attribute::x"));
+    assertEquals("self::node()/b", XPathProcessor.join("self::node()", "b"));
   }
 
   @Test

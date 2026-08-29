@@ -2,7 +2,6 @@ package eu.europa.ted.eforms.xpath;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
@@ -17,33 +16,34 @@ public class XPathProcessor {
   }
 
   /**
-   * Rewrites a path so that its first step looks along the given axis instead of along the child
-   * axis. The path is read as relative to the context the axis is applied from; an absolute path
-   * cannot keep its anchor, because an axis cannot be followed by a separator, so it is read the
-   * same way.
+   * Rewrites a path so that it looks along the given axis instead of along the one it was written
+   * for.
    *
    * <p>
-   * Where the path gives the axis nothing to name, a wildcard stands in for it, so that a valid
-   * path is always returned for a valid path given.
+   * This serves the axis that can be written on an EFX-1 field reference, and nothing more. The
+   * axis is expected to be one that XPath knows, and the path to be relative to the context the
+   * axis is applied from; an absolute path cannot keep its anchor, because an axis cannot be
+   * followed by a separator, so it is read the same way. It is not a general way of rewriting
+   * XPath.
    */
   public static String addAxis(final String axis, final String path) {
     final LinkedList<XPathStep> steps = new LinkedList<>(parse(path).getSteps());
 
-    // An axis searches the document from the context node, so moving away from it beforehand makes
-    // no difference to what is found, and those steps are dropped. A step that carries a predicate
-    // is kept: the predicate describes the node it arrives at, which is part of what we look for.
-    while (!steps.isEmpty() && steps.getFirst().isNavigationStep()
+    // Moving about before the axis makes no difference to what it finds, since it searches from the
+    // context node wherever the path would have gone first. Such steps are dropped, except for the
+    // one the axis is put on, and except where a predicate says which node was arrived at.
+    while (steps.size() > 1 && steps.getFirst().isNavigationStep()
         && steps.getFirst().getPredicates().isEmpty()) {
       steps.removeFirst();
     }
 
-    // An axis has to be followed by the nodes to look for. Where the path does not begin by naming
-    // any, a wildcard names them instead and the path follows it unchanged.
-    if (steps.isEmpty() || !steps.getFirst().isNodeTest()) {
-      steps.addFirst(new XPathStep("*", Collections.emptyList()));
+    if (steps.isEmpty()) {
+      return XPathStep.anyNodeOn(axis).toString();
     }
 
-    return axis + "::" + steps.stream().map(s -> s.toString()).collect(Collectors.joining("/"));
+    steps.addAll(0, steps.removeFirst().onAxis(axis));
+
+    return steps.stream().map(s -> s.toString()).collect(Collectors.joining("/"));
   }
 
   public static String join(final String first, final String second) {
