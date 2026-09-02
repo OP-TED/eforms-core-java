@@ -170,7 +170,12 @@ public class XPathProcessor {
     final int minimumStepsToKeep = anchor == XPathAnchor.DESCENDANT_FROM_ROOT ? 1 : 0;
     while (!second.isEmpty() && first.size() > minimumStepsToKeep
         && second.getFirst().getStepText().equals("..")
-        && !dotSteps.contains(first.getLast().getStepText()) && !first.getLast().isVariableStep()) {
+        && !dotSteps.contains(first.getLast().getStepText()) && !first.getLast().isVariableStep()
+        // A step going somewhere and a step coming back cancel out, but only when neither says
+        // anything about where it went. A predicate on either of them is a condition on the result,
+        // so a step carrying one is kept and the two are left to stand as they were written.
+        && second.getFirst().getPredicates().isEmpty()
+        && first.getLast().getPredicates().isEmpty()) {
       second.removeFirst();
       first.removeLast();
     }

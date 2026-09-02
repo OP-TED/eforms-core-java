@@ -243,6 +243,22 @@ class XPathProcessorTest {
   }
 
   @Test
+  void testJoin_MustNotCancelStepsThatCarryPredicates() {
+    // A step going somewhere and a step coming back cancel out, but a predicate on either of them
+    // is a condition on the result, so the two have to stand as they were written.
+    assertEquals("a/..[x]/b", XPathProcessor.join("a", "..[x]/b"));
+    assertEquals("a[x]/../b", XPathProcessor.join("a[x]", "../b"));
+    assertEquals("a[x]/..[y]/b", XPathProcessor.join("a[x]", "..[y]/b"));
+    assertEquals("a/b[x]/../c", XPathProcessor.join("a/b[x]", "../c"));
+
+    // Where the cancelling pair carries no predicate, it still cancels, whatever the steps around
+    // it are carrying.
+    assertEquals("a[x]/c", XPathProcessor.join("a[x]/b", "../c"));
+    assertEquals("b", XPathProcessor.join("a", "../b"));
+    assertEquals("c", XPathProcessor.join("a/b", "../../c"));
+  }
+
+  @Test
   void testJoin_MustNotRewriteTheStepsItWasGiven() {
     assertEquals("child::a/attribute::x", XPathProcessor.join("child::a", "attribute::x"));
     assertEquals("self::node()/b", XPathProcessor.join("self::node()", "b"));
