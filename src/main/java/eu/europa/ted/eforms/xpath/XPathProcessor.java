@@ -25,8 +25,21 @@ public class XPathProcessor {
    * axis is applied from; an absolute path cannot keep its anchor, because an axis cannot be
    * followed by a separator, so it is read the same way. It is not a general way of rewriting
    * XPath.
+   *
+   * @throws IllegalArgumentException if either the axis or the path is missing. A path that is
+   *         there is always rewritten into one that XPath accepts; one that is not there names
+   *         nothing to rewrite, and an axis that is not there asks for nothing to be done.
    */
   public static String addAxis(final String axis, final String path) {
+    if (axis == null || axis.trim().isEmpty()) {
+      throw new IllegalArgumentException(
+          "No axis was given to look along. Pass the name of an XPath axis, such as 'preceding'.");
+    }
+    if (path == null || path.trim().isEmpty()) {
+      throw new IllegalArgumentException(String.format(
+          "No path was given to look for along the '%s' axis.", axis.trim()));
+    }
+
     final LinkedList<XPathStep> steps = new LinkedList<>(parse(path).getSteps());
 
     // Moving about before the axis makes no difference to what it finds, since it searches from the

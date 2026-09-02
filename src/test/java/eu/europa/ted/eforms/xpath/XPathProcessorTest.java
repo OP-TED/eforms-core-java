@@ -2,6 +2,7 @@ package eu.europa.ted.eforms.xpath;
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import org.junit.jupiter.api.Test;
 
@@ -262,6 +263,17 @@ class XPathProcessorTest {
   void testJoin_MustNotRewriteTheStepsItWasGiven() {
     assertEquals("child::a/attribute::x", XPathProcessor.join("child::a", "attribute::x"));
     assertEquals("self::node()/b", XPathProcessor.join("self::node()", "b"));
+  }
+
+  @Test
+  void testAddAxis_MustRejectAMissingAxisOrPath() {
+    // A path that is there is always rewritten into one that XPath accepts. One that is not there
+    // names nothing to rewrite, and an axis that is not there asks for nothing to be done, so
+    // neither can be answered with a path.
+    assertThrows(IllegalArgumentException.class, () -> XPathProcessor.addAxis(null, "a/b"));
+    assertThrows(IllegalArgumentException.class, () -> XPathProcessor.addAxis("  ", "a/b"));
+    assertThrows(IllegalArgumentException.class, () -> XPathProcessor.addAxis("preceding", null));
+    assertThrows(IllegalArgumentException.class, () -> XPathProcessor.addAxis("preceding", "  "));
   }
 
   @Test
