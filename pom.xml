@@ -3,7 +3,7 @@
 
   <groupId>eu.europa.ted.eforms</groupId>
   <artifactId>eforms-core-java</artifactId>
-  <version>1.8.0-SNAPSHOT</version>
+  <version>1.8.0</version>
 
   <name>eForms Core Library</name>
   <description>API and tools for eForms applications.</description>
@@ -33,7 +33,7 @@
   </scm>
 
   <properties>
-    <project.build.outputTimestamp>2026-07-17T07:55:16Z</project.build.outputTimestamp>
+    <project.build.outputTimestamp>2026-09-02T08:08:37Z</project.build.outputTimestamp>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
     <!-- Java compiler -->
