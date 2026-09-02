@@ -1,7 +1,6 @@
 package eu.europa.ted.eforms.xpath;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
@@ -175,7 +174,6 @@ public class XPathProcessor {
 
   private static String getJoinedXPath(LinkedList<XPathStep> first,
       final LinkedList<XPathStep> second, final XPathAnchor anchor) {
-    List<String> dotSteps = Arrays.asList("..", ".");
 
     // A path that searches from the root matches at any depth, so the position of its first step is
     // not known. Cancelling that step against a parent step would claim a position it does not
@@ -183,7 +181,10 @@ public class XPathProcessor {
     final int minimumStepsToKeep = anchor == XPathAnchor.DESCENDANT_FROM_ROOT ? 1 : 0;
     while (!second.isEmpty() && first.size() > minimumStepsToKeep
         && second.getFirst().getStepText().equals("..")
-        && !dotSteps.contains(first.getLast().getStepText()) && !first.getLast().isVariableStep()
+        // Only a step that went somewhere can be cancelled by one coming back. A step that only
+        // moves about went nowhere to return from, whichever of its spellings was used: ".." and
+        // "parent::node()" are the same step, as are "." and "self::node()".
+        && !first.getLast().isNavigationStep() && !first.getLast().isVariableStep()
         // A step going somewhere and a step coming back cancel out, but only when neither says
         // anything about where it went. A predicate on either of them is a condition on the result,
         // so a step carrying one is kept and the two are left to stand as they were written.

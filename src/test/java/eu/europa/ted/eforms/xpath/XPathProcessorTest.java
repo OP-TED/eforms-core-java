@@ -260,6 +260,19 @@ class XPathProcessorTest {
   }
 
   @Test
+  void testJoin_MustNotCancelAStepThatOnlyMovesAbout() {
+    // A step that only moves about went nowhere to come back from, so a parent step cannot cancel
+    // it. Both spellings of each have to be read the same way.
+    assertEquals("a/self::node()/../c", XPathProcessor.join("a/self::node()", "../c"));
+    assertEquals("a/parent::node()/../c", XPathProcessor.join("a/parent::node()", "../c"));
+    assertEquals("a/./../c", XPathProcessor.join("a/.", "../c"));
+    assertEquals("a/../../c", XPathProcessor.join("a/..", "../c"));
+
+    // A step that did go somewhere still cancels.
+    assertEquals("a/c", XPathProcessor.join("a/b", "../c"));
+  }
+
+  @Test
   void testJoin_MustNotRewriteTheStepsItWasGiven() {
     assertEquals("child::a/attribute::x", XPathProcessor.join("child::a", "attribute::x"));
     assertEquals("self::node()/b", XPathProcessor.join("self::node()", "b"));
