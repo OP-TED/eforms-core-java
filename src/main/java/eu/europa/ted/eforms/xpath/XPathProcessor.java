@@ -1,7 +1,6 @@
 package eu.europa.ted.eforms.xpath;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
@@ -25,8 +24,21 @@ public class XPathProcessor {
    * axis is applied from; an absolute path cannot keep its anchor, because an axis cannot be
    * followed by a separator, so it is read the same way. It is not a general way of rewriting
    * XPath.
+   *
+   * @throws IllegalArgumentException if either the axis or the path is missing. A path that is
+   *         there is always rewritten into one that XPath accepts; one that is not there names
+   *         nothing to rewrite, and an axis that is not there asks for nothing to be done.
    */
   public static String addAxis(final String axis, final String path) {
+    if (axis == null || axis.trim().isEmpty()) {
+      throw new IllegalArgumentException(
+          "No axis was given to look along. Pass the name of an XPath axis, such as 'preceding'.");
+    }
+    if (path == null || path.trim().isEmpty()) {
+      throw new IllegalArgumentException(String.format(
+          "No path was given to look for along the '%s' axis.", axis.trim()));
+    }
+
     final LinkedList<XPathStep> steps = new LinkedList<>(parse(path).getSteps());
 
     // Moving about before the axis makes no difference to what it finds, since it searches from the
@@ -162,7 +174,6 @@ public class XPathProcessor {
 
   private static String getJoinedXPath(LinkedList<XPathStep> first,
       final LinkedList<XPathStep> second, final XPathAnchor anchor) {
-    List<String> dotSteps = Arrays.asList("..", ".");
 
     // A path that searches from the root matches at any depth, so the position of its first step is
     // not known. Cancelling that step against a parent step would claim a position it does not
@@ -170,7 +181,15 @@ public class XPathProcessor {
     final int minimumStepsToKeep = anchor == XPathAnchor.DESCENDANT_FROM_ROOT ? 1 : 0;
     while (!second.isEmpty() && first.size() > minimumStepsToKeep
         && second.getFirst().getStepText().equals("..")
-        && !dotSteps.contains(first.getLast().getStepText()) && !first.getLast().isVariableStep()) {
+        // Only a step that went somewhere can be cancelled by one coming back. A step that only
+        // moves about went nowhere to return from, whichever of its spellings was used: ".." and
+        // "parent::node()" are the same step, as are "." and "self::node()".
+        && !first.getLast().isNavigationStep() && !first.getLast().isVariableStep()
+        // A step going somewhere and a step coming back cancel out, but only when neither says
+        // anything about where it went. A predicate on either of them is a condition on the result,
+        // so a step carrying one is kept and the two are left to stand as they were written.
+        && second.getFirst().getPredicates().isEmpty()
+        && first.getLast().getPredicates().isEmpty()) {
       second.removeFirst();
       first.removeLast();
     }

@@ -2,6 +2,7 @@ package eu.europa.ted.eforms.xpath;
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import org.junit.jupiter.api.Test;
 
@@ -243,9 +244,49 @@ class XPathProcessorTest {
   }
 
   @Test
+  void testJoin_MustNotCancelStepsThatCarryPredicates() {
+    // A step going somewhere and a step coming back cancel out, but a predicate on either of them
+    // is a condition on the result, so the two have to stand as they were written.
+    assertEquals("a/..[x]/b", XPathProcessor.join("a", "..[x]/b"));
+    assertEquals("a[x]/../b", XPathProcessor.join("a[x]", "../b"));
+    assertEquals("a[x]/..[y]/b", XPathProcessor.join("a[x]", "..[y]/b"));
+    assertEquals("a/b[x]/../c", XPathProcessor.join("a/b[x]", "../c"));
+
+    // Where the cancelling pair carries no predicate, it still cancels, whatever the steps around
+    // it are carrying.
+    assertEquals("a[x]/c", XPathProcessor.join("a[x]/b", "../c"));
+    assertEquals("b", XPathProcessor.join("a", "../b"));
+    assertEquals("c", XPathProcessor.join("a/b", "../../c"));
+  }
+
+  @Test
+  void testJoin_MustNotCancelAStepThatOnlyMovesAbout() {
+    // A step that only moves about went nowhere to come back from, so a parent step cannot cancel
+    // it. Both spellings of each have to be read the same way.
+    assertEquals("a/self::node()/../c", XPathProcessor.join("a/self::node()", "../c"));
+    assertEquals("a/parent::node()/../c", XPathProcessor.join("a/parent::node()", "../c"));
+    assertEquals("a/./../c", XPathProcessor.join("a/.", "../c"));
+    assertEquals("a/../../c", XPathProcessor.join("a/..", "../c"));
+
+    // A step that did go somewhere still cancels.
+    assertEquals("a/c", XPathProcessor.join("a/b", "../c"));
+  }
+
+  @Test
   void testJoin_MustNotRewriteTheStepsItWasGiven() {
     assertEquals("child::a/attribute::x", XPathProcessor.join("child::a", "attribute::x"));
     assertEquals("self::node()/b", XPathProcessor.join("self::node()", "b"));
+  }
+
+  @Test
+  void testAddAxis_MustRejectAMissingAxisOrPath() {
+    // A path that is there is always rewritten into one that XPath accepts. One that is not there
+    // names nothing to rewrite, and an axis that is not there asks for nothing to be done, so
+    // neither can be answered with a path.
+    assertThrows(IllegalArgumentException.class, () -> XPathProcessor.addAxis(null, "a/b"));
+    assertThrows(IllegalArgumentException.class, () -> XPathProcessor.addAxis("  ", "a/b"));
+    assertThrows(IllegalArgumentException.class, () -> XPathProcessor.addAxis("preceding", null));
+    assertThrows(IllegalArgumentException.class, () -> XPathProcessor.addAxis("preceding", "  "));
   }
 
   @Test
