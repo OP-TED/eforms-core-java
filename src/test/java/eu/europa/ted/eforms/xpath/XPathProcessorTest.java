@@ -2,6 +2,7 @@ package eu.europa.ted.eforms.xpath;
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import org.junit.jupiter.api.Test;
 
@@ -207,8 +208,157 @@ class XPathProcessorTest {
   }
 
   @Test
+  void testAddAxis_MustPreserveThePredicates() {
+    assertEquals("preceding::b[x = 'y']/c",
+        XPathProcessor.addAxis("preceding", "b[x = 'y']/c"));
+    assertEquals("preceding::b/c[x = 'y']",
+        XPathProcessor.addAxis("preceding", "b/c[x = 'y']"));
+    assertEquals("preceding::b[e][f]/c[g]",
+        XPathProcessor.addAxis("preceding", "b[e][f]/c[g]"));
+    assertEquals("descendant::b[x = 'y']/c",
+        XPathProcessor.addAxis("descendant", "../../b[x = 'y']/c"));
+  }
+
+  @Test
+  void testAddAxis_MustAimTheStepTheAxisLandsOn() {
+    assertEquals("preceding::node()", XPathProcessor.addAxis("preceding", "."));
+    assertEquals("preceding::node()", XPathProcessor.addAxis("preceding", ".."));
+    assertEquals("preceding::node()", XPathProcessor.addAxis("preceding", "../.."));
+    assertEquals("preceding::b", XPathProcessor.addAxis("preceding", "./b"));
+    assertEquals("preceding::node()[x]/b", XPathProcessor.addAxis("preceding", ".[x]/b"));
+    assertEquals("preceding::node()[x]/b", XPathProcessor.addAxis("preceding", "..[x]/b"));
+    assertEquals("preceding::b/c", XPathProcessor.addAxis("preceding", "child::b/c"));
+    assertEquals("preceding::b/c", XPathProcessor.addAxis("preceding", "following::b/c"));
+    assertEquals("preceding::text()/b", XPathProcessor.addAxis("preceding", "text()/b"));
+  }
+
+  @Test
+  void testAddAxis_MustKeepAStepThatCannotBeAimed() {
+    assertEquals("preceding::node()/@x", XPathProcessor.addAxis("preceding", "@x"));
+    assertEquals("preceding::node()/$var/b", XPathProcessor.addAxis("preceding", "$var/b"));
+    assertEquals("preceding::node()/doc('x')/b", XPathProcessor.addAxis("preceding", "doc('x')/b"));
+    assertEquals("preceding::node()/id('x')/b", XPathProcessor.addAxis("preceding", "id('x')/b"));
+    assertEquals("preceding::node()/(a | b)/c", XPathProcessor.addAxis("preceding", "(a | b)/c"));
+    assertEquals("preceding::node()/namespace::x",
+        XPathProcessor.addAxis("preceding", "namespace::x"));
+  }
+
+  @Test
+  void testJoin_MustNotCancelStepsThatCarryPredicates() {
+    // A step going somewhere and a step coming back cancel out, but a predicate on either of them
+    // is a condition on the result, so the two have to stand as they were written.
+    assertEquals("a/..[x]/b", XPathProcessor.join("a", "..[x]/b"));
+    assertEquals("a[x]/../b", XPathProcessor.join("a[x]", "../b"));
+    assertEquals("a[x]/..[y]/b", XPathProcessor.join("a[x]", "..[y]/b"));
+    assertEquals("a/b[x]/../c", XPathProcessor.join("a/b[x]", "../c"));
+
+    // Where the cancelling pair carries no predicate, it still cancels, whatever the steps around
+    // it are carrying.
+    assertEquals("a[x]/c", XPathProcessor.join("a[x]/b", "../c"));
+    assertEquals("b", XPathProcessor.join("a", "../b"));
+    assertEquals("c", XPathProcessor.join("a/b", "../../c"));
+  }
+
+  @Test
+  void testJoin_MustNotCancelAStepThatOnlyMovesAbout() {
+    // A step that only moves about went nowhere to come back from, so a parent step cannot cancel
+    // it. Both spellings of each have to be read the same way.
+    assertEquals("a/self::node()/../c", XPathProcessor.join("a/self::node()", "../c"));
+    assertEquals("a/parent::node()/../c", XPathProcessor.join("a/parent::node()", "../c"));
+    assertEquals("a/./../c", XPathProcessor.join("a/.", "../c"));
+    assertEquals("a/../../c", XPathProcessor.join("a/..", "../c"));
+
+    // A step that did go somewhere still cancels.
+    assertEquals("a/c", XPathProcessor.join("a/b", "../c"));
+  }
+
+  @Test
+  void testJoin_MustNotRewriteTheStepsItWasGiven() {
+    assertEquals("child::a/attribute::x", XPathProcessor.join("child::a", "attribute::x"));
+    assertEquals("self::node()/b", XPathProcessor.join("self::node()", "b"));
+  }
+
+  @Test
+  void testAddAxis_MustRejectAMissingAxisOrPath() {
+    // A path that is there is always rewritten into one that XPath accepts. One that is not there
+    // names nothing to rewrite, and an axis that is not there asks for nothing to be done, so
+    // neither can be answered with a path.
+    assertThrows(IllegalArgumentException.class, () -> XPathProcessor.addAxis(null, "a/b"));
+    assertThrows(IllegalArgumentException.class, () -> XPathProcessor.addAxis("  ", "a/b"));
+    assertThrows(IllegalArgumentException.class, () -> XPathProcessor.addAxis("preceding", null));
+    assertThrows(IllegalArgumentException.class, () -> XPathProcessor.addAxis("preceding", "  "));
+  }
+
+  @Test
+  void testAddAxis_MustReadAnAbsolutePathFromTheContext() {
+    assertEquals("preceding::a/b", XPathProcessor.addAxis("preceding", "/a/b"));
+    assertEquals("preceding::a/b", XPathProcessor.addAxis("preceding", "//a/b"));
+    assertEquals("preceding::a[x]/b", XPathProcessor.addAxis("preceding", "/a[x]/b"));
+  }
+
+  @Test
   void testJoin() {
     assertEquals("a/b/c/d", XPathProcessor.join("a/b", "c/d"));
     assertEquals("a/x/y", XPathProcessor.join("a/b/c", "../../x/y"));
+  }
+
+  @Test
+  void testJoinPreservesPredicates() {
+    assertEquals("a/b/c[x = 'y']/d", XPathProcessor.join("a/b", "c[x = 'y']/d"));
+    assertEquals("a[x = 'y']/b/c", XPathProcessor.join("a[x = 'y']/b", "c"));
+    assertEquals("a[x = 'y']/b[p]/c[q]", XPathProcessor.join("a[x = 'y']", "b[p]/c[q]"));
+  }
+
+  @Test
+  void testJoinPreservesTheLeadingSeparator() {
+    assertEquals("a/b/c", XPathProcessor.join("a/b", "c"));
+    assertEquals("/a/b/c", XPathProcessor.join("/a/b", "c"));
+    assertEquals("/a/b[x = 'y']/c", XPathProcessor.join("/a/b[x = 'y']", "c"));
+
+    // "/a" and "//a" do not select the same thing, so the separator is kept as it was written.
+    assertEquals("//a/b", XPathProcessor.join("//a", "b"));
+
+    // When the back-steps consume the whole of the first part, the result is still anchored at the
+    // root, and must not become a descendant search.
+    assertEquals("/b", XPathProcessor.join("/", "b"));
+    assertEquals("/b", XPathProcessor.join("/a", "../b"));
+    assertEquals("b", XPathProcessor.join("a", "../b"));
+  }
+
+  /**
+   * A path beginning with "//" matches at any depth, so its first step cannot be cancelled against
+   * a parent step: "//a/.." selects the parents of every a element, which is not the root.
+   */
+  @Test
+  void testJoinKeepsTheFirstStepOfADescendantSearch() {
+    assertEquals("//a/..", XPathProcessor.join("//a", ".."));
+    assertEquals("//a/../b", XPathProcessor.join("//a", "../b"));
+    assertEquals("//a/b", XPathProcessor.join("//a", "b"));
+  }
+
+  /**
+   * The anchor is read from the parse tree, not from the start of the input, so anything the lexer
+   * skips before the path does not hide it. A comment is valid XPath and is skipped.
+   */
+  @Test
+  void testJoinSeesTheAnchorPastAComment() {
+    assertEquals("/a/b", XPathProcessor.join("(: a comment :) /a", "b"));
+    assertEquals("//a/b", XPathProcessor.join("(: a comment :) //a", "b"));
+    assertEquals("a/b", XPathProcessor.join("(: a comment :) a", "b"));
+  }
+
+  /** A path inside a predicate has its own anchor, which is not the anchor of the path. */
+  @Test
+  void testJoinTakesTheAnchorOfTheOuterPath() {
+    assertEquals("a[/b]/c", XPathProcessor.join("a[/b]", "c"));
+    assertEquals("/a[b]/c", XPathProcessor.join("/a[b]", "c"));
+  }
+
+  @Test
+  void testJoinResolvingToWhereItStarted() {
+    assertEquals("/", XPathProcessor.join("/a", ".."));
+    assertEquals("/", XPathProcessor.join("/a/b", "../.."));
+    assertEquals(".", XPathProcessor.join("a", ".."));
+    assertEquals(".", XPathProcessor.join("a/b", "../.."));
   }
 }

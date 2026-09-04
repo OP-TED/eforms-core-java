@@ -7,6 +7,7 @@ public class XPathInfo {
   private LinkedList<XPathStep> steps = new LinkedList<>();
   private String pathToLastElement;
   private String attributeName;
+  private XPathAnchor anchor = XPathAnchor.RELATIVE;
 
   public List<XPathStep> getSteps() {
     return steps;
@@ -26,6 +27,19 @@ public class XPathInfo {
 
   public void setPathToLastElement(String pathToLastElement) {
     this.pathToLastElement = pathToLastElement;
+  }
+
+  /** Where the path starts from. See {@link XPathAnchor}. */
+  public XPathAnchor getAnchor() {
+    return anchor;
+  }
+
+  void setAnchor(XPathAnchor anchor) {
+    this.anchor = anchor;
+  }
+
+  public boolean isAbsolute() {
+    return anchor.isAbsolute();
   }
 
   public boolean isAttribute() {

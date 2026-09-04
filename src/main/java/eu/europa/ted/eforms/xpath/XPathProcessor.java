@@ -1,6 +1,6 @@
 package eu.europa.ted.eforms.xpath;
 
-import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
@@ -14,14 +14,48 @@ public class XPathProcessor {
     return parser.parse(xpathInput);
   }
 
-  public static String addAxis(String axis, String path) {
-    LinkedList<XPathStep> steps = new LinkedList<>(parse(path).getSteps());
+  /**
+   * Rewrites a path so that it looks along the given axis instead of along the one it was written
+   * for.
+   *
+   * <p>
+   * This serves the axis that can be written on an EFX-1 field reference, and nothing more. The
+   * axis is expected to be one that XPath knows, and the path to be relative to the context the
+   * axis is applied from; an absolute path cannot keep its anchor, because an axis cannot be
+   * followed by a separator, so it is read the same way. It is not a general way of rewriting
+   * XPath.
+   *
+   * @throws IllegalArgumentException if either the axis or the path is missing. A path that is
+   *         there is always rewritten into one that XPath accepts; one that is not there names
+   *         nothing to rewrite, and an axis that is not there asks for nothing to be done.
+   */
+  public static String addAxis(final String axis, final String path) {
+    if (axis == null || axis.trim().isEmpty()) {
+      throw new IllegalArgumentException(
+          "No axis was given to look along. Pass the name of an XPath axis, such as 'preceding'.");
+    }
+    if (path == null || path.trim().isEmpty()) {
+      throw new IllegalArgumentException(String.format(
+          "No path was given to look for along the '%s' axis.", axis.trim()));
+    }
 
-    while (steps.getFirst().getStepText().equals("..")) {
+    final LinkedList<XPathStep> steps = new LinkedList<>(parse(path).getSteps());
+
+    // Moving about before the axis makes no difference to what it finds, since it searches from the
+    // context node wherever the path would have gone first. Such steps are dropped, except for the
+    // one the axis is put on, and except where a predicate says which node was arrived at.
+    while (steps.size() > 1 && steps.getFirst().isNavigationStep()
+        && steps.getFirst().getPredicates().isEmpty()) {
       steps.removeFirst();
     }
 
-    return axis + "::" + steps.stream().map(s -> s.getStepText()).collect(Collectors.joining("/"));
+    if (steps.isEmpty()) {
+      return XPathStep.anyNodeOn(axis).toString();
+    }
+
+    steps.addAll(0, steps.removeFirst().onAxis(axis));
+
+    return steps.stream().map(s -> s.toString()).collect(Collectors.joining("/"));
   }
 
   public static String join(final String first, final String second) {
@@ -34,10 +68,20 @@ public class XPathProcessor {
       return first;
     }
 
-    LinkedList<XPathStep> firstPartSteps = new LinkedList<>(parse(first).getSteps());
+    final XPathInfo firstPart = parse(first);
+    LinkedList<XPathStep> firstPartSteps = new LinkedList<>(firstPart.getSteps());
     LinkedList<XPathStep> secondPartSteps = new LinkedList<>(parse(second).getSteps());
 
-    return getJoinedXPath(firstPartSteps, secondPartSteps);
+    final XPathAnchor anchor = firstPart.getAnchor();
+    final String joined = getJoinedXPath(firstPartSteps, secondPartSteps, anchor);
+
+    if (joined.isEmpty()) {
+      // The back-steps consumed both parts, so the join resolves to where it started from: the
+      // root of the document if the first part was anchored there, and the current context if not.
+      return anchor.isAbsolute() ? "/" : ".";
+    }
+
+    return anchor.getSeparator() + joined;
   }
 
   public static String contextualize(final String contextXpath, final String xpath) {
@@ -97,7 +141,7 @@ public class XPathProcessor {
       // remaining in the pathQueue.
       while (!pathQueue.isEmpty()) {
         final XPathStep step = pathQueue.poll();
-        relativeXpath += "/" + step.getStepText() + step.getPredicateText();
+        relativeXpath += "/" + step;
       }
 
       // We remove any leading forward slashes from the resulting xPath.
@@ -129,15 +173,33 @@ public class XPathProcessor {
   }
 
   private static String getJoinedXPath(LinkedList<XPathStep> first,
-      final LinkedList<XPathStep> second) {
-    List<String> dotSteps = Arrays.asList("..", ".");
-    while (second.getFirst().getStepText().equals("..")
-        && !dotSteps.contains(first.getLast().getStepText()) && !first.getLast().isVariableStep()) {
+      final LinkedList<XPathStep> second, final XPathAnchor anchor) {
+
+    // A path that searches from the root matches at any depth, so the position of its first step is
+    // not known. Cancelling that step against a parent step would claim a position it does not
+    // have, so it is left in place.
+    final int minimumStepsToKeep = anchor == XPathAnchor.DESCENDANT_FROM_ROOT ? 1 : 0;
+    while (!second.isEmpty() && first.size() > minimumStepsToKeep
+        && second.getFirst().getStepText().equals("..")
+        // Only a step that went somewhere can be cancelled by one coming back. A step that only
+        // moves about went nowhere to return from, whichever of its spellings was used: ".." and
+        // "parent::node()" are the same step, as are "." and "self::node()".
+        && !first.getLast().isNavigationStep() && !first.getLast().isVariableStep()
+        // A step going somewhere and a step coming back cancel out, but only when neither says
+        // anything about where it went. A predicate on either of them is a condition on the result,
+        // so a step carrying one is kept and the two are left to stand as they were written.
+        && second.getFirst().getPredicates().isEmpty()
+        && first.getLast().getPredicates().isEmpty()) {
       second.removeFirst();
       first.removeLast();
     }
 
-    return first.stream().map(f -> f.getStepText()).collect(Collectors.joining("/"))
-        + "/" + second.stream().map(s -> s.getStepText()).collect(Collectors.joining("/"));
+    // Both parts are joined as one sequence of steps. Gluing the two halves together with a
+    // separator of our own would put one in front of the result whenever the first part is empty,
+    // which happens when the back-steps above consume all of it.
+    final List<XPathStep> steps = new ArrayList<>(first);
+    steps.addAll(second);
+
+    return steps.stream().map(s -> s.toString()).collect(Collectors.joining("/"));
   }
 }

@@ -1,6 +1,7 @@
 package eu.europa.ted.eforms.xpath;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
@@ -8,13 +9,119 @@ import java.util.Objects;
 
 import org.apache.commons.lang3.StringUtils;
 
+/**
+ * One step of a path.
+ *
+ * <p>
+ * A step read from a path is known well enough to say whether it can be looked for along another
+ * axis, which is all {@link XPathProcessor#addAxis} needs of it. A step built from its text alone
+ * says nothing of the sort and is taken at its word.
+ *
+ * <p>
+ * How a step was read is not part of what it is worth: two steps written the same way, carrying the
+ * same predicates, are the same step.
+ */
 public class XPathStep implements Comparable<XPathStep> {
+  /** The node test that matches any node, which the steps that only move about look for. */
+  private static final String ANY_NODE = "node()";
+
+  /**
+   * As much as is needed to know whether a step can be looked for along a different axis. This is
+   * not a reading of XPath's own grammar, which distinguishes far more than this: an explicit
+   * {@code child::b} and a plain {@code b} are told apart there and are the same thing here.
+   */
+  private enum StepKind {
+    /** The step names something that can be looked for along another axis. */
+    RETARGETABLE,
+
+    /** The step only moves about, naming nothing: the current node, or the parent node. */
+    NAVIGATION,
+
+    /**
+     * Anything else. An attribute, a namespace and an expression all name something that is only
+     * found where it already is, and a step built from text alone is not known at all. All of them
+     * stay where they are.
+     */
+    OPAQUE
+  }
+
   private final String stepText;
   private final List<String> predicates;
+  private final StepKind kind;
 
+  /** What the step looks for, where it looks for anything. */
+  private final String nodeTest;
+
+  /**
+   * Builds a step from the text it is written as. Steps read from a path are built by the parser,
+   * which knows more about them than their text says.
+   */
   public XPathStep(String stepText, List<String> predicates) {
+    this(stepText, predicates, StepKind.OPAQUE, null);
+  }
+
+  private XPathStep(final String stepText, final List<String> predicates, final StepKind kind,
+      final String nodeTest) {
     this.stepText = StringUtils.strip(stepText);
-    this.predicates = predicates;
+    this.predicates = predicates == null ? Collections.emptyList() : predicates;
+    this.kind = kind;
+    this.nodeTest = nodeTest;
+  }
+
+  /**
+   * A step that names what it looks for, which can therefore be looked for along another axis. The
+   * node test is what it looks for, apart from however the step happens to be written.
+   */
+  static XPathStep retargetable(final String stepText, final String nodeTest,
+      final List<String> predicates) {
+    return new XPathStep(stepText, predicates, StepKind.RETARGETABLE,
+        StringUtils.strip(nodeTest));
+  }
+
+  /**
+   * A step that only moves about: {@code .} or {@code ..}. It names nothing, so what it arrives at
+   * is any node at all, and any predicate it carries describes that node.
+   */
+  static XPathStep navigation(final String stepText, final List<String> predicates) {
+    return new XPathStep(stepText, predicates, StepKind.NAVIGATION, ANY_NODE);
+  }
+
+  /**
+   * A step that has to be left where it is: an attribute, a namespace, or an expression evaluated
+   * for the nodes it returns.
+   */
+  static XPathStep opaque(final String stepText, final List<String> predicates) {
+    return new XPathStep(stepText, predicates, StepKind.OPAQUE, null);
+  }
+
+  /**
+   * A step that walks the given axis and takes whatever it finds.
+   */
+  static XPathStep anyNodeOn(final String axis) {
+    return retargetable(axis + "::" + ANY_NODE, ANY_NODE, Collections.emptyList());
+  }
+
+  /**
+   * The same step, looked for along the given axis instead.
+   *
+   * <p>
+   * A step that names what it looks for is simply looked for elsewhere, and one step comes back. A
+   * step that has to stay where it is keeps its place behind a step that walks the axis, and two
+   * come back.
+   */
+  List<XPathStep> onAxis(final String axis) {
+    if (this.kind == StepKind.OPAQUE) {
+      return Arrays.asList(anyNodeOn(axis), this);
+    }
+    return Collections
+        .singletonList(retargetable(axis + "::" + this.nodeTest, this.nodeTest, this.predicates));
+  }
+
+  /**
+   * Whether the step only moves about, without naming anything to look for.
+   */
+  boolean isNavigationStep() {
+    return this.kind == StepKind.NAVIGATION;
   }
 
   public String getStepText() {
@@ -27,6 +134,16 @@ public class XPathStep implements Comparable<XPathStep> {
 
   public String getPredicateText() {
     return String.join("", predicates);
+  }
+
+  /**
+   * The step as it was written in the path it was parsed from, predicates included. Use this
+   * wherever a step is put back into a path: the step text and its predicates are held separately,
+   * so composing a path from the step text alone silently discards the predicates.
+   */
+  @Override
+  public String toString() {
+    return getStepText() + getPredicateText();
   }
 
   @Override
@@ -122,7 +239,7 @@ public class XPathStep implements Comparable<XPathStep> {
    * This method was renamed for clarity. It is marked as deprecated so that the
    * library interface does not change. It will be removed in the next major
    * version of the library.
-   * 
+   *
    */
   @Deprecated(since = "1.3.0", forRemoval = true)
   public boolean isSimilarTo(final XPathStep other) {
