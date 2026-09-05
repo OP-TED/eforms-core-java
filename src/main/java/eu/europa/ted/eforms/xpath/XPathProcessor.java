@@ -63,11 +63,14 @@ public class XPathProcessor {
    * Joins two paths, the second being relative to the first, and shortens the result where a step
    * is immediately followed by a step going back up.
    *
-   * <p>
-   * Shortening does not preserve meaning: {@code a/b/../c} selects nothing when {@code b} is absent
-   * from the document, while {@code a/c} selects {@code c} regardless. Use
-   * {@link #join(String, String, Simplification)} to choose how much of it is done.
+   * @deprecated This picks {@link Simplification#PRESERVE_PREDICATES} without saying so, and the
+   *             choice is not a detail: shortening does not preserve meaning, since
+   *             {@code a/b/../c} selects nothing when {@code b} is absent from the document while
+   *             {@code a/c} selects {@code c} regardless. Call
+   *             {@link #join(String, String, Simplification)} and say which of the three you want.
+   *             This method will be removed in the next major version.
    */
+  @Deprecated(since = "1.9.0", forRemoval = true)
   public static String join(final String first, final String second) {
     return join(first, second, Simplification.PRESERVE_PREDICATES);
   }
