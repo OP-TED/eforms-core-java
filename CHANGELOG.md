@@ -1,18 +1,14 @@
-# eForms Core Library 1.8.0 Release Notes
+# eForms Core Library 1.9.0 Release Notes
 
 The eForms Core Library is a collection of utilities used by the EFX Toolkit for Java Developers and other eForms applications.
 
 ## In this release
 
-### Fixes
-
-- Predicates are no longer discarded when two paths are joined. `XPathProcessor.join` composed its result from the text of each step alone, leaving the predicates behind, so a reference written after a context override selected every instance of a field instead of the ones its predicate asked for. The leading separator of an absolute first operand was lost in the same place. A step and a parent step that cancel each other out are also only cancelled now when neither carries a predicate, since a predicate on either of them is a condition on the result, and only when the first of the two went somewhere to come back from — a step that merely moves about did not, whichever of its spellings was used (TEDEFO-5148).
-
-- Predicates are no longer discarded when an axis is added to a path. `XPathProcessor.addAxis` had the same fault, and threw an unhelpful exception when given a path made only of parent steps. It now returns a valid path for every valid path it is given, and reads a step the same way however it is spelled. A missing axis or path is refused outright rather than answered with something that only looks like XPath (TEDEFO-5150).
-
 ### Paths
 
-- `XPathInfo` now reports where a path starts from, through `getAnchor()` and `isAbsolute()`. The new `XPathAnchor` tells apart a path relative to its context, one anchored to the root of the document, and one searching from the root at any depth.
+- The caller now says how much of a joined path may be shortened. Where a path goes down to a step and immediately comes back up, the two steps can be removed: `a/b/../c` becomes `a/c`. The result is shorter but it does not mean the same thing — the long form selects nothing when `b` is absent from the document, whereas the short form selects `c` whether `b` is there or not. That difference matters to some callers and not to others, so `XPathProcessor.join` now takes a `Simplification` saying which answer is wanted: `NONE` keeps every step as it was written, `PRESERVE_PREDICATES` cancels a pair of steps unless one of them carries a predicate, and `FULL` cancels it even then (TEDEFO-5169).
+
+- The two-argument `join` is deprecated. It applies `PRESERVE_PREDICATES`, which is what 1.8.0 did, so a caller that does not change keeps the result it had. It will be removed in the next major version.
 
 ## Download
 
