@@ -4,11 +4,7 @@ The eForms Core Library is a collection of utilities used by the EFX Toolkit for
 
 ## In this release
 
-### Paths
-
-- The caller now says how much of a joined path may be shortened. Where a path goes down to a step and immediately comes back up, the two steps can be removed: `a/b/../c` becomes `a/c`. The result is shorter but it does not mean the same thing — the long form selects nothing when `b` is absent from the document, whereas the short form selects `c` whether `b` is there or not. That difference matters to some callers and not to others, so `XPathProcessor.join` now takes a `Simplification` saying which answer is wanted: `NONE` keeps every step as it was written, `PRESERVE_PREDICATES` cancels a pair of steps unless one of them carries a predicate, and `FULL` cancels it even then (TEDEFO-5169).
-
-- The two-argument `join` is deprecated. It applies `PRESERVE_PREDICATES`, which is what 1.8.0 did, so a caller that does not change keeps the result it had. It will be removed in the next major version.
+In version 1.8.0 we fixed an issue in `XPathProcessor.join` which used to compute valid but inaccurate XPaths when combining XPath steps. In version 1.9.0, we added a `Simplification` parameter to the same method, allowing the caller to control if and how the combined XPath is shortened. A backwards-compatible `XPathProcessor.join` method was kept, but deprecated for removal in the next major version.
 
 ## Download
 
