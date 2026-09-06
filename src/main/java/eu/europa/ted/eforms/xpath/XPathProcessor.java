@@ -3,10 +3,46 @@ package eu.europa.ted.eforms.xpath;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Queue;
 import java.util.stream.Collectors;
 
 public class XPathProcessor {
+
+  /**
+   * How much a joined path is shortened.
+   *
+   * <p>
+   * Where a path goes down to a step and immediately comes back up, the two steps can be removed:
+   * {@code a/b/../c} becomes {@code a/c}. The result is shorter but it does not mean the same thing.
+   * The long form selects nothing when {@code b} is absent from the document, whereas the short form
+   * selects {@code c} whether {@code b} is there or not.
+   *
+   * <p>
+   * That difference matters to some callers and not to others, so it is theirs to choose.
+   */
+  public enum Simplification {
+    /**
+     * Every step is kept as it was written. The path stays longer, and it selects nothing unless
+     * every step along the way is present in the document.
+     */
+    NONE,
+
+    /**
+     * A step and a following parent step cancel each other out, unless the step carries a predicate.
+     * Whatever the predicate says is therefore kept, but the requirement that an unpredicated step be
+     * present is lost.
+     */
+    PRESERVE_PREDICATES,
+
+    /**
+     * A step and a following parent step cancel each other out even when the step carries a
+     * predicate. The predicate goes with the step, so both the requirement that the step be present
+     * and whatever its predicate said are lost.
+     */
+    FULL
+  }
+
 
   public static XPathInfo parse(String xpathInput) {
     XPathListenerImpl parser = new XPathListenerImpl();
@@ -58,7 +94,36 @@ public class XPathProcessor {
     return steps.stream().map(s -> s.toString()).collect(Collectors.joining("/"));
   }
 
+  /**
+   * Joins two paths, the second being relative to the first, and shortens the result where a step
+   * is immediately followed by a step going back up.
+   *
+   * @deprecated This picks {@link Simplification#PRESERVE_PREDICATES} without saying so, and the
+   *             choice is not a detail: shortening does not preserve meaning, since
+   *             {@code a/b/../c} selects nothing when {@code b} is absent from the document while
+   *             {@code a/c} selects {@code c} regardless. Call
+   *             {@link #join(String, String, Simplification)} and say which of the three you want.
+   *             This method will be removed in the next major version.
+   */
+  @Deprecated(since = "1.9.0", forRemoval = true)
   public static String join(final String first, final String second) {
+    return join(first, second, Simplification.PRESERVE_PREDICATES);
+  }
+
+  /**
+   * Joins two paths, the second being relative to the first, shortening the result as far as the
+   * caller asks for.
+   *
+   * @param simplification how much of the result to shorten, and therefore how much of what the two
+   *        paths said is kept. See {@link Simplification}; none of its settings other than
+   *        {@link Simplification#NONE} preserves the meaning of the paths given.
+   */
+  public static String join(final String first, final String second,
+      final Simplification simplification) {
+    // Each setting keeps a different amount of what the two paths said, so there is no answer to
+    // give when the caller has not said which one they want.
+    Objects.requireNonNull(simplification,
+        "Say how much of the joined path may be shortened; see Simplification.");
 
     if (first == null || first.trim().isEmpty()) {
       return second;
@@ -73,7 +138,8 @@ public class XPathProcessor {
     LinkedList<XPathStep> secondPartSteps = new LinkedList<>(parse(second).getSteps());
 
     final XPathAnchor anchor = firstPart.getAnchor();
-    final String joined = getJoinedXPath(firstPartSteps, secondPartSteps, anchor);
+    final String joined =
+        getJoinedXPath(firstPartSteps, secondPartSteps, anchor, simplification);
 
     if (joined.isEmpty()) {
       // The back-steps consumed both parts, so the join resolves to where it started from: the
@@ -173,23 +239,25 @@ public class XPathProcessor {
   }
 
   private static String getJoinedXPath(LinkedList<XPathStep> first,
-      final LinkedList<XPathStep> second, final XPathAnchor anchor) {
+      final LinkedList<XPathStep> second, final XPathAnchor anchor,
+      final Simplification simplification) {
 
     // A path that searches from the root matches at any depth, so the position of its first step is
     // not known. Cancelling that step against a parent step would claim a position it does not
     // have, so it is left in place.
     final int minimumStepsToKeep = anchor == XPathAnchor.DESCENDANT_FROM_ROOT ? 1 : 0;
-    while (!second.isEmpty() && first.size() > minimumStepsToKeep
+    while (simplification != Simplification.NONE && !second.isEmpty()
+        && first.size() > minimumStepsToKeep
         && second.getFirst().getStepText().equals("..")
         // Only a step that went somewhere can be cancelled by one coming back. A step that only
         // moves about went nowhere to return from, whichever of its spellings was used: ".." and
         // "parent::node()" are the same step, as are "." and "self::node()".
         && !first.getLast().isNavigationStep() && !first.getLast().isVariableStep()
-        // A step going somewhere and a step coming back cancel out, but only when neither says
-        // anything about where it went. A predicate on either of them is a condition on the result,
-        // so a step carrying one is kept and the two are left to stand as they were written.
-        && second.getFirst().getPredicates().isEmpty()
-        && first.getLast().getPredicates().isEmpty()) {
+        // A predicate says something about the node the step arrived at. Cancelling the step throws
+        // that away along with it, so the caller decides whether it may be.
+        && (simplification == Simplification.FULL
+            || (second.getFirst().getPredicates().isEmpty()
+                && first.getLast().getPredicates().isEmpty()))) {
       second.removeFirst();
       first.removeLast();
     }
