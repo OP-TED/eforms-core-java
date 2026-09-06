@@ -260,6 +260,48 @@ class XPathProcessorTest {
   }
 
   @Test
+  void testJoin_SimplificationNone_MustKeepEveryStep() {
+    // The caller is told nothing may be removed, so the path stands exactly as the two halves were
+    // written and selects nothing unless every step along the way is present.
+    assertEquals("a/b/../c", XPathProcessor.join("a/b", "../c", Simplification.NONE));
+    assertEquals("a/b[x]/../c", XPathProcessor.join("a/b[x]", "../c", Simplification.NONE));
+    assertEquals("a/b/../../c", XPathProcessor.join("a/b", "../../c", Simplification.NONE));
+    assertEquals("a/b/c", XPathProcessor.join("a/b", "c", Simplification.NONE));
+    assertEquals("/a/b/../c", XPathProcessor.join("/a/b", "../c", Simplification.NONE));
+  }
+
+  @Test
+  void testJoin_SimplificationFull_MustCancelEvenThroughAPredicate() {
+    // The caller accepts that a cancelled step takes its predicate with it.
+    assertEquals("a/c", XPathProcessor.join("a/b", "../c", Simplification.FULL));
+    assertEquals("a/c", XPathProcessor.join("a/b[x]", "../c", Simplification.FULL));
+    assertEquals("a/c", XPathProcessor.join("a", "..[x]/a/c", Simplification.FULL));
+    assertEquals("c", XPathProcessor.join("a/b", "../../c", Simplification.FULL));
+
+    // A predicate on a step that is not cancelled survives, as it must under every setting.
+    assertEquals("a[x]/c", XPathProcessor.join("a[x]/b", "../c", Simplification.FULL));
+    assertEquals("a/b/c[y]", XPathProcessor.join("a/b", "c[y]", Simplification.FULL));
+  }
+
+  @Test
+  void testJoin_MustRefuseAMissingSimplification() {
+    // The setting decides how much of what the two paths said survives, so there is no sensible
+    // answer when it is absent.
+    assertThrows(NullPointerException.class, () -> XPathProcessor.join("a/b", "../c", null));
+  }
+
+  @Test
+  void testJoin_MustDefaultToPreservingPredicates() {
+    // The two-argument form keeps the behaviour it has always had.
+    for (final String[] p : new String[][] {{"a/b", "../c"}, {"a/b[x]", "../c"},
+        {"a", "..[x]/b"}, {"a/b", "../../c"}, {"a[x]/b", "../c"}, {"/a/b", "../c"}}) {
+      assertEquals(XPathProcessor.join(p[0], p[1], Simplification.PRESERVE_PREDICATES),
+          XPathProcessor.join(p[0], p[1]),
+          "join(" + p[0] + ", " + p[1] + ") must match PRESERVE_PREDICATES");
+    }
+  }
+
+  @Test
   void testJoin_MustNotCancelAStepThatOnlyMovesAbout() {
     // A step that only moves about went nowhere to come back from, so a parent step cannot cancel
     // it. Both spellings of each have to be read the same way.
