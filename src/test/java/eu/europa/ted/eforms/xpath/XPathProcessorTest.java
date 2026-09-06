@@ -6,6 +6,8 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import org.junit.jupiter.api.Test;
 
+import eu.europa.ted.eforms.xpath.XPathProcessor.Simplification;
+
 class XPathProcessorTest {
   private void testAttribute(final String fullPath, final String expectedPath,
       final String expectedAttribute) {
