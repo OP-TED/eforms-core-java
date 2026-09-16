@@ -247,7 +247,11 @@ public class MavenBooter {
   private static ProxySelector getProxySelector(Settings settings) {
     DefaultProxySelector selector = new DefaultProxySelector();
 
-    Optional.ofNullable(settings.getProxies()).orElse(Collections.emptyList())
+    // Only proxies the user actually enabled: a definition marked inactive is how Maven lets you
+    // keep a disabled proxy in settings.xml, and the Maven CLI skips those. Registering one here
+    // would route every repository request through a host the user switched off.
+    Optional.ofNullable(settings.getProxies()).orElse(Collections.emptyList()).stream()
+        .filter(Proxy::isActive)
         .forEach((Proxy proxy) -> selector.add(convertProxy(proxy), proxy.getNonProxyHosts()));
 
     return selector;
