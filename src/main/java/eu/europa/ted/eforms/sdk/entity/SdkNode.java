@@ -62,7 +62,10 @@ public abstract class SdkNode implements Comparable<SdkNode> {
 
   /**
    * Sets the parent node and invalidates the cached ancestry.
-   * Should only be called during SDK initialization (two-pass loading).
+   * Use during hierarchy initialization, including deferred initialization before the first
+   * ancestry lookup. Complete the parent links before calling {@link #getAncestry()} on this node
+   * or its descendants: changing this node's parent does not invalidate ancestry cached by
+   * descendants. Callers must coordinate access when initializing a shared hierarchy.
    *
    * @param parent the parent node
    */
