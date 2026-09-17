@@ -1,10 +1,12 @@
-# eForms Core Library 1.9.0 Release Notes
+# eForms Core Library 1.9.1 Release Notes
 
 The eForms Core Library is a collection of utilities used by the EFX Toolkit for Java Developers and other eForms applications.
 
 ## In this release
 
-In version 1.8.0 we fixed an issue in `XPathProcessor.join` which used to compute valid but inaccurate XPaths when combining XPath steps. In version 1.9.0, we added a `Simplification` parameter to the same method, allowing the caller to control if and how the combined XPath is shortened. A backwards-compatible `XPathProcessor.join` method was kept, but deprecated for removal in the next major version.
+SDK downloads now ignore Maven proxy definitions marked as inactive in `settings.xml`. Previously, a disabled proxy could still receive repository requests and cause SDK downloads to fail. Active proxies and proxy definitions that omit the `active` setting continue to work as before.
+
+The `SdkNode.setParent` documentation now clarifies the requirements for deferred parent-link initialization, cached ancestry, and access to shared node hierarchies.
 
 ## Download
 
