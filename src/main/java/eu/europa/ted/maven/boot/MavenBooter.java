@@ -9,6 +9,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.repository.internal.MavenRepositorySystemUtils;
 import org.apache.maven.settings.Profile;
@@ -196,15 +197,10 @@ public class MavenBooter {
     List<RemoteRepository> remoteRepositories = new ArrayList<>();
 
     if (settings.getProfiles() != null) {
-      List<String> activeProfiles = settings.getActiveProfiles();
-
-      settings.getProfiles().stream().forEach((Profile profile) -> {
-        if (StringUtils.isNotBlank(profile.getId()) && activeProfiles.contains(profile.getId())) {
-          Optional.ofNullable(profile.getRepositories()).orElse(Collections.emptyList()).stream()
-              .forEach((Repository repository) -> remoteRepositories
-                  .add(toRemoteRepository(repository, session)));
-        }
-      });
+      getActiveProfiles(settings).forEach((Profile profile) -> Optional
+          .ofNullable(profile.getRepositories()).orElse(Collections.emptyList()).stream()
+          .forEach((Repository repository) -> remoteRepositories
+              .add(toRemoteRepository(repository, session))));
 
       if (remoteRepositories.isEmpty() && !settings.isOffline()) {
         remoteRepositories.addAll(getDefaultRepositories(session));
@@ -212,6 +208,22 @@ public class MavenBooter {
     }
 
     return remoteRepositories;
+  }
+
+  /**
+   * Selects the profiles of settings.xml the way Maven itself does: a profile is active when it is
+   * listed under {@code <activeProfiles>}, or when its own {@code <activation>} marks it
+   * {@code activeByDefault}. Ignoring the latter silently dropped the repositories of profiles
+   * that every Maven build on the same machine was using.
+   */
+  static List<Profile> getActiveProfiles(Settings settings) {
+    List<String> activeProfileIds = settings.getActiveProfiles();
+
+    return Optional.ofNullable(settings.getProfiles()).orElse(Collections.emptyList()).stream()
+        .filter((Profile profile) -> StringUtils.isNotBlank(profile.getId()))
+        .filter((Profile profile) -> activeProfileIds.contains(profile.getId())
+            || (profile.getActivation() != null && profile.getActivation().isActiveByDefault()))
+        .collect(Collectors.toList());
   }
 
   private static RemoteRepository toRemoteRepository(Repository repository,
