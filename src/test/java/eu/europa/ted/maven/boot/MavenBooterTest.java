@@ -6,6 +6,9 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.maven.settings.Activation;
+import org.apache.maven.settings.Profile;
+import org.apache.maven.settings.Settings;
 import org.eclipse.aether.artifact.Artifact;
 import org.eclipse.aether.artifact.DefaultArtifact;
 import org.eclipse.aether.resolution.ArtifactResolutionException;
@@ -37,5 +40,36 @@ class MavenBooterTest extends MavenTestSetup {
         "jar", "1.1.3");
     File artifactFile = MavenBooter.resolveArtifact(artifact);
     Assertions.assertTrue(Files.exists(artifactFile.toPath()));
+  }
+
+  @Test
+  void testGetActiveProfiles() {
+    Settings settings = new Settings();
+    settings.addProfile(newProfile("listed", null));
+    settings.addProfile(newProfile("listed-and-by-default", true));
+    settings.addProfile(newProfile("by-default", true));
+    settings.addProfile(newProfile("not-by-default", false));
+    settings.addProfile(newProfile("no-activation", null));
+    settings.addActiveProfile("listed");
+    settings.addActiveProfile("listed-and-by-default");
+
+    List<String> activeProfileIds = MavenBooter.getActiveProfiles(settings).stream()
+        .map(Profile::getId).collect(Collectors.toList());
+
+    Assertions.assertEquals(Arrays.asList("listed", "listed-and-by-default", "by-default"),
+        activeProfileIds);
+  }
+
+  private static Profile newProfile(String id, Boolean activeByDefault) {
+    Profile profile = new Profile();
+    profile.setId(id);
+
+    if (activeByDefault != null) {
+      Activation activation = new Activation();
+      activation.setActiveByDefault(activeByDefault);
+      profile.setActivation(activation);
+    }
+
+    return profile;
   }
 }
