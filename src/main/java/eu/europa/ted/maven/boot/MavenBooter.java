@@ -211,10 +211,9 @@ public class MavenBooter {
   }
 
   /**
-   * Selects the profiles of settings.xml the way Maven itself does: a profile is active when it is
-   * listed under {@code <activeProfiles>}, or when its own {@code <activation>} marks it
-   * {@code activeByDefault}. Ignoring the latter silently dropped the repositories of profiles
-   * that every Maven build on the same machine was using.
+   * Selects settings.xml profiles that are explicitly listed under {@code <activeProfiles>} or
+   * marked {@code activeByDefault} in their own {@code <activation>}. Other Maven activation
+   * mechanisms (JDK, operating system, property, file) are not evaluated.
    */
   static List<Profile> getActiveProfiles(Settings settings) {
     List<String> activeProfileIds = settings.getActiveProfiles();
