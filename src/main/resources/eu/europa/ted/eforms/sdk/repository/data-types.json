@@ -4,9 +4,9 @@
       "type": "amount",
       "maskingValue": "-1",
       "attribute": {
-        "name": "currencyID",
-        "codeList": "currency"
-      }
+        "name": "currencyID"
+      },
+      "unitsCodelistId": "currency"
     },
     {
       "type": "code",
@@ -23,9 +23,9 @@
       "type": "duration",
       "maskingValue": "-1",
       "attribute": {
-        "name": "unitCode",
-        "codeList": "duration-unit"
-      }
+        "name": "unitCode"
+      },
+      "unitsCodelistId": "duration-unit"
     },
     {
       "type": "email",
@@ -64,9 +64,9 @@
       "type": "measure",
       "maskingValue": "-1",
       "attribute": {
-        "name": "unitCode",
-        "codeList": "measurement-unit"
-      }
+        "name": "unitCode"
+      },
+      "unitsCodelistId": "measurement-unit"
     },
     {
       "type": "number",
@@ -84,8 +84,7 @@
       "type": "text-multilingual",
       "maskingValue": "unpublished",
       "attribute": {
-        "name": "languageID",
-        "codeList": "eu-official-language"
+        "name": "languageID"
       }
     },
     {

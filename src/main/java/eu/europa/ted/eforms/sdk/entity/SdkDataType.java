@@ -20,15 +20,15 @@ import com.fasterxml.jackson.databind.JsonNode;
  * Represents an eForms SDK data type.
  *
  * Each field in the SDK has a type (e.g., "text", "date", "amount"). This entity captures
- * type-level metadata such as the privacy masking value, and the attribute that the fields of the
- * type carry (e.g., the currency of an amount). Currently hardcoded; will be loaded from
- * data-types.json when it is added to the SDK.
+ * type-level metadata such as the privacy masking value, the attribute that the fields of the type
+ * carry (e.g., the currency of an amount), and the code list of the units of the types whose values
+ * have one. Currently hardcoded; will be loaded from data-types.json when it is added to the SDK.
  */
 public class SdkDataType {
   private final String id;
   private final String privacyMask;
   private final String attributeName;
-  private final String attributeCodelistId;
+  private final String unitsCodelistId;
 
   @SuppressWarnings("unused")
   private SdkDataType() {
@@ -39,7 +39,7 @@ public class SdkDataType {
     this.id = id;
     this.privacyMask = privacyMask;
     this.attributeName = null;
-    this.attributeCodelistId = null;
+    this.unitsCodelistId = null;
   }
 
   /**
@@ -53,8 +53,8 @@ public class SdkDataType {
     this.attributeName = attribute != null && attribute.hasNonNull("name")
         ? attribute.get("name").asText(null)
         : null;
-    this.attributeCodelistId = attribute != null && attribute.hasNonNull("codeList")
-        ? attribute.get("codeList").asText(null)
+    this.unitsCodelistId = dataType.hasNonNull("unitsCodelistId")
+        ? dataType.get("unitsCodelistId").asText(null)
         : null;
   }
 
@@ -75,12 +75,11 @@ public class SdkDataType {
   }
 
   /**
-   * Returns the identifier of the code list of the values of the attribute (e.g., "currency" for an
-   * amount), or null if the attribute takes its values from no code list, or if there is no
-   * attribute.
+   * Returns the identifier of the code list of the units of this data type (e.g., "currency" for an
+   * amount), or null if its values have no unit.
    */
-  public String getAttributeCodelistId() {
-    return this.attributeCodelistId;
+  public String getUnitsCodelistId() {
+    return this.unitsCodelistId;
   }
 
   @Override

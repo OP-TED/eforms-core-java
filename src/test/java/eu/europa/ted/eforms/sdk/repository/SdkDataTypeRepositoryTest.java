@@ -41,7 +41,7 @@ class SdkDataTypeRepositoryTest {
         new SdkDataTypeRepository("2.0.0", Path.of("fields", "fwd", "data-types.json"));
 
     assertEquals(SdkDataTypeV2.class, repository.get("amount").getClass());
-    assertEquals("currency", repository.get("amount").getAttributeCodelistId());
+    assertEquals("currency", repository.get("amount").getUnitsCodelistId());
   }
 
   @Test
@@ -50,28 +50,30 @@ class SdkDataTypeRepositoryTest {
   }
 
   @Test
-  void testAmountHasCurrencyAttribute() throws InstantiationException {
+  void testAmountHasCurrencyAttributeAndUnits() throws InstantiationException {
     SdkDataType amount = new SdkDataTypeRepository("2.0.0").get("amount");
 
     assertEquals("-1", amount.getPrivacyMask());
     assertEquals("currencyID", amount.getAttributeName());
-    assertEquals("currency", amount.getAttributeCodelistId());
+    assertEquals("currency", amount.getUnitsCodelistId());
   }
 
   @Test
   void testDurationAndMeasureHaveTheirOwnUnits() throws InstantiationException {
     SdkDataTypeRepository repository = new SdkDataTypeRepository("2.0.0");
 
-    assertEquals("duration-unit", repository.get("duration").getAttributeCodelistId());
-    assertEquals("measurement-unit", repository.get("measure").getAttributeCodelistId());
+    assertEquals("duration-unit", repository.get("duration").getUnitsCodelistId());
+    assertEquals("measurement-unit", repository.get("measure").getUnitsCodelistId());
   }
 
   @Test
-  void testAttributeWithoutCodelist() throws InstantiationException {
-    SdkDataType code = new SdkDataTypeRepository("2.0.0").get("code");
+  void testAttributeWithoutUnits() throws InstantiationException {
+    SdkDataTypeRepository repository = new SdkDataTypeRepository("2.0.0");
 
-    assertEquals("listName", code.getAttributeName());
-    assertNull(code.getAttributeCodelistId());
+    assertEquals("listName", repository.get("code").getAttributeName());
+    assertNull(repository.get("code").getUnitsCodelistId());
+    assertEquals("languageID", repository.get("text-multilingual").getAttributeName());
+    assertNull(repository.get("text-multilingual").getUnitsCodelistId());
   }
 
   @Test

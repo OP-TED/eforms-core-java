@@ -54,7 +54,7 @@ public class SdkDataTypeRepository extends HashMap<String, SdkDataType> {
   public SdkDataTypeRepository(final String sdkVersion, final Path jsonPath)
       throws InstantiationException {
     // TEDEFO-5231: read the data types from jsonPath instead of the resource of this library. The
-    // SDK file cannot be used until it has the code lists of the attributes (TEDEFO-5238) and the
+    // SDK file cannot be used until it has the code lists of the units (TEDEFO-5238) and the
     // masking value of duration (TEDEMD-1117).
     this.populateMap(sdkVersion, readResource());
   }
