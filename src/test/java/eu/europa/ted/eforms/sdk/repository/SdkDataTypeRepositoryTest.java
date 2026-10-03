@@ -41,39 +41,59 @@ class SdkDataTypeRepositoryTest {
         new SdkDataTypeRepository("2.0.0", Path.of("fields", "fwd", "data-types.json"));
 
     assertEquals(SdkDataTypeV2.class, repository.get("amount").getClass());
-    assertEquals("currency", repository.get("amount").getUnitsCodelistId());
+    assertEquals("currency", repository.get("amount").getAttributeType());
   }
 
   @Test
   void testAllDataTypesAreLoaded() throws InstantiationException {
-    assertEquals(19, new SdkDataTypeRepository("2.0.0").size());
+    assertEquals(23, new SdkDataTypeRepository("2.0.0").size());
   }
 
   @Test
-  void testAmountHasCurrencyAttributeAndUnits() throws InstantiationException {
+  void testAmountHasCurrencyAttribute() throws InstantiationException {
     SdkDataType amount = new SdkDataTypeRepository("2.0.0").get("amount");
 
     assertEquals("-1", amount.getPrivacyMask());
     assertEquals("currencyID", amount.getAttributeName());
-    assertEquals("currency", amount.getUnitsCodelistId());
+    assertEquals("currency", amount.getAttributeType());
   }
 
   @Test
   void testDurationAndMeasureHaveTheirOwnUnits() throws InstantiationException {
     SdkDataTypeRepository repository = new SdkDataTypeRepository("2.0.0");
 
-    assertEquals("duration-unit", repository.get("duration").getUnitsCodelistId());
-    assertEquals("measurement-unit", repository.get("measure").getUnitsCodelistId());
+    assertEquals("duration-unit", repository.get("duration").getAttributeType());
+    assertEquals("measurement-unit", repository.get("measure").getAttributeType());
   }
 
   @Test
-  void testAttributeWithoutUnits() throws InstantiationException {
+  void testCodelistOfTheUnitsOfDuration() throws InstantiationException {
+    SdkDataTypeRepository repository = new SdkDataTypeRepository("2.0.0");
+
+    assertEquals("timeperiod",
+        repository.get(repository.get("duration").getAttributeType()).getListName());
+  }
+
+  @Test
+  void testTypesWithRootCodelist() throws InstantiationException {
+    SdkDataTypeRepository repository = new SdkDataTypeRepository("2.0.0");
+
+    assertEquals("currency", repository.get("currency").getListName());
+    assertEquals("timeperiod", repository.get("duration-unit").getListName());
+    assertEquals("language", repository.get("language").getListName());
+    assertEquals("measurement-unit", repository.get("measurement-unit").getListName());
+    assertNull(repository.get("currency").getAttributeName());
+  }
+
+  @Test
+  void testAttributeOfTypeText() throws InstantiationException {
     SdkDataTypeRepository repository = new SdkDataTypeRepository("2.0.0");
 
     assertEquals("listName", repository.get("code").getAttributeName());
-    assertNull(repository.get("code").getUnitsCodelistId());
-    assertEquals("languageID", repository.get("text-multilingual").getAttributeName());
-    assertNull(repository.get("text-multilingual").getUnitsCodelistId());
+    assertEquals("text", repository.get("code").getAttributeType());
+    assertNull(repository.get("code").getListName());
+    assertEquals("schemeName", repository.get("id").getAttributeName());
+    assertEquals("text", repository.get("id").getAttributeType());
   }
 
   @Test
@@ -82,5 +102,7 @@ class SdkDataTypeRepositoryTest {
 
     assertEquals("1970-01-01Z", date.getPrivacyMask());
     assertNull(date.getAttributeName());
+    assertNull(date.getAttributeType());
+    assertNull(date.getListName());
   }
 }

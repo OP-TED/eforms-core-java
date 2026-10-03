@@ -21,14 +21,16 @@ import com.fasterxml.jackson.databind.JsonNode;
  *
  * Each field in the SDK has a type (e.g., "text", "date", "amount"). This entity captures
  * type-level metadata such as the privacy masking value, the attribute that the fields of the type
- * carry (e.g., the currency of an amount), and the code list of the units of the types whose values
- * have one. Currently hardcoded; will be loaded from data-types.json when it is added to the SDK.
+ * carry (e.g., the currency of an amount) with its data type, and the code list of the data types
+ * whose values come from one. Currently hardcoded; will be loaded from data-types.json when it is
+ * added to the SDK.
  */
 public class SdkDataType {
   private final String id;
   private final String privacyMask;
   private final String attributeName;
-  private final String unitsCodelistId;
+  private final String attributeType;
+  private final String listName;
 
   @SuppressWarnings("unused")
   private SdkDataType() {
@@ -39,7 +41,8 @@ public class SdkDataType {
     this.id = id;
     this.privacyMask = privacyMask;
     this.attributeName = null;
-    this.unitsCodelistId = null;
+    this.attributeType = null;
+    this.listName = null;
   }
 
   /**
@@ -53,9 +56,11 @@ public class SdkDataType {
     this.attributeName = attribute != null && attribute.hasNonNull("name")
         ? attribute.get("name").asText(null)
         : null;
-    this.unitsCodelistId = dataType.hasNonNull("unitsCodelistId")
-        ? dataType.get("unitsCodelistId").asText(null)
+    this.attributeType = attribute != null && attribute.hasNonNull("type")
+        ? attribute.get("type").asText(null)
         : null;
+    this.listName =
+        dataType.hasNonNull("listName") ? dataType.get("listName").asText(null) : null;
   }
 
   public String getId() {
@@ -75,11 +80,19 @@ public class SdkDataType {
   }
 
   /**
-   * Returns the identifier of the code list of the units of this data type (e.g., "currency" for an
-   * amount), or null if its values have no unit.
+   * Returns the data type of the attribute that the fields of this data type carry (e.g., "currency"
+   * for an amount), or null if they carry none.
    */
-  public String getUnitsCodelistId() {
-    return this.unitsCodelistId;
+  public String getAttributeType() {
+    return this.attributeType;
+  }
+
+  /**
+   * Returns the name of the root code list that the values of this data type come from (e.g.,
+   * "timeperiod" for a duration unit), or null if they come from none.
+   */
+  public String getListName() {
+    return this.listName;
   }
 
   @Override

@@ -4,16 +4,22 @@
       "type": "amount",
       "maskingValue": "-1",
       "attribute": {
-        "name": "currencyID"
-      },
-      "unitsCodelistId": "currency"
+        "name": "currencyID",
+        "type": "currency"
+      }
     },
     {
       "type": "code",
       "maskingValue": "unpublished",
       "attribute": {
-        "name": "listName"
+        "name": "listName",
+        "type": "text"
       }
+    },
+    {
+      "type": "currency",
+      "maskingValue": "unpublished",
+      "listName": "currency"
     },
     {
       "type": "date",
@@ -23,9 +29,14 @@
       "type": "duration",
       "maskingValue": "-1",
       "attribute": {
-        "name": "unitCode"
-      },
-      "unitsCodelistId": "duration-unit"
+        "name": "unitCode",
+        "type": "duration-unit"
+      }
+    },
+    {
+      "type": "duration-unit",
+      "maskingValue": "unpublished",
+      "listName": "timeperiod"
     },
     {
       "type": "email",
@@ -35,14 +46,16 @@
       "type": "id",
       "maskingValue": "unpublished",
       "attribute": {
-        "name": "schemeName"
+        "name": "schemeName",
+        "type": "text"
       }
     },
     {
       "type": "id-ref",
       "maskingValue": "unpublished",
       "attribute": {
-        "name": "schemeName"
+        "name": "schemeName",
+        "type": "text"
       }
     },
     {
@@ -57,16 +70,27 @@
       "type": "internal-code",
       "maskingValue": "unpublished",
       "attribute": {
-        "name": "listName"
+        "name": "listName",
+        "type": "text"
       }
+    },
+    {
+      "type": "language",
+      "maskingValue": "unpublished",
+      "listName": "language"
     },
     {
       "type": "measure",
       "maskingValue": "-1",
       "attribute": {
-        "name": "unitCode"
-      },
-      "unitsCodelistId": "measurement-unit"
+        "name": "unitCode",
+        "type": "measurement-unit"
+      }
+    },
+    {
+      "type": "measurement-unit",
+      "maskingValue": "unpublished",
+      "listName": "measurement-unit"
     },
     {
       "type": "number",
@@ -84,7 +108,8 @@
       "type": "text-multilingual",
       "maskingValue": "unpublished",
       "attribute": {
-        "name": "languageID"
+        "name": "languageID",
+        "type": "language"
       }
     },
     {
