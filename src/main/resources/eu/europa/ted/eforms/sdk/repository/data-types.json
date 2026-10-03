@@ -1,0 +1,108 @@
+{
+  "dataTypes": [
+    {
+      "type": "amount",
+      "maskingValue": "-1",
+      "attribute": {
+        "name": "currencyID",
+        "codeList": "currency"
+      }
+    },
+    {
+      "type": "code",
+      "maskingValue": "unpublished",
+      "attribute": {
+        "name": "listName"
+      }
+    },
+    {
+      "type": "date",
+      "maskingValue": "1970-01-01Z"
+    },
+    {
+      "type": "duration",
+      "maskingValue": "-1",
+      "attribute": {
+        "name": "unitCode",
+        "codeList": "duration-unit"
+      }
+    },
+    {
+      "type": "email",
+      "maskingValue": "unpublished"
+    },
+    {
+      "type": "id",
+      "maskingValue": "unpublished",
+      "attribute": {
+        "name": "schemeName"
+      }
+    },
+    {
+      "type": "id-ref",
+      "maskingValue": "unpublished",
+      "attribute": {
+        "name": "schemeName"
+      }
+    },
+    {
+      "type": "indicator",
+      "maskingValue": "0"
+    },
+    {
+      "type": "integer",
+      "maskingValue": "-1"
+    },
+    {
+      "type": "internal-code",
+      "maskingValue": "unpublished",
+      "attribute": {
+        "name": "listName"
+      }
+    },
+    {
+      "type": "measure",
+      "maskingValue": "-1",
+      "attribute": {
+        "name": "unitCode",
+        "codeList": "measurement-unit"
+      }
+    },
+    {
+      "type": "number",
+      "maskingValue": "-1"
+    },
+    {
+      "type": "phone",
+      "maskingValue": "unpublished"
+    },
+    {
+      "type": "text",
+      "maskingValue": "unpublished"
+    },
+    {
+      "type": "text-multilingual",
+      "maskingValue": "unpublished",
+      "attribute": {
+        "name": "languageID",
+        "codeList": "eu-official-language"
+      }
+    },
+    {
+      "type": "time",
+      "maskingValue": "00:00:00Z"
+    },
+    {
+      "type": "url",
+      "maskingValue": "unpublished"
+    },
+    {
+      "type": "zoned-date",
+      "maskingValue": "1970-01-01Z"
+    },
+    {
+      "type": "zoned-time",
+      "maskingValue": "00:00:00Z"
+    }
+  ]
+}

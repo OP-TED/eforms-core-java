@@ -14,17 +14,21 @@
 package eu.europa.ted.eforms.sdk.entity;
 
 import java.util.Objects;
+import com.fasterxml.jackson.databind.JsonNode;
 
 /**
  * Represents an eForms SDK data type.
  *
  * Each field in the SDK has a type (e.g., "text", "date", "amount"). This entity captures
- * type-level metadata such as the privacy masking value. Currently hardcoded; will be loaded from
+ * type-level metadata such as the privacy masking value, and the attribute that the fields of the
+ * type carry (e.g., the currency of an amount). Currently hardcoded; will be loaded from
  * data-types.json when it is added to the SDK.
  */
 public class SdkDataType {
   private final String id;
   private final String privacyMask;
+  private final String attributeName;
+  private final String attributeCodelistId;
 
   @SuppressWarnings("unused")
   private SdkDataType() {
@@ -34,6 +38,24 @@ public class SdkDataType {
   public SdkDataType(final String id, final String privacyMask) {
     this.id = id;
     this.privacyMask = privacyMask;
+    this.attributeName = null;
+    this.attributeCodelistId = null;
+  }
+
+  /**
+   * Creates a data type from its entry in data-types.json.
+   */
+  protected SdkDataType(final JsonNode dataType) {
+    this.id = dataType.get("type").asText(null);
+    this.privacyMask =
+        dataType.hasNonNull("maskingValue") ? dataType.get("maskingValue").asText(null) : null;
+    final JsonNode attribute = dataType.get("attribute");
+    this.attributeName = attribute != null && attribute.hasNonNull("name")
+        ? attribute.get("name").asText(null)
+        : null;
+    this.attributeCodelistId = attribute != null && attribute.hasNonNull("codeList")
+        ? attribute.get("codeList").asText(null)
+        : null;
   }
 
   public String getId() {
@@ -42,6 +64,23 @@ public class SdkDataType {
 
   public String getPrivacyMask() {
     return this.privacyMask;
+  }
+
+  /**
+   * Returns the name of the attribute that the fields of this data type carry (e.g., "currencyID"
+   * for an amount), or null if they carry none.
+   */
+  public String getAttributeName() {
+    return this.attributeName;
+  }
+
+  /**
+   * Returns the identifier of the code list of the values of the attribute (e.g., "currency" for an
+   * amount), or null if the attribute takes its values from no code list, or if there is no
+   * attribute.
+   */
+  public String getAttributeCodelistId() {
+    return this.attributeCodelistId;
   }
 
   @Override

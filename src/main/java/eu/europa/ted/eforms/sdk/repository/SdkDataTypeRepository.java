@@ -13,22 +13,60 @@
  */
 package eu.europa.ted.eforms.sdk.repository;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.UncheckedIOException;
+import java.nio.file.Path;
 import java.util.HashMap;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import eu.europa.ted.eforms.sdk.SdkConstants;
 import eu.europa.ted.eforms.sdk.entity.SdkDataType;
+import eu.europa.ted.eforms.sdk.entity.SdkEntityFactory;
 
 /**
  * Repository of SDK data types.
  *
- * Currently uses hardcoded type definitions. When data-types.json is added to the SDK, this class
- * will be updated to load type metadata from JSON.
+ * Currently uses hardcoded type definitions, in the data-types.json resource of this library: SDK 1
+ * has no data-types.json, and SDK 2 will load them from fields/fwd/data-types.json (TEDEFO-5231).
  */
 public class SdkDataTypeRepository extends HashMap<String, SdkDataType> {
   private static final long serialVersionUID = 1L;
 
+  public SdkDataTypeRepository() {
+    super();
+  }
+
+  /**
+   * Creates the repository of the data types of the given SDK version, with their privacy masks and
+   * the attributes that their fields carry. They are read from the data-types.json resource of
+   * this library, which has the format of fields/fwd/data-types.json in SDK 2. SDK 1 has no such
+   * file, so this is where its data types come from.
+   */
+  public SdkDataTypeRepository(final String sdkVersion) throws InstantiationException {
+    this.populateMap(sdkVersion, readResource());
+  }
+
+  /**
+   * Creates the repository of the data types of the given SDK version from the data-types.json file
+   * of the SDK: fields/fwd/data-types.json in SDK 2.
+   */
+  public SdkDataTypeRepository(final String sdkVersion, final Path jsonPath)
+      throws InstantiationException {
+    // TEDEFO-5231: read the data types from jsonPath instead of the resource of this library. The
+    // SDK file cannot be used until it has the code lists of the attributes (TEDEFO-5238) and the
+    // masking value of duration (TEDEMD-1117).
+    this.populateMap(sdkVersion, readResource());
+  }
+
   /**
    * Creates a repository with the default set of SDK data types and their privacy masks. This is a
    * temporary approach until data-types.json is available in the SDK.
+   *
+   * @deprecated Use {@link #SdkDataTypeRepository(String)}, which creates the data types of the
+   *             given SDK version, with the attributes that their fields carry.
    */
+  @Deprecated
   public static SdkDataTypeRepository createDefault() {
     SdkDataTypeRepository repository = new SdkDataTypeRepository();
 
@@ -57,5 +95,22 @@ public class SdkDataTypeRepository extends HashMap<String, SdkDataType> {
 
   private void addType(String id, String privacyMask) {
     this.put(id, new SdkDataType(id, privacyMask));
+  }
+
+  private void populateMap(final String sdkVersion, final JsonNode json)
+      throws InstantiationException {
+    for (final JsonNode dataType : json.get(SdkConstants.DATA_TYPES_JSON_DATA_TYPES_KEY)) {
+      final SdkDataType sdkDataType = SdkEntityFactory.getSdkDataType(sdkVersion, dataType);
+      this.put(sdkDataType.getId(), sdkDataType);
+    }
+  }
+
+  private static JsonNode readResource() {
+    try (InputStream input =
+        SdkDataTypeRepository.class.getResourceAsStream(SdkConstants.DATA_TYPES_JSON_FILE_NAME)) {
+      return new ObjectMapper().readTree(input);
+    } catch (IOException e) {
+      throw new UncheckedIOException(e);
+    }
   }
 }
