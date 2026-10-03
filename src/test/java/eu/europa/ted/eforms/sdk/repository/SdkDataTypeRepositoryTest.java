@@ -15,7 +15,6 @@ package eu.europa.ted.eforms.sdk.repository;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
-import java.nio.file.Path;
 import org.junit.jupiter.api.Test;
 import eu.europa.ted.eforms.sdk.entity.SdkDataType;
 import eu.europa.ted.eforms.sdk.entity.v1.SdkDataTypeV1;
@@ -32,16 +31,6 @@ class SdkDataTypeRepositoryTest {
   void testSdk2DataTypes() throws InstantiationException {
     assertEquals(SdkDataTypeV2.class,
         new SdkDataTypeRepository("eforms-sdk-2.0").get("amount").getClass());
-  }
-
-  @Test
-  void testSdk2DataTypesFromThePathOfTheSdkFile() throws InstantiationException {
-    // The path is not read until TEDEFO-5231, so any path will do.
-    SdkDataTypeRepository repository =
-        new SdkDataTypeRepository("2.0.0", Path.of("fields", "fwd", "data-types.json"));
-
-    assertEquals(SdkDataTypeV2.class, repository.get("amount").getClass());
-    assertEquals("currency", repository.get("amount").getAttributeType());
   }
 
   @Test

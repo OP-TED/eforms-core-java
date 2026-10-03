@@ -16,7 +16,6 @@ package eu.europa.ted.eforms.sdk.repository;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UncheckedIOException;
-import java.nio.file.Path;
 import java.util.HashMap;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -27,8 +26,7 @@ import eu.europa.ted.eforms.sdk.entity.SdkEntityFactory;
 /**
  * Repository of SDK data types.
  *
- * Currently uses hardcoded type definitions, in the data-types.json resource of this library: SDK 1
- * has no data-types.json, and SDK 2 will load them from fields/fwd/data-types.json (TEDEFO-5231).
+ * Currently uses hardcoded type definitions, in the data-types.json resource of this library.
  */
 public class SdkDataTypeRepository extends HashMap<String, SdkDataType> {
   private static final long serialVersionUID = 1L;
@@ -44,18 +42,6 @@ public class SdkDataTypeRepository extends HashMap<String, SdkDataType> {
    * file, so this is where its data types come from.
    */
   public SdkDataTypeRepository(final String sdkVersion) throws InstantiationException {
-    this.populateMap(sdkVersion, readResource());
-  }
-
-  /**
-   * Creates the repository of the data types of the given SDK version from the data-types.json file
-   * of the SDK: fields/fwd/data-types.json in SDK 2.
-   */
-  public SdkDataTypeRepository(final String sdkVersion, final Path jsonPath)
-      throws InstantiationException {
-    // TEDEFO-5231: read the data types from jsonPath instead of the resource of this library. The
-    // SDK file cannot be used until it has the code lists of the units (TEDEFO-5238) and the
-    // masking value of duration (TEDEMD-1117).
     this.populateMap(sdkVersion, readResource());
   }
 
