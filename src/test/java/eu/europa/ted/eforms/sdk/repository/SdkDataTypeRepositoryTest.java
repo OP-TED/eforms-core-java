@@ -15,32 +15,20 @@ package eu.europa.ted.eforms.sdk.repository;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import java.util.Set;
 import org.junit.jupiter.api.Test;
 import eu.europa.ted.eforms.sdk.entity.SdkDataType;
-import eu.europa.ted.eforms.sdk.entity.v1.SdkDataTypeV1;
-import eu.europa.ted.eforms.sdk.entity.v2.SdkDataTypeV2;
 
 class SdkDataTypeRepositoryTest {
 
   @Test
-  void testSdk1DataTypes() throws InstantiationException {
-    assertEquals(SdkDataTypeV1.class, new SdkDataTypeRepository("1.10.0").get("amount").getClass());
+  void testAllDataTypesAreLoaded() {
+    assertEquals(23, new SdkDataTypeRepository().size());
   }
 
   @Test
-  void testSdk2DataTypes() throws InstantiationException {
-    assertEquals(SdkDataTypeV2.class,
-        new SdkDataTypeRepository("eforms-sdk-2.0").get("amount").getClass());
-  }
-
-  @Test
-  void testAllDataTypesAreLoaded() throws InstantiationException {
-    assertEquals(23, new SdkDataTypeRepository("2.0.0").size());
-  }
-
-  @Test
-  void testAmountHasCurrencyAttribute() throws InstantiationException {
-    SdkDataType amount = new SdkDataTypeRepository("2.0.0").get("amount");
+  void testAmountHasCurrencyAttribute() {
+    SdkDataType amount = new SdkDataTypeRepository().get("amount");
 
     assertEquals("-1", amount.getPrivacyMask());
     assertEquals("currencyID", amount.getAttributeName());
@@ -48,24 +36,24 @@ class SdkDataTypeRepositoryTest {
   }
 
   @Test
-  void testDurationAndMeasureHaveTheirOwnUnits() throws InstantiationException {
-    SdkDataTypeRepository repository = new SdkDataTypeRepository("2.0.0");
+  void testDurationAndMeasureHaveTheirOwnUnits() {
+    SdkDataTypeRepository repository = new SdkDataTypeRepository();
 
     assertEquals("duration-unit", repository.get("duration").getAttributeType());
     assertEquals("measurement-unit", repository.get("measure").getAttributeType());
   }
 
   @Test
-  void testCodelistOfTheUnitsOfDuration() throws InstantiationException {
-    SdkDataTypeRepository repository = new SdkDataTypeRepository("2.0.0");
+  void testCodelistOfTheUnitsOfDuration() {
+    SdkDataTypeRepository repository = new SdkDataTypeRepository();
 
     assertEquals("timeperiod",
         repository.get(repository.get("duration").getAttributeType()).getListName());
   }
 
   @Test
-  void testTypesWithRootCodelist() throws InstantiationException {
-    SdkDataTypeRepository repository = new SdkDataTypeRepository("2.0.0");
+  void testTypesWithRootCodelist() {
+    SdkDataTypeRepository repository = new SdkDataTypeRepository();
 
     assertEquals("currency", repository.get("currency").getListName());
     assertEquals("timeperiod", repository.get("duration-unit").getListName());
@@ -75,8 +63,8 @@ class SdkDataTypeRepositoryTest {
   }
 
   @Test
-  void testAttributeOfTypeText() throws InstantiationException {
-    SdkDataTypeRepository repository = new SdkDataTypeRepository("2.0.0");
+  void testAttributeOfTypeText() {
+    SdkDataTypeRepository repository = new SdkDataTypeRepository();
 
     assertEquals("listName", repository.get("code").getAttributeName());
     assertEquals("text", repository.get("code").getAttributeType());
@@ -86,12 +74,29 @@ class SdkDataTypeRepositoryTest {
   }
 
   @Test
-  void testTypeWithoutAttribute() throws InstantiationException {
-    SdkDataType date = new SdkDataTypeRepository("2.0.0").get("date");
+  void testTypeWithoutAttribute() {
+    SdkDataType date = new SdkDataTypeRepository().get("date");
 
     assertEquals("1970-01-01Z", date.getPrivacyMask());
     assertNull(date.getAttributeName());
     assertNull(date.getAttributeType());
     assertNull(date.getListName());
+  }
+
+  @Test
+  @SuppressWarnings("deprecation")
+  void testCreateDefault_HasTheOriginalTypesWithTheirMasksOnly() {
+    final SdkDataTypeRepository defaults = SdkDataTypeRepository.createDefault();
+    final SdkDataTypeRepository dataTypes = new SdkDataTypeRepository();
+
+    assertEquals(Set.of("text", "text-multilingual", "code", "internal-code", "id", "id-ref", "phone",
+        "email", "url", "date", "zoned-date", "time", "zoned-time", "indicator", "integer", "number",
+        "amount", "measure", "duration"), defaults.keySet());
+    for (final SdkDataType dataType : defaults.values()) {
+      assertEquals(dataTypes.get(dataType.getId()).getPrivacyMask(), dataType.getPrivacyMask());
+      assertNull(dataType.getAttributeName());
+      assertNull(dataType.getAttributeType());
+      assertNull(dataType.getListName());
+    }
   }
 }

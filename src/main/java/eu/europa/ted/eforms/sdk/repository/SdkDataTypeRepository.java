@@ -17,11 +17,11 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.UncheckedIOException;
 import java.util.HashMap;
+import java.util.Map;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import eu.europa.ted.eforms.sdk.SdkConstants;
 import eu.europa.ted.eforms.sdk.entity.SdkDataType;
-import eu.europa.ted.eforms.sdk.entity.SdkEntityFactory;
 
 /**
  * Repository of SDK data types.
@@ -31,30 +31,33 @@ import eu.europa.ted.eforms.sdk.entity.SdkEntityFactory;
 public class SdkDataTypeRepository extends HashMap<String, SdkDataType> {
   private static final long serialVersionUID = 1L;
 
+  /**
+   * Creates the repository of the data types, with their privacy masks, the attributes that their
+   * fields carry, and the code lists of their values. They are read from the data-types.json
+   * resource of this library, which has the format of fields/fwd/data-types.json in SDK 2. The
+   * data types are the same for every SDK version.
+   */
   public SdkDataTypeRepository() {
-    super();
+    for (final JsonNode dataType : readResource().get(SdkConstants.DATA_TYPES_JSON_DATA_TYPES_KEY)) {
+      final SdkDataType sdkDataType = new SdkDataType(dataType);
+      this.put(sdkDataType.getId(), sdkDataType);
+    }
   }
 
-  /**
-   * Creates the repository of the data types of the given SDK version, with their privacy masks and
-   * the attributes that their fields carry. They are read from the data-types.json resource of
-   * this library, which has the format of fields/fwd/data-types.json in SDK 2. SDK 1 has no such
-   * file, so this is where its data types come from.
-   */
-  public SdkDataTypeRepository(final String sdkVersion) throws InstantiationException {
-    this.populateMap(sdkVersion, readResource());
+  private SdkDataTypeRepository(final Map<String, SdkDataType> dataTypes) {
+    super(dataTypes);
   }
 
   /**
    * Creates a repository with the default set of SDK data types and their privacy masks. This is a
    * temporary approach until data-types.json is available in the SDK.
    *
-   * @deprecated Use {@link #SdkDataTypeRepository(String)}, which creates the data types of the
-   *             given SDK version, with the attributes that their fields carry.
+   * @deprecated Use {@link #SdkDataTypeRepository()}, which also gives the attributes that the
+   *             fields of each data type carry.
    */
   @Deprecated
   public static SdkDataTypeRepository createDefault() {
-    SdkDataTypeRepository repository = new SdkDataTypeRepository();
+    SdkDataTypeRepository repository = new SdkDataTypeRepository(Map.of());
 
     repository.addType("text", "unpublished");
     repository.addType("text-multilingual", "unpublished");
@@ -81,14 +84,6 @@ public class SdkDataTypeRepository extends HashMap<String, SdkDataType> {
 
   private void addType(String id, String privacyMask) {
     this.put(id, new SdkDataType(id, privacyMask));
-  }
-
-  private void populateMap(final String sdkVersion, final JsonNode json)
-      throws InstantiationException {
-    for (final JsonNode dataType : json.get(SdkConstants.DATA_TYPES_JSON_DATA_TYPES_KEY)) {
-      final SdkDataType sdkDataType = SdkEntityFactory.getSdkDataType(sdkVersion, dataType);
-      this.put(sdkDataType.getId(), sdkDataType);
-    }
   }
 
   private static JsonNode readResource() {
