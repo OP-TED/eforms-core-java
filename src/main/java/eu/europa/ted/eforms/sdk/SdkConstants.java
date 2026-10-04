@@ -17,6 +17,7 @@ public class SdkConstants {
   public static final String NODES_JSON_FILE_NAME = "nodes.json";
   public static final String FIELDS_JSON_FILE_NAME = "fields.json";
   public static final String DATA_TYPES_JSON_FILE_NAME = "data-types.json";
+  public static final String DATA_TYPES_JSON_DATA_TYPES_KEY = "dataTypes";
   public static final String BUSINESS_TERMS_JSON_FILE_NAME = "business-terms.json";
   public static final String BUSINESS_ENTITIES_PROPERTIES_JSON_FILE_NAME = "business-entities-properties.json";
   public static final String BUSINESS_ENTITIES_HIERARCHIES_JSON_FILE_NAME = "business-entities-hierarchies.json";

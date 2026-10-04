@@ -1,0 +1,132 @@
+{
+  "dataTypes": [
+    {
+      "type": "amount",
+      "maskingValue": "-1",
+      "attribute": {
+        "name": "currencyID",
+        "type": "currency"
+      }
+    },
+    {
+      "type": "code",
+      "maskingValue": "unpublished",
+      "attribute": {
+        "name": "listName",
+        "type": "text"
+      }
+    },
+    {
+      "type": "currency",
+      "maskingValue": "unpublished",
+      "listName": "currency"
+    },
+    {
+      "type": "date",
+      "maskingValue": "1970-01-01Z"
+    },
+    {
+      "type": "duration",
+      "maskingValue": "-1",
+      "attribute": {
+        "name": "unitCode",
+        "type": "duration-unit"
+      }
+    },
+    {
+      "type": "duration-unit",
+      "maskingValue": "unpublished",
+      "listName": "timeperiod"
+    },
+    {
+      "type": "email",
+      "maskingValue": "unpublished"
+    },
+    {
+      "type": "id",
+      "maskingValue": "unpublished",
+      "attribute": {
+        "name": "schemeName",
+        "type": "text"
+      }
+    },
+    {
+      "type": "id-ref",
+      "maskingValue": "unpublished",
+      "attribute": {
+        "name": "schemeName",
+        "type": "text"
+      }
+    },
+    {
+      "type": "indicator",
+      "maskingValue": "0"
+    },
+    {
+      "type": "integer",
+      "maskingValue": "-1"
+    },
+    {
+      "type": "internal-code",
+      "maskingValue": "unpublished",
+      "attribute": {
+        "name": "listName",
+        "type": "text"
+      }
+    },
+    {
+      "type": "language",
+      "maskingValue": "unpublished",
+      "listName": "language"
+    },
+    {
+      "type": "measure",
+      "maskingValue": "-1",
+      "attribute": {
+        "name": "unitCode",
+        "type": "measurement-unit"
+      }
+    },
+    {
+      "type": "measurement-unit",
+      "maskingValue": "unpublished",
+      "listName": "measurement-unit"
+    },
+    {
+      "type": "number",
+      "maskingValue": "-1"
+    },
+    {
+      "type": "phone",
+      "maskingValue": "unpublished"
+    },
+    {
+      "type": "text",
+      "maskingValue": "unpublished"
+    },
+    {
+      "type": "text-multilingual",
+      "maskingValue": "unpublished",
+      "attribute": {
+        "name": "languageID",
+        "type": "language"
+      }
+    },
+    {
+      "type": "time",
+      "maskingValue": "00:00:00Z"
+    },
+    {
+      "type": "url",
+      "maskingValue": "unpublished"
+    },
+    {
+      "type": "zoned-date",
+      "maskingValue": "1970-01-01Z"
+    },
+    {
+      "type": "zoned-time",
+      "maskingValue": "00:00:00Z"
+    }
+  ]
+}
