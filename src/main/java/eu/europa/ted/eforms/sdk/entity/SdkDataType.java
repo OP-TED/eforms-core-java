@@ -48,7 +48,7 @@ public class SdkDataType {
   /**
    * Creates a data type from its entry in data-types.json.
    */
-  protected SdkDataType(final JsonNode dataType) {
+  public SdkDataType(final JsonNode dataType) {
     this.id = dataType.get("type").asText(null);
     this.privacyMask =
         dataType.hasNonNull("maskingValue") ? dataType.get("maskingValue").asText(null) : null;
