@@ -18,6 +18,8 @@ public abstract class SdkField implements Comparable<SdkField> {
   private final boolean repeatable;
   private final String privacyCode;
   private final PrivacySettings privacySettings;
+  private final String withholdingCondition;
+  private final String undisclosedFieldSelector;
   private final List<String> attributes;
   private final String attributeOf;
   private final String attributeName;
@@ -119,6 +121,8 @@ public abstract class SdkField implements Comparable<SdkField> {
     this.repeatable = repeatable;
     this.privacyCode = null;
     this.privacySettings = null;
+    this.withholdingCondition = null;
+    this.undisclosedFieldSelector = null;
     this.attributes = Collections.emptyList();
     this.attributeOf = null;
     this.attributeName = null;
@@ -132,9 +136,10 @@ public abstract class SdkField implements Comparable<SdkField> {
     this.type = fieldNode.get("type").asText(null);
     this.codelistId = extractCodelistId(fieldNode);
     this.repeatable = extractRepeatable(fieldNode);
-    final JsonNode privacyNode = fieldNode.get("privacy");
-    this.privacyCode = privacyNode != null ? privacyNode.get("code").asText(null) : null;
-    this.privacySettings = extractPrivacy(privacyNode);
+    this.privacyCode = extractPrivacyCode(fieldNode);
+    this.privacySettings = extractPrivacySettings(fieldNode);
+    this.withholdingCondition = extractWithholdingCondition(fieldNode);
+    this.undisclosedFieldSelector = extractUndisclosedFieldSelector(fieldNode);
     this.attributes = extractAttributes(fieldNode);
     this.attributeOf = fieldNode.has("attributeOf") ? fieldNode.get("attributeOf").asText(null) : null;
     this.attributeName = fieldNode.has("attributeName") ? fieldNode.get("attributeName").asText(null) : null;
@@ -180,6 +185,62 @@ public abstract class SdkField implements Comparable<SdkField> {
     return valueNode.asBoolean(false);
   }
 
+  /**
+   * Returns the privacy code of the field, from the privacy block of fields/fields.json. SDK 2
+   * gives it as the groupId of the disclosureControl block instead (TEDEFO-5229).
+   *
+   * <p>
+   * Called while this field is being constructed, so an override must read the given node only,
+   * and no state of its own.
+   * </p>
+   */
+  protected String extractPrivacyCode(final JsonNode fieldNode) {
+    final JsonNode privacyNode = fieldNode.get("privacy");
+    return privacyNode != null ? privacyNode.get("code").asText(null) : null;
+  }
+
+  /**
+   * Returns the fields that hold the disclosure data of this field, from the privacy block of
+   * fields/fields.json. SDK 2 no longer gives them per field: they are the same for every field,
+   * and are linked to each field in TEDEFO-5230.
+   *
+   * <p>
+   * Called while this field is being constructed, so an override must read the given node only,
+   * and no state of its own.
+   * </p>
+   */
+  protected PrivacySettings extractPrivacySettings(final JsonNode fieldNode) {
+    return extractPrivacy(fieldNode.get("privacy"));
+  }
+
+  /**
+   * Returns the EFX condition under which this field is withheld, for the fields that are withheld
+   * only for some of their instances, or null for every other field. Only SDK 2 gives it, in the
+   * disclosureControl block (TEDEFO-5229). It is not translated.
+   *
+   * <p>
+   * Called while this field is being constructed, so an override must read the given node only,
+   * and no state of its own.
+   * </p>
+   */
+  protected String extractWithholdingCondition(final JsonNode fieldNode) {
+    return null;
+  }
+
+  /**
+   * Returns the EFX selector locating this field when it is withheld, for the fields that are
+   * withheld only for some of their instances, or null for every other field. Only SDK 2 gives it,
+   * in the disclosureControl block (TEDEFO-5229). It is not translated.
+   *
+   * <p>
+   * Called while this field is being constructed, so an override must read the given node only,
+   * and no state of its own.
+   * </p>
+   */
+  protected String extractUndisclosedFieldSelector(final JsonNode fieldNode) {
+    return null;
+  }
+
   protected PrivacySettings extractPrivacy(final JsonNode privacyNode) {
     if (privacyNode == null) {
       return null;
@@ -212,6 +273,15 @@ public abstract class SdkField implements Comparable<SdkField> {
   }
 
   public String getType() {
+    return this.type;
+  }
+
+  /**
+   * Returns the type as the SDK declares it, without any version-specific mapping. Lets a version
+   * that must not inherit such a mapping bypass it (see SdkFieldV1's measure/duration mapping,
+   * which applies to SDK 1 only).
+   */
+  protected final String getDeclaredType() {
     return this.type;
   }
 
@@ -273,6 +343,24 @@ public abstract class SdkField implements Comparable<SdkField> {
 
   public PrivacySettings getPrivacySettings() {
     return this.privacySettings;
+  }
+
+  /**
+   * @return the EFX condition ({@code {fieldId} ${conditionEfx}}) under which this field is
+   *         withheld, as the SDK gives it and untranslated, or null when this field is not withheld
+   *         or is withheld for all of its instances. Only SDK 2 gives it (TEDEFO-5229).
+   */
+  public String getWithholdingCondition() {
+    return this.withholdingCondition;
+  }
+
+  /**
+   * @return the EFX selector ({@code {ND-Root} ${fieldId[conditionEfx]}}) locating this field when
+   *         it is withheld, as the SDK gives it and untranslated, or null when this field is not
+   *         withheld or is withheld for all of its instances. Only SDK 2 gives it (TEDEFO-5229).
+   */
+  public String getUndisclosedFieldSelector() {
+    return this.undisclosedFieldSelector;
   }
 
   public SdkNode getParentNode() {
