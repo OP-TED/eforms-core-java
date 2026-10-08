@@ -36,4 +36,10 @@ public class SdkEntityFactory extends SdkComponentFactory {
     return SdkEntityFactory.INSTANCE.getComponentImpl(sdkVersion, SdkComponentType.NOTICE_TYPE,
         SdkNoticeSubtype.class, json);
   }
+
+  public static SdkDataType getSdkDataType(final String sdkVersion, final JsonNode json)
+      throws InstantiationException {
+    return SdkEntityFactory.INSTANCE.getComponentImpl(sdkVersion, SdkComponentType.DATA_TYPE,
+        SdkDataType.class, json);
+  }
 }
