@@ -99,6 +99,33 @@ class SdkNodeRepositoryTest {
         ofSdk2.get(NODE_OF_THE_FWD_FILE).getAncestry());
   }
 
+  /** The special purpose map of the nodes is read in full, and looked up by key (TEDEFO-5230). */
+  @Test
+  void testTheSpecialPurposeNodesAreLoaded() throws InstantiationException {
+    SdkNodeRepository ofSdk2 = SdkNodeRepository.forSdk(SDK_2, SDK_ROOT);
+
+    assertEquals(2, ofSdk2.getSpecialPurpose().size());
+    assertEquals("ND-Root", ofSdk2.getSpecialPurposeNodeId("root"));
+    assertEquals("ND-Organizations", ofSdk2.getSpecialPurposeNodeId("organizations"));
+    assertNotNull(ofSdk2.get(ofSdk2.getSpecialPurposeNodeId("root")),
+        "the key must give an identifier that the nodes can be looked up by");
+  }
+
+  /** An unknown key gives no result, and is not an error. */
+  @Test
+  void testAnUnknownSpecialPurposeKeyGivesNothing() throws InstantiationException {
+    assertNull(SdkNodeRepository.forSdk(SDK_2, SDK_ROOT).getSpecialPurposeNodeId("thereIsNoSuchKey"));
+  }
+
+  /** SDK 1 has no such map, so the lookup gives no result. */
+  @Test
+  void testSdk1HasNoSpecialPurposeNodes() throws InstantiationException {
+    SdkNodeRepository ofSdk1 = SdkNodeRepository.forSdk(SDK_1, SDK_ROOT);
+
+    assertTrue(ofSdk1.getSpecialPurpose().isEmpty());
+    assertNull(ofSdk1.getSpecialPurposeNodeId("root"));
+  }
+
   /** Each SDK version gets its own node implementation, as before. */
   @Test
   void testEachSdkVersionGetsItsOwnNodes() throws InstantiationException {

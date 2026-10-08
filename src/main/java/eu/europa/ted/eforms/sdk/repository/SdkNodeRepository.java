@@ -2,7 +2,9 @@ package eu.europa.ted.eforms.sdk.repository;
 
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import eu.europa.ted.eforms.sdk.SdkConstants;
@@ -29,6 +31,18 @@ public class SdkNodeRepository extends MapFromJson<SdkNode> {
    * The major version of the only SDK that publishes no nodes of its own.
    */
   private static final String SDK_MAJOR_WITHOUT_OWN_NODES = "1";
+
+  /**
+   * The nodes that have a special role, by their key (TEDEFO-5230). Empty for the SDK versions
+   * that publish no such map.
+   *
+   * <p>
+   * Deliberately left without an initialiser: it is assigned while the map of nodes is being
+   * populated, which happens during the call to super, and a field initialiser would run after
+   * that call and undo it.
+   * </p>
+   */
+  private Map<String, String> specialPurpose;
 
   /**
    * Creates the repository of the nodes of the given SDK, reading them from the file that this SDK
@@ -83,6 +97,8 @@ public class SdkNodeRepository extends MapFromJson<SdkNode> {
         ? (String) context[0]
         : SdkConstants.FIELDS_JSON_XML_STRUCTURE_KEY;
 
+    this.specialPurpose = SpecialPurpose.read(json);
+
     final ArrayNode nodes = (ArrayNode) json.get(nodesArrayKey);
     List<SdkNode> needsParentWiring = new ArrayList<>();
 
@@ -105,5 +121,22 @@ public class SdkNodeRepository extends MapFromJson<SdkNode> {
     for (SdkNode sdkNode : needsParentWiring) {
       sdkNode.setParent(get(sdkNode.getParentId()));
     }
+  }
+
+  /**
+   * @return the nodes that have a special role, by their key, as the SDK gives them. Empty for the
+   *         SDK versions that publish no such map.
+   */
+  public Map<String, String> getSpecialPurpose() {
+    return specialPurpose == null ? Collections.emptyMap() : specialPurpose;
+  }
+
+  /**
+   * @param key a special purpose key, such as "root"
+   * @return the identifier of the node that has that role, or null if the SDK names none. An
+   *         unknown key is not an error.
+   */
+  public String getSpecialPurposeNodeId(final String key) {
+    return getSpecialPurpose().get(key);
   }
 }

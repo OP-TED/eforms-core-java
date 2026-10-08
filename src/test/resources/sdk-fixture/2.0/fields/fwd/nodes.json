@@ -1,6 +1,7 @@
 {
   "specialPurpose" : {
-    "ND-Fwd-Only" : "metadata"
+    "root" : "ND-Root",
+    "organizations" : "ND-Organizations"
   },
   "nodes" : [ {
     "id" : "ND-Root",

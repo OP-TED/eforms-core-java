@@ -65,6 +65,39 @@ public class SdkConstants {
    */
   public static final String FWD_DIR_NAME = "fwd";
 
+  /**
+   * Key of the map that names the fields or the nodes that have a special role, in
+   * fields/fwd/fields.json and fields/fwd/nodes.json of SDK 2 (TEDEFO-1877, TEDEFO-5210). The keys
+   * of the map itself are plain strings, as the map is data and will grow (TEDEFO-5230).
+   */
+  public static final String SPECIAL_PURPOSE_KEY = "specialPurpose";
+
+  /**
+   * Special purpose key of the field holding the disclosure group of a withheld field, which SDK 1
+   * named per field as privacy.unpublishedFieldId.
+   */
+  public static final String SPECIAL_PURPOSE_DISCLOSURE_GROUP = "disclosureGroup";
+
+  /**
+   * Special purpose key of the field holding the justification code of a withheld field, which
+   * SDK 1 named per field as privacy.reasonCodeFieldId.
+   */
+  public static final String SPECIAL_PURPOSE_DISCLOSURE_JUSTIFICATION_CODE =
+      "disclosureJustificationCode";
+
+  /**
+   * Special purpose key of the field holding the justification description of a withheld field,
+   * which SDK 1 named per field as privacy.reasonDescriptionFieldId.
+   */
+  public static final String SPECIAL_PURPOSE_DISCLOSURE_JUSTIFICATION_DESCRIPTION =
+      "disclosureJustificationDescription";
+
+  /**
+   * Special purpose key of the field holding the disclosure date of a withheld field, which SDK 1
+   * named per field as privacy.publicationDateFieldId.
+   */
+  public static final String SPECIAL_PURPOSE_DISCLOSURE_DATE = "disclosureDate";
+
   private SdkConstants() {}
 
   public enum SdkResource implements PathResource {

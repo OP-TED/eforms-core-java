@@ -16,6 +16,7 @@ package eu.europa.ted.eforms.sdk.repository;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNotSame;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.nio.file.Path;
@@ -71,7 +72,7 @@ class SdkFieldRepositoryTest {
   void testSdk2ReadsTheFieldsFromTheFwdFile() throws InstantiationException {
     SdkFieldRepository fields = ofSdk2();
 
-    assertEquals(6, fields.size());
+    assertEquals(10, fields.size());
     assertNotNull(fields.get(FIELD_OF_THE_FWD_FILE),
         "the fields of SDK 2 must come from fields/fwd/fields.json");
   }
@@ -126,21 +127,88 @@ class SdkFieldRepositoryTest {
   }
 
   /**
-   * SDK 2 no longer names the four disclosure fields per field: TEDEFO-5230 links them instead. For
-   * SDK 1 they are still read.
+   * SDK 1 names the four disclosure fields in the privacy block of every withheld field.
    */
   @Test
-  void testTheDisclosureFieldsAreNoLongerGivenPerFieldForSdk2() throws InstantiationException {
+  void testSdk1NamesTheDisclosureFieldsPerField() throws InstantiationException {
     SdkField.PrivacySettings ofSdk1 = ofSdk1().get("BT-Withheld").getPrivacySettings();
 
-    assertNotNull(ofSdk1, "SDK 1 still names them in the privacy block");
+    assertNotNull(ofSdk1, "SDK 1 names them in the privacy block");
     assertEquals("BT-195(BT-Withheld)-Lot", ofSdk1.getPrivacyCodeFieldId());
     assertEquals("BT-197(BT-Withheld)-Lot", ofSdk1.getJustificationCodeFieldId());
     assertEquals("BT-196(BT-Withheld)-Lot", ofSdk1.getJustificationDescriptionFieldId());
     assertEquals("BT-198(BT-Withheld)-Lot", ofSdk1.getPublicationDateFieldId());
+  }
 
-    assertNull(ofSdk2().get("BT-Withheld").getPrivacySettings(),
-        "SDK 2 does not give them per field");
+  /**
+   * SDK 2 names them once, in the special purpose map, so every field that can be withheld gets
+   * them from there instead (TEDEFO-5230). The EFX Toolkit resolves the privacy properties of
+   * EFX 2 through these, so they must stay available per field.
+   */
+  @Test
+  void testSdk2TakesTheDisclosureFieldsFromTheSpecialPurposeMap() throws InstantiationException {
+    SdkField.PrivacySettings ofSdk2 = ofSdk2().get("BT-Withheld").getPrivacySettings();
+
+    assertNotNull(ofSdk2, "a withheld field must still have its disclosure fields");
+    assertEquals("BT-195-notice", ofSdk2.getPrivacyCodeFieldId());
+    assertEquals("BT-197-notice", ofSdk2.getJustificationCodeFieldId());
+    assertEquals("BT-196-notice", ofSdk2.getJustificationDescriptionFieldId());
+    assertEquals("BT-198-notice", ofSdk2.getPublicationDateFieldId());
+  }
+
+  /** The identifiers are resolved to the fields themselves, as they are for SDK 1. */
+  @Test
+  void testTheDisclosureFieldsAreResolvedToFields() throws InstantiationException {
+    SdkField.PrivacySettings ofSdk2 = ofSdk2().get("BT-Withheld").getPrivacySettings();
+
+    assertEquals("BT-195-notice", ofSdk2.getPrivacyCodeField().getId());
+    assertEquals("BT-197-notice", ofSdk2.getJustificationCodeField().getId());
+    assertEquals("BT-196-notice", ofSdk2.getJustificationDescriptionField().getId());
+    assertEquals("BT-198-notice", ofSdk2.getPublicationDateField().getId());
+  }
+
+  /** Only the fields that can be withheld get them. */
+  @Test
+  void testAFieldThatCannotBeWithheldHasNoDisclosureFields() throws InstantiationException {
+    assertNull(ofSdk2().get("BT-Plain").getPrivacySettings(),
+        "a field that is not withheld has no disclosure fields");
+  }
+
+  /**
+   * Each withheld field gets its own settings, because the identifiers are resolved to fields on
+   * them: sharing one instance between fields would make them interfere.
+   */
+  @Test
+  void testEachWithheldFieldHasItsOwnSettings() throws InstantiationException {
+    SdkFieldRepository ofSdk2 = ofSdk2();
+
+    assertNotSame(ofSdk2.get("BT-Withheld").getPrivacySettings(),
+        ofSdk2.get("BT-WithheldSometimes").getPrivacySettings());
+  }
+
+  /** The special purpose map of the fields is read in full, and looked up by key. */
+  @Test
+  void testTheSpecialPurposeFieldsAreLoaded() throws InstantiationException {
+    SdkFieldRepository ofSdk2 = ofSdk2();
+
+    assertEquals(5, ofSdk2.getSpecialPurpose().size());
+    assertEquals("BT-198-notice", ofSdk2.getSpecialPurposeFieldId("disclosureDate"));
+    assertEquals("OPP-070-notice", ofSdk2.getSpecialPurposeFieldId("noticeSubType"));
+  }
+
+  /** An unknown key gives no result, and is not an error. */
+  @Test
+  void testAnUnknownSpecialPurposeKeyGivesNothing() throws InstantiationException {
+    assertNull(ofSdk2().getSpecialPurposeFieldId("thereIsNoSuchKey"));
+  }
+
+  /** SDK 1 has no such map, so the lookup gives no result. */
+  @Test
+  void testSdk1HasNoSpecialPurposeFields() throws InstantiationException {
+    SdkFieldRepository ofSdk1 = ofSdk1();
+
+    assertTrue(ofSdk1.getSpecialPurpose().isEmpty());
+    assertNull(ofSdk1.getSpecialPurposeFieldId("disclosureDate"));
   }
 
   /** The fields are linked to the nodes loaded from the file of the same SDK version. */
