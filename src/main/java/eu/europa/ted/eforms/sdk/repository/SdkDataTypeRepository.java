@@ -16,27 +16,63 @@ package eu.europa.ted.eforms.sdk.repository;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UncheckedIOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.Map;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import eu.europa.ted.eforms.sdk.SdkConstants;
+import eu.europa.ted.eforms.sdk.SdkVersion;
 import eu.europa.ted.eforms.sdk.entity.SdkDataType;
+import eu.europa.ted.eforms.sdk.entity.SdkEntityFactory;
+import eu.europa.ted.eforms.sdk.resource.SdkResourceLoader;
 
 /**
  * Repository of SDK data types.
  *
- * Currently uses hardcoded type definitions, in the data-types.json resource of this library.
+ * <p>
+ * SDK 1 publishes no data types, so they are read from the data-types.json resource of this
+ * library. SDK 2 publishes them in fields/fwd/data-types.json, which has the same format, so for
+ * SDK 2 they are read from the SDK itself (TEDEFO-5231). This repository decides where the data
+ * types of each SDK version come from, so that its callers do not have to check the SDK version.
+ * </p>
  */
 public class SdkDataTypeRepository extends HashMap<String, SdkDataType> {
   private static final long serialVersionUID = 1L;
 
   /**
-   * Creates the repository of the data types, with their privacy masks, the attributes that their
-   * fields carry, and the code lists of their values. They are read from the data-types.json
-   * resource of this library, which has the format of fields/fwd/data-types.json in SDK 2. The
-   * data types are the same for every SDK version.
+   * The major version of the only SDK that publishes no data types of its own.
    */
+  private static final String SDK_MAJOR_WITHOUT_DATA_TYPES = "1";
+
+  /**
+   * Creates the repository of the data types of the given SDK, with their privacy masks, the
+   * attributes that their fields carry, and the code lists of their values.
+   *
+   * @param sdkVersion the target SDK version, which decides where the data types are read from
+   * @param sdkRootPath path of the root SDK folder, used for the SDK versions that publish their
+   *        data types; may be null for SDK 1, which does not
+   * @throws InstantiationException if a data type cannot be created for this SDK version
+   */
+  public SdkDataTypeRepository(final String sdkVersion, final Path sdkRootPath)
+      throws InstantiationException {
+    // The file of the SDK has the same format as the resource, so the loop is the same for both.
+    for (final JsonNode dataType : readDataTypes(sdkVersion, sdkRootPath)
+        .get(SdkConstants.DATA_TYPES_JSON_DATA_TYPES_KEY)) {
+      final SdkDataType sdkDataType = SdkEntityFactory.getSdkDataType(sdkVersion, dataType);
+      this.put(sdkDataType.getId(), sdkDataType);
+    }
+  }
+
+  /**
+   * Creates the repository of the data types from the data-types.json resource of this library,
+   * whatever the SDK version.
+   *
+   * @deprecated Use {@link #SdkDataTypeRepository(String, Path)}, which reads the data types of
+   *             SDK 2 from the SDK instead of this copy.
+   */
+  @Deprecated
   public SdkDataTypeRepository() {
     for (final JsonNode dataType : readResource().get(SdkConstants.DATA_TYPES_JSON_DATA_TYPES_KEY)) {
       final SdkDataType sdkDataType = new SdkDataType(dataType);
@@ -86,9 +122,29 @@ public class SdkDataTypeRepository extends HashMap<String, SdkDataType> {
     this.put(id, new SdkDataType(id, privacyMask));
   }
 
+  /**
+   * @return the data types of the given SDK version, from the SDK itself when it publishes them,
+   *         and from the resource of this library for the SDK versions that do not
+   */
+  private static JsonNode readDataTypes(final String sdkVersion, final Path sdkRootPath) {
+    if (SDK_MAJOR_WITHOUT_DATA_TYPES.equals(new SdkVersion(sdkVersion).getMajor())) {
+      return readResource();
+    }
+    return readSdkFile(SdkResourceLoader.getResourceAsPath(sdkVersion,
+        SdkConstants.SdkResource.FIELDS_FWD_DATA_TYPES, sdkRootPath));
+  }
+
   private static JsonNode readResource() {
     try (InputStream input =
         SdkDataTypeRepository.class.getResourceAsStream(SdkConstants.DATA_TYPES_JSON_FILE_NAME)) {
+      return new ObjectMapper().readTree(input);
+    } catch (IOException e) {
+      throw new UncheckedIOException(e);
+    }
+  }
+
+  private static JsonNode readSdkFile(final Path dataTypesPath) {
+    try (InputStream input = Files.newInputStream(dataTypesPath)) {
       return new ObjectMapper().readTree(input);
     } catch (IOException e) {
       throw new UncheckedIOException(e);

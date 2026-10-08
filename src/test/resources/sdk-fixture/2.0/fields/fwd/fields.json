@@ -1,0 +1,89 @@
+{
+  "specialPurpose" : {
+    "disclosureDate" : "BT-198-notice",
+    "disclosureGroup" : "BT-195-notice",
+    "disclosureJustificationCode" : "BT-197-notice",
+    "disclosureJustificationDescription" : "BT-196-notice",
+    "noticeSubType" : "OPP-070-notice"
+  },
+  "fields" : [ {
+    "id" : "BT-Plain",
+    "parentNodeId" : "ND-Lot",
+    "xpathAbsolute" : "/*/cac:ProcurementProjectLot/cbc:Plain",
+    "xpathRelative" : "cbc:Plain",
+    "type" : "text",
+    "repeatable" : true,
+    "alias" : "plain"
+  }, {
+    "id" : "BT-NotRepeatable",
+    "parentNodeId" : "ND-Lot",
+    "xpathAbsolute" : "/*/cac:ProcurementProjectLot/cbc:NotRepeatable",
+    "xpathRelative" : "cbc:NotRepeatable",
+    "type" : "text",
+    "repeatable" : false
+  }, {
+    "id" : "BT-Withheld",
+    "parentNodeId" : "ND-Lot",
+    "xpathAbsolute" : "/*/cac:ProcurementProjectLot/cbc:Withheld",
+    "xpathRelative" : "cbc:Withheld",
+    "type" : "text",
+    "repeatable" : false,
+    "disclosureControl" : {
+      "groupId" : "con-esti"
+    }
+  }, {
+    "id" : "BT-WithheldSometimes",
+    "parentNodeId" : "ND-Lot",
+    "xpathAbsolute" : "/*/cac:ProcurementProjectLot/cbc:WithheldSometimes",
+    "xpathRelative" : "cbc:WithheldSometimes",
+    "type" : "text",
+    "repeatable" : false,
+    "disclosureControl" : {
+      "groupId" : "cro-bor-law",
+      "withholdingCondition" : "{BT-WithheldSometimes} ${BT-Plain == 'x'}",
+      "undisclosedFieldSelector" : "{ND-Root} ${BT-WithheldSometimes[BT-Plain == 'x']}"
+    }
+  }, {
+    "id" : "BT-Measure",
+    "parentNodeId" : "ND-Lot",
+    "xpathAbsolute" : "/*/cac:ProcurementProjectLot/cbc:Measure",
+    "xpathRelative" : "cbc:Measure",
+    "type" : "measure",
+    "repeatable" : false
+  }, {
+    "id" : "BT-Fwd-Only",
+    "parentNodeId" : "ND-Lot",
+    "xpathAbsolute" : "/*/cac:ProcurementProjectLot/cbc:FwdOnly",
+    "xpathRelative" : "cbc:FwdOnly",
+    "type" : "text",
+    "repeatable" : false
+  }, {
+    "id" : "BT-195-notice",
+    "parentNodeId" : "ND-Root",
+    "xpathAbsolute" : "/*/efac:FieldsPrivacy/efbc:FieldIdentifierCode",
+    "xpathRelative" : "efac:FieldsPrivacy/efbc:FieldIdentifierCode",
+    "type" : "code",
+    "repeatable" : false
+  }, {
+    "id" : "BT-196-notice",
+    "parentNodeId" : "ND-Root",
+    "xpathAbsolute" : "/*/efac:FieldsPrivacy/efbc:ReasonDescription",
+    "xpathRelative" : "efac:FieldsPrivacy/efbc:ReasonDescription",
+    "type" : "text",
+    "repeatable" : false
+  }, {
+    "id" : "BT-197-notice",
+    "parentNodeId" : "ND-Root",
+    "xpathAbsolute" : "/*/efac:FieldsPrivacy/cbc:ReasonCode",
+    "xpathRelative" : "efac:FieldsPrivacy/cbc:ReasonCode",
+    "type" : "code",
+    "repeatable" : false
+  }, {
+    "id" : "BT-198-notice",
+    "parentNodeId" : "ND-Root",
+    "xpathAbsolute" : "/*/efac:FieldsPrivacy/efbc:PublicationDate",
+    "xpathRelative" : "efac:FieldsPrivacy/efbc:PublicationDate",
+    "type" : "date",
+    "repeatable" : false
+  } ]
+}
