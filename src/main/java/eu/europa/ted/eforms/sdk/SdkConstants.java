@@ -15,6 +15,13 @@ public class SdkConstants {
   public static final String FIELDS_DIR_NAME = "fields";
 
   public static final String NODES_JSON_FILE_NAME = "nodes.json";
+
+  /**
+   * Key for the array of nodes of fields/fwd/nodes.json in SDK 2, where fields/fields.json uses
+   * {@link #FIELDS_JSON_XML_STRUCTURE_KEY} (TEDEFO-5228).
+   */
+  public static final String NODES_JSON_NODES_KEY = "nodes";
+
   public static final String FIELDS_JSON_FILE_NAME = "fields.json";
   public static final String DATA_TYPES_JSON_FILE_NAME = "data-types.json";
   public static final String DATA_TYPES_JSON_DATA_TYPES_KEY = "dataTypes";

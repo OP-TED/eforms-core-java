@@ -1,0 +1,16 @@
+{
+  "sdkVersion" : "eforms-sdk-1.16.0",
+  "xmlStructure" : [ {
+    "id" : "ND-Root",
+    "xpathAbsolute" : "/*",
+    "xpathRelative" : "/*",
+    "repeatable" : false
+  }, {
+    "id" : "ND-Lot",
+    "parentId" : "ND-Root",
+    "xpathAbsolute" : "/*/cac:ProcurementProjectLot",
+    "xpathRelative" : "cac:ProcurementProjectLot",
+    "repeatable" : true
+  } ],
+  "fields" : [ ]
+}

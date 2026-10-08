@@ -1,0 +1,25 @@
+{
+  "specialPurpose" : {
+    "ND-Fwd-Only" : "metadata"
+  },
+  "nodes" : [ {
+    "id" : "ND-Root",
+    "xpathAbsolute" : "/*",
+    "xpathRelative" : "/*",
+    "repeatable" : false,
+    "alias" : "root"
+  }, {
+    "id" : "ND-Lot",
+    "parentId" : "ND-Root",
+    "xpathAbsolute" : "/*/cac:ProcurementProjectLot",
+    "xpathRelative" : "cac:ProcurementProjectLot",
+    "repeatable" : true,
+    "alias" : "lot"
+  }, {
+    "id" : "ND-Fwd-Only",
+    "parentId" : "ND-Lot",
+    "xpathAbsolute" : "/*/cac:ProcurementProjectLot/cac:FwdOnly",
+    "xpathRelative" : "cac:FwdOnly",
+    "repeatable" : false
+  } ]
+}
