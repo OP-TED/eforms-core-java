@@ -60,37 +60,23 @@ public class SdkFieldRepositoryV2 extends SdkFieldRepository {
   }
 
   /**
-   * Gives the four disclosure fields of the special purpose map to every field that can be
-   * withheld and does not name them itself, so that the EFX Toolkit resolves the privacy
-   * properties of EFX 2 through the privacy settings of each field, as it does with
-   * fields/fields.json.
-   *
-   * <p>
-   * A field that already names them keeps what it read: only SDK 2 stopped naming them per field.
-   * The disclosure fields are read from the map only, with no fallback to a privacy block.
-   * </p>
+   * Gives the four disclosure fields of the special purpose map to each field that can be withheld,
+   * that is each field that has a disclosure control, and therefore a privacy code. They are read
+   * from the map only, with no fallback to the privacy blocks of fields/fields.json, so a file
+   * without the map gives no disclosure fields.
    */
   private void linkTheDisclosureFields() {
     if (this.getSpecialPurpose().isEmpty()) {
       return;
     }
-    final SdkField.PrivacySettings ofTheSdk = new SdkField.PrivacySettings(
-        this.getSpecialPurposeFieldId(SdkConstants.SPECIAL_PURPOSE_DISCLOSURE_GROUP),
-        this.getSpecialPurposeFieldId(SdkConstants.SPECIAL_PURPOSE_DISCLOSURE_JUSTIFICATION_CODE),
-        this.getSpecialPurposeFieldId(
-            SdkConstants.SPECIAL_PURPOSE_DISCLOSURE_JUSTIFICATION_DESCRIPTION),
-        this.getSpecialPurposeFieldId(SdkConstants.SPECIAL_PURPOSE_DISCLOSURE_DATE));
     for (final SdkField sdkField : this.values()) {
-      // A field that can be withheld has a privacy code; one that already names the disclosure
-      // fields has its own settings, which must not be replaced.
-      if (sdkField.getPrivacyCode() != null && sdkField.getPrivacySettings() == null) {
-        // Each field gets its own settings: the pass below resolves the identifiers to fields on
-        // them, and they must not be shared between fields.
+      if (sdkField.getPrivacyCode() != null) {
         sdkField.setPrivacySettings(new SdkField.PrivacySettings(
-            ofTheSdk.getPrivacyCodeFieldId(),
-            ofTheSdk.getJustificationCodeFieldId(),
-            ofTheSdk.getJustificationDescriptionFieldId(),
-            ofTheSdk.getPublicationDateFieldId()));
+            this.getSpecialPurposeFieldId(SdkConstants.SPECIAL_PURPOSE_DISCLOSURE_GROUP),
+            this.getSpecialPurposeFieldId(SdkConstants.SPECIAL_PURPOSE_DISCLOSURE_JUSTIFICATION_CODE),
+            this.getSpecialPurposeFieldId(
+                SdkConstants.SPECIAL_PURPOSE_DISCLOSURE_JUSTIFICATION_DESCRIPTION),
+            this.getSpecialPurposeFieldId(SdkConstants.SPECIAL_PURPOSE_DISCLOSURE_DATE)));
       }
     }
   }

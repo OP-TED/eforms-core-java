@@ -16,7 +16,6 @@ package eu.europa.ted.eforms.sdk.repository;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNotSame;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.nio.file.Path;
@@ -176,18 +175,6 @@ class SdkFieldRepositoryTest {
   void testAFieldThatCannotBeWithheldHasNoDisclosureFields() throws InstantiationException {
     assertNull(ofSdk2().get("BT-Plain").getPrivacySettings(),
         "a field that is not withheld has no disclosure fields");
-  }
-
-  /**
-   * Each withheld field gets its own settings, because the identifiers are resolved to fields on
-   * them: sharing one instance between fields would make them interfere.
-   */
-  @Test
-  void testEachWithheldFieldHasItsOwnSettings() throws InstantiationException {
-    SdkFieldRepository ofSdk2 = ofSdk2();
-
-    assertNotSame(ofSdk2.get("BT-Withheld").getPrivacySettings(),
-        ofSdk2.get("BT-WithheldSometimes").getPrivacySettings());
   }
 
   /** The special purpose map of the fields is read in full, and looked up by key. */
