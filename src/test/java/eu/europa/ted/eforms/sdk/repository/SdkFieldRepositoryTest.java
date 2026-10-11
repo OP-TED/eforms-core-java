@@ -48,11 +48,13 @@ class SdkFieldRepositoryTest {
   private static final String FIELD_OF_THE_FWD_FILE = "BT-Fwd-Only";
 
   private static SdkFieldRepository ofSdk1() throws InstantiationException {
-    return SdkFieldRepository.forSdk(SDK_1, SDK_ROOT, SdkNodeRepository.forSdk(SDK_1, SDK_ROOT));
+    return SdkFieldRepository.forSdk(SDK_1, SDK_ROOT,
+        SdkRepositoryFactory.getSdkNodeRepository(SDK_1, SDK_ROOT.resolve(SDK_1)));
   }
 
   private static SdkFieldRepository ofSdk2() throws InstantiationException {
-    return SdkFieldRepository.forSdk(SDK_2, SDK_ROOT, SdkNodeRepository.forSdk(SDK_2, SDK_ROOT));
+    return SdkFieldRepository.forSdk(SDK_2, SDK_ROOT,
+        SdkRepositoryFactory.getSdkNodeRepository(SDK_2, SDK_ROOT.resolve(SDK_2)));
   }
 
   @Test

@@ -37,8 +37,8 @@ class SdkNodeRepositoryTest {
   private static final String SDK_2 = "2.0";
 
   /**
-   * An SDK folder holding both files. The two hold different nodes on purpose, so that a test can
-   * tell which one was read.
+   * The folders of the SDKs, one per version. The two hold different nodes on purpose, so that a
+   * test can tell which one was read.
    */
   private static final Path SDK_ROOT = Path.of("src", "test", "resources", "sdk-fixture");
 
@@ -47,7 +47,7 @@ class SdkNodeRepositoryTest {
 
   @Test
   void testSdk1ReadsTheNodesFromFieldsJson() throws InstantiationException {
-    SdkNodeRepository nodes = SdkNodeRepository.forSdk(SDK_1, SDK_ROOT);
+    SdkNodeRepository nodes = SdkRepositoryFactory.getSdkNodeRepository(SDK_1, SDK_ROOT.resolve(SDK_1));
 
     assertEquals(2, nodes.size());
     assertEquals("/*/cac:ProcurementProjectLot", nodes.get("ND-Lot").getXpathAbsolute());
@@ -61,7 +61,7 @@ class SdkNodeRepositoryTest {
    */
   @Test
   void testSdk2ReadsTheNodesFromTheFwdFile() throws InstantiationException {
-    SdkNodeRepository nodes = SdkNodeRepository.forSdk(SDK_2, SDK_ROOT);
+    SdkNodeRepository nodes = SdkRepositoryFactory.getSdkNodeRepository(SDK_2, SDK_ROOT.resolve(SDK_2));
 
     assertEquals(3, nodes.size());
     assertNotNull(nodes.get(NODE_OF_THE_FWD_FILE),
@@ -73,8 +73,8 @@ class SdkNodeRepositoryTest {
   /** The nodes have the same properties in both files, so the node entities do not change. */
   @Test
   void testTheNodePropertiesAreTheSameInBothFiles() throws InstantiationException {
-    SdkNode ofSdk1 = SdkNodeRepository.forSdk(SDK_1, SDK_ROOT).get("ND-Lot");
-    SdkNode ofSdk2 = SdkNodeRepository.forSdk(SDK_2, SDK_ROOT).get("ND-Lot");
+    SdkNode ofSdk1 = SdkRepositoryFactory.getSdkNodeRepository(SDK_1, SDK_ROOT.resolve(SDK_1)).get("ND-Lot");
+    SdkNode ofSdk2 = SdkRepositoryFactory.getSdkNodeRepository(SDK_2, SDK_ROOT.resolve(SDK_2)).get("ND-Lot");
 
     assertEquals(ofSdk1.getId(), ofSdk2.getId());
     assertEquals(ofSdk1.getParentId(), ofSdk2.getParentId());
@@ -87,8 +87,8 @@ class SdkNodeRepositoryTest {
   /** The parents are wired whichever file the nodes come from, so the ancestry resolves. */
   @Test
   void testTheParentsAreWiredForBothVersions() throws InstantiationException {
-    SdkNodeRepository ofSdk1 = SdkNodeRepository.forSdk(SDK_1, SDK_ROOT);
-    SdkNodeRepository ofSdk2 = SdkNodeRepository.forSdk(SDK_2, SDK_ROOT);
+    SdkNodeRepository ofSdk1 = SdkRepositoryFactory.getSdkNodeRepository(SDK_1, SDK_ROOT.resolve(SDK_1));
+    SdkNodeRepository ofSdk2 = SdkRepositoryFactory.getSdkNodeRepository(SDK_2, SDK_ROOT.resolve(SDK_2));
 
     assertEquals("ND-Root", ofSdk1.get("ND-Lot").getParent().getId());
     assertNull(ofSdk1.get("ND-Root").getParent(), "the root has no parent");
@@ -102,7 +102,7 @@ class SdkNodeRepositoryTest {
   /** The special purpose map of the nodes is read in full, and looked up by key (TEDEFO-5230). */
   @Test
   void testTheSpecialPurposeNodesAreLoaded() throws InstantiationException {
-    SdkNodeRepository ofSdk2 = SdkNodeRepository.forSdk(SDK_2, SDK_ROOT);
+    SdkNodeRepository ofSdk2 = SdkRepositoryFactory.getSdkNodeRepository(SDK_2, SDK_ROOT.resolve(SDK_2));
 
     assertEquals(2, ofSdk2.getSpecialPurpose().size());
     assertEquals("ND-Root", ofSdk2.getSpecialPurposeNodeId("root"));
@@ -114,13 +114,13 @@ class SdkNodeRepositoryTest {
   /** An unknown key gives no result, and is not an error. */
   @Test
   void testAnUnknownSpecialPurposeKeyGivesNothing() throws InstantiationException {
-    assertNull(SdkNodeRepository.forSdk(SDK_2, SDK_ROOT).getSpecialPurposeNodeId("thereIsNoSuchKey"));
+    assertNull(SdkRepositoryFactory.getSdkNodeRepository(SDK_2, SDK_ROOT.resolve(SDK_2)).getSpecialPurposeNodeId("thereIsNoSuchKey"));
   }
 
   /** SDK 1 has no such map, so the lookup gives no result. */
   @Test
   void testSdk1HasNoSpecialPurposeNodes() throws InstantiationException {
-    SdkNodeRepository ofSdk1 = SdkNodeRepository.forSdk(SDK_1, SDK_ROOT);
+    SdkNodeRepository ofSdk1 = SdkRepositoryFactory.getSdkNodeRepository(SDK_1, SDK_ROOT.resolve(SDK_1));
 
     assertTrue(ofSdk1.getSpecialPurpose().isEmpty());
     assertNull(ofSdk1.getSpecialPurposeNodeId("root"));
@@ -129,18 +129,19 @@ class SdkNodeRepositoryTest {
   /** Each SDK version gets its own node implementation, as before. */
   @Test
   void testEachSdkVersionGetsItsOwnNodes() throws InstantiationException {
-    SdkNode ofSdk1 = SdkNodeRepository.forSdk(SDK_1, SDK_ROOT).get("ND-Root");
-    SdkNode ofSdk2 = SdkNodeRepository.forSdk(SDK_2, SDK_ROOT).get("ND-Root");
+    SdkNode ofSdk1 = SdkRepositoryFactory.getSdkNodeRepository(SDK_1, SDK_ROOT.resolve(SDK_1)).get("ND-Root");
+    SdkNode ofSdk2 = SdkRepositoryFactory.getSdkNodeRepository(SDK_2, SDK_ROOT.resolve(SDK_2)).get("ND-Root");
 
     assertTrue(ofSdk1 instanceof SdkNodeV1, "SDK 1 gives " + ofSdk1.getClass());
     assertTrue(ofSdk2 instanceof SdkNodeV2, "SDK 2 gives " + ofSdk2.getClass());
     assertEquals("root", ((SdkNodeV2) ofSdk2).getAlias(), "SDK 2 also reads the alias");
   }
 
-  /** The deprecated constructor still reads the xmlStructure array of the file it is given. */
+  /**
+   * The constructor that takes a fields.json reads the xmlStructure array of the file it is given.
+   */
   @Test
-  @SuppressWarnings("deprecation")
-  void testTheDeprecatedConstructorStillReadsXmlStructure() throws InstantiationException {
+  void testTheConstructorReadsTheXmlStructureOfTheFileItIsGiven() throws InstantiationException {
     SdkNodeRepository nodes = new SdkNodeRepository(SDK_1,
         SDK_ROOT.resolve(Path.of("1.16", "fields", "fields.json")));
 

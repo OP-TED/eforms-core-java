@@ -8,33 +8,23 @@ import java.util.Map;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import eu.europa.ted.eforms.sdk.SdkConstants;
-import eu.europa.ted.eforms.sdk.SdkVersion;
 import eu.europa.ted.eforms.sdk.entity.SdkEntityFactory;
 import eu.europa.ted.eforms.sdk.entity.SdkNode;
-import eu.europa.ted.eforms.sdk.resource.SdkResourceLoader;
 
 /**
- * Repository of the nodes of an SDK.
+ * The nodes of an SDK, by identifier.
  *
  * <p>
- * SDK 1 publishes its nodes in the xmlStructure array of fields/fields.json. SDK 2 publishes them
- * in the nodes array of fields/fwd/nodes.json, in the forward-compatible structure planned for
- * SDK 3 (TEDEFO-5228). The nodes have the same properties in both, so the node entities are the
- * same. This repository decides where the nodes of each SDK version come from, so that its callers
- * do not have to check the SDK version.
+ * Each SDK version keeps its nodes in its own file. The repository of an SDK version, which knows
+ * that file, is given by {@link SdkRepositoryFactory#getSdkNodeRepository(String, Path)}.
  * </p>
  */
 public class SdkNodeRepository extends MapFromJson<SdkNode> {
   private static final long serialVersionUID = 1L;
 
   /**
-   * The major version of the only SDK that publishes no nodes of its own.
-   */
-  private static final String SDK_MAJOR_WITHOUT_OWN_NODES = "1";
-
-  /**
-   * The nodes that have a special role, by their key (TEDEFO-5230). Empty for the SDK versions
-   * that publish no such map.
+   * The nodes that have a special role, by their key (TEDEFO-5230). Null for the SDK versions that
+   * publish no such map.
    *
    * <p>
    * Deliberately left without an initialiser: it is assigned while the map of nodes is being
@@ -45,70 +35,30 @@ public class SdkNodeRepository extends MapFromJson<SdkNode> {
   private Map<String, String> specialPurpose;
 
   /**
-   * Creates the repository of the nodes of the given SDK, reading them from the file that this SDK
-   * version publishes them in.
-   *
-   * @param sdkVersion the target SDK version, which decides which file the nodes are read from
-   * @param sdkRootPath path of the root SDK folder
-   * @return the nodes of that SDK, by identifier
-   * @throws InstantiationException if a node cannot be created for this SDK version
-   */
-  public static SdkNodeRepository forSdk(final String sdkVersion, final Path sdkRootPath)
-      throws InstantiationException {
-    if (SDK_MAJOR_WITHOUT_OWN_NODES.equals(new SdkVersion(sdkVersion).getMajor())) {
-      return new SdkNodeRepository(sdkVersion,
-          SdkResourceLoader.getResourceAsPath(sdkVersion, SdkConstants.SdkResource.FIELDS_JSON,
-              sdkRootPath),
-          SdkConstants.FIELDS_JSON_XML_STRUCTURE_KEY);
-    }
-    return new SdkNodeRepository(sdkVersion,
-        SdkResourceLoader.getResourceAsPath(sdkVersion,
-            SdkConstants.SdkResource.FIELDS_FWD_NODES_JSON, sdkRootPath),
-        SdkConstants.NODES_JSON_NODES_KEY);
-  }
-
-  /**
    * Creates the repository of the nodes from the xmlStructure array of the given fields.json.
-   *
-   * @deprecated Use {@link #forSdk(String, Path)}, which reads the nodes of SDK 2 from
-   *             fields/fwd/nodes.json instead of fields/fields.json.
    */
-  @Deprecated
   public SdkNodeRepository(String sdkVersion, Path jsonPath) throws InstantiationException {
-    this(sdkVersion, jsonPath, SdkConstants.FIELDS_JSON_XML_STRUCTURE_KEY);
-  }
-
-  private SdkNodeRepository(final String sdkVersion, final Path jsonPath,
-      final String nodesArrayKey) throws InstantiationException {
-    // The key travels as context: it must be known while the map is being populated, which
-    // happens during this call to super.
-    super(sdkVersion, jsonPath, nodesArrayKey);
+    super(sdkVersion, jsonPath);
   }
 
   @Override
   protected void populateMap(final JsonNode json) throws InstantiationException {
-    populateMap(json, SdkConstants.FIELDS_JSON_XML_STRUCTURE_KEY);
+    this.addNodes((ArrayNode) json.get(SdkConstants.FIELDS_JSON_XML_STRUCTURE_KEY));
   }
 
-  @Override
-  protected void populateMap(final JsonNode json, final Object... context)
-      throws InstantiationException {
-    final String nodesArrayKey = context.length > 0 && context[0] instanceof String
-        ? (String) context[0]
-        : SdkConstants.FIELDS_JSON_XML_STRUCTURE_KEY;
-
-    this.specialPurpose = SpecialPurpose.read(json);
-
-    final ArrayNode nodes = (ArrayNode) json.get(nodesArrayKey);
-    List<SdkNode> needsParentWiring = new ArrayList<>();
+  /**
+   * Adds the given nodes, each linked to its parent node.
+   */
+  protected void addNodes(final ArrayNode nodes) throws InstantiationException {
+    final List<SdkNode> needsParentWiring = new ArrayList<>();
 
     // First pass: create all nodes, optimistically set parent if already loaded
     for (final JsonNode node : nodes) {
-      final SdkNode sdkNode = SdkEntityFactory.getSdkNode(sdkVersion, node);
-      put(sdkNode.getId(), sdkNode);
+      final SdkNode sdkNode = SdkEntityFactory.getSdkNode(this.sdkVersion, node);
+      this.put(sdkNode.getId(), sdkNode);
 
       if (sdkNode.getParentId() != null) {
-        SdkNode parent = get(sdkNode.getParentId());
+        final SdkNode parent = this.get(sdkNode.getParentId());
         if (parent != null) {
           sdkNode.setParent(parent);
         } else {
@@ -118,9 +68,16 @@ public class SdkNodeRepository extends MapFromJson<SdkNode> {
     }
 
     // Second pass: wire up any nodes whose parent wasn't loaded yet
-    for (SdkNode sdkNode : needsParentWiring) {
-      sdkNode.setParent(get(sdkNode.getParentId()));
+    for (final SdkNode sdkNode : needsParentWiring) {
+      sdkNode.setParent(this.get(sdkNode.getParentId()));
     }
+  }
+
+  /**
+   * Reads the map of the nodes that have a special role, which the given file starts with.
+   */
+  protected void readSpecialPurpose(final JsonNode json) {
+    this.specialPurpose = SpecialPurpose.read(json);
   }
 
   /**
@@ -128,7 +85,7 @@ public class SdkNodeRepository extends MapFromJson<SdkNode> {
    *         SDK versions that publish no such map.
    */
   public Map<String, String> getSpecialPurpose() {
-    return specialPurpose == null ? Collections.emptyMap() : specialPurpose;
+    return this.specialPurpose == null ? Collections.emptyMap() : this.specialPurpose;
   }
 
   /**
@@ -137,6 +94,6 @@ public class SdkNodeRepository extends MapFromJson<SdkNode> {
    *         unknown key is not an error.
    */
   public String getSpecialPurposeNodeId(final String key) {
-    return getSpecialPurpose().get(key);
+    return this.getSpecialPurpose().get(key);
   }
 }
