@@ -20,8 +20,6 @@ import java.nio.file.Path;
 import java.util.Set;
 import org.junit.jupiter.api.Test;
 import eu.europa.ted.eforms.sdk.entity.SdkDataType;
-import eu.europa.ted.eforms.sdk.entity.v1.SdkDataTypeV1;
-import eu.europa.ted.eforms.sdk.entity.v2.SdkDataTypeV2;
 
 class SdkDataTypeRepositoryTest {
 
@@ -31,15 +29,18 @@ class SdkDataTypeRepositoryTest {
   /** SDK 2 publishes its data types in fields/fwd/data-types.json. */
   private static final String SDK_2 = "2.0";
 
-  /** An SDK folder holding only the data types of SDK 2, deliberately different from the resource. */
+  /**
+   * The folders of the SDKs, one per version. Only the one of SDK 2 holds a
+   * fields/fwd/data-types.json, deliberately different from the resource.
+   */
   private static final Path SDK_ROOT = Path.of("src", "test", "resources", "sdk-fixture");
 
   private static SdkDataTypeRepository ofSdk1() throws InstantiationException {
-    return new SdkDataTypeRepository(SDK_1, null);
+    return new SdkDataTypeRepository(SDK_ROOT.resolve(SDK_1));
   }
 
   private static SdkDataTypeRepository ofSdk2() throws InstantiationException {
-    return new SdkDataTypeRepository(SDK_2, SDK_ROOT);
+    return new SdkDataTypeRepository(SDK_ROOT.resolve(SDK_2));
   }
 
   @Test
@@ -143,15 +144,6 @@ class SdkDataTypeRepositoryTest {
     assertNull(date.getListName());
   }
 
-  /** Each SDK version gets its own data type implementation, as the other entities do. */
-  @Test
-  void testEachSdkVersionGetsItsOwnDataTypes() throws InstantiationException {
-    final SdkDataType ofSdk1 = ofSdk1().get("amount");
-    final SdkDataType ofSdk2 = ofSdk2().get("amount");
-
-    assertTrue(ofSdk1 instanceof SdkDataTypeV1, "SDK 1 gives " + ofSdk1.getClass());
-    assertTrue(ofSdk2 instanceof SdkDataTypeV2, "SDK 2 gives " + ofSdk2.getClass());
-  }
 
   @Test
   @SuppressWarnings("deprecation")
@@ -170,10 +162,9 @@ class SdkDataTypeRepositoryTest {
     }
   }
 
-  /** The deprecated constructor still reads the resource, whatever the SDK version. */
+  /** The constructor without arguments reads the resource of this library. */
   @Test
-  @SuppressWarnings("deprecation")
-  void testTheDeprecatedConstructorStillReadsTheResource() {
+  void testTheConstructorWithoutArgumentsReadsTheResource() {
     assertEquals(23, new SdkDataTypeRepository().size());
   }
 }

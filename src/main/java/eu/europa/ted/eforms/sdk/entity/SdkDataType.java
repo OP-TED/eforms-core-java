@@ -22,16 +22,9 @@ import com.fasterxml.jackson.databind.JsonNode;
  * Each field in the SDK has a type (e.g., "text", "date", "amount"). This entity captures
  * type-level metadata such as the privacy masking value, the attribute that the fields of the type
  * carry (e.g., the currency of an amount) with its data type, and the code list of the data types
- * whose values come from one.
- *
- * <p>
- * SDK 1 publishes no data types, so they come from the data-types.json resource of this library;
- * SDK 2 publishes them in fields/fwd/data-types.json (TEDEFO-5231). The
- * version-specific implementations are
- * {@link eu.europa.ted.eforms.sdk.entity.v1.SdkDataTypeV1} and
- * {@link eu.europa.ted.eforms.sdk.entity.v2.SdkDataTypeV2}, selected by
- * {@link SdkEntityFactory#getSdkDataType(String, JsonNode)}.
- * </p>
+ * whose values come from one. SDK 1 publishes no data types, so they come from the data-types.json
+ * resource of this library; SDK 2 publishes them in fields/fwd/data-types.json. Both have the same
+ * format, so a data type does not depend on the SDK version.
  */
 public class SdkDataType {
   private final String id;
