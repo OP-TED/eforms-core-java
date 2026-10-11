@@ -39,8 +39,8 @@ class SdkFieldRepositoryTest {
   private static final String SDK_2 = "2.0";
 
   /**
-   * An SDK folder holding both files. The two hold different fields on purpose, so that a test can
-   * tell which one was read.
+   * The folders of the SDKs, one per version. The two hold different fields on purpose, so that a
+   * test can tell which one was read.
    */
   private static final Path SDK_ROOT = Path.of("src", "test", "resources", "sdk-fixture");
 
@@ -48,13 +48,15 @@ class SdkFieldRepositoryTest {
   private static final String FIELD_OF_THE_FWD_FILE = "BT-Fwd-Only";
 
   private static SdkFieldRepository ofSdk1() throws InstantiationException {
-    return SdkFieldRepository.forSdk(SDK_1, SDK_ROOT,
-        SdkRepositoryFactory.getSdkNodeRepository(SDK_1, SDK_ROOT.resolve(SDK_1)));
+    final Path sdk = SDK_ROOT.resolve(SDK_1);
+    return SdkRepositoryFactory.getSdkFieldRepository(SDK_1, sdk,
+        SdkRepositoryFactory.getSdkNodeRepository(SDK_1, sdk));
   }
 
   private static SdkFieldRepository ofSdk2() throws InstantiationException {
-    return SdkFieldRepository.forSdk(SDK_2, SDK_ROOT,
-        SdkRepositoryFactory.getSdkNodeRepository(SDK_2, SDK_ROOT.resolve(SDK_2)));
+    final Path sdk = SDK_ROOT.resolve(SDK_2);
+    return SdkRepositoryFactory.getSdkFieldRepository(SDK_2, sdk,
+        SdkRepositoryFactory.getSdkNodeRepository(SDK_2, sdk));
   }
 
   @Test
@@ -221,6 +223,23 @@ class SdkFieldRepositoryTest {
   }
 
   /**
+   * The nodes are optional: without them, the fields are read without their parent node, and the
+   * disclosure fields of SDK 2 are still attached and resolved.
+   */
+  @Test
+  void testWithoutTheNodesTheFieldsHaveNoParentNode() throws InstantiationException {
+    final SdkFieldRepository ofSdk1 =
+        SdkRepositoryFactory.getSdkFieldRepository(SDK_1, SDK_ROOT.resolve(SDK_1), null);
+    final SdkFieldRepository ofSdk2 =
+        SdkRepositoryFactory.getSdkFieldRepository(SDK_2, SDK_ROOT.resolve(SDK_2), null);
+
+    assertNull(ofSdk1.get("BT-Plain").getParentNode());
+    assertNull(ofSdk2.get("BT-Plain").getParentNode());
+    assertEquals("BT-198-notice",
+        ofSdk2.get("BT-Withheld").getPrivacySettings().getPublicationDateField().getId());
+  }
+
+  /**
    * SDK 1 maps measure onto duration, because it had no duration type. SDK 2 separates the two, so
    * it must report the type the SDK declares.
    */
@@ -243,14 +262,37 @@ class SdkFieldRepositoryTest {
     assertEquals("plain", ((SdkFieldV2) ofSdk2).getAlias(), "SDK 2 also reads the alias");
   }
 
-  /** The deprecated constructor still reads the file it is given. */
+  /** The constructor that takes a fields.json reads the file it is given. */
   @Test
-  @SuppressWarnings("deprecation")
-  void testTheDeprecatedConstructorStillReadsTheFileItIsGiven() throws InstantiationException {
+  void testTheConstructorReadsTheFileItIsGiven() throws InstantiationException {
     SdkFieldRepository fields = new SdkFieldRepository(SDK_1,
         SDK_ROOT.resolve(Path.of("1.16", "fields", "fields.json")));
 
     assertEquals(4, fields.size());
     assertEquals("con-esti", fields.get("BT-Withheld").getPrivacyCode());
+  }
+
+  /**
+   * The EFX Toolkit still reads the fields of SDK 2 from fields/fields.json, with the constructor
+   * that takes the file. There an SDK 2 field takes repeatable from the object, and its privacy
+   * code and disclosure fields from its privacy block.
+   */
+  @Test
+  void testSdk2FieldsJsonIsReadWithItsPrivacyBlocks() throws InstantiationException {
+    final Path fieldsJson = SDK_ROOT.resolve(Path.of(SDK_2, "fields", "fields.json"));
+    final SdkFieldRepository fields = new SdkFieldRepository(SDK_2, fieldsJson,
+        new SdkNodeRepository(SDK_2, fieldsJson));
+
+    assertTrue(fields.get("BT-Plain") instanceof SdkFieldV2);
+    assertTrue(fields.get("BT-Plain").isRepeatable());
+    assertFalse(fields.get("BT-Withheld").isRepeatable());
+    assertEquals("con-esti", fields.get("BT-Withheld").getPrivacyCode());
+    final SdkField.PrivacySettings privacy = fields.get("BT-Withheld").getPrivacySettings();
+    assertEquals("BT-195-notice", privacy.getPrivacyCodeField().getId());
+    assertEquals("BT-197-notice", privacy.getJustificationCodeField().getId());
+    assertEquals("BT-196-notice", privacy.getJustificationDescriptionField().getId());
+    assertEquals("BT-198-notice", privacy.getPublicationDateField().getId());
+    assertEquals("measure", fields.get("BT-Measure").getType(),
+        "SDK 2 separates duration from measure, whichever file it is read from");
   }
 }

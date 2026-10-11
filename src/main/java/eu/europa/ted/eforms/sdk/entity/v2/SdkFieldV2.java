@@ -113,7 +113,7 @@ public class SdkFieldV2 extends SdkFieldV1 {
    */
   @Override
   public String getType() {
-    return getDeclaredType();
+    return this.getDeclaredType();
   }
 
   private static JsonNode disclosureControlOf(final JsonNode fieldNode) {

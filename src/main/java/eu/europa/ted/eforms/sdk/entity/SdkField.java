@@ -138,10 +138,10 @@ public abstract class SdkField implements Comparable<SdkField> {
     this.type = fieldNode.get("type").asText(null);
     this.codelistId = extractCodelistId(fieldNode);
     this.repeatable = extractRepeatable(fieldNode);
-    this.privacyCode = extractPrivacyCode(fieldNode);
-    this.privacySettings = extractPrivacySettings(fieldNode);
-    this.withholdingCondition = extractWithholdingCondition(fieldNode);
-    this.undisclosedFieldSelector = extractUndisclosedFieldSelector(fieldNode);
+    this.privacyCode = this.extractPrivacyCode(fieldNode);
+    this.privacySettings = this.extractPrivacySettings(fieldNode);
+    this.withholdingCondition = this.extractWithholdingCondition(fieldNode);
+    this.undisclosedFieldSelector = this.extractUndisclosedFieldSelector(fieldNode);
     this.attributes = extractAttributes(fieldNode);
     this.attributeOf = fieldNode.has("attributeOf") ? fieldNode.get("attributeOf").asText(null) : null;
     this.attributeName = fieldNode.has("attributeName") ? fieldNode.get("attributeName").asText(null) : null;
@@ -212,7 +212,7 @@ public abstract class SdkField implements Comparable<SdkField> {
    * </p>
    */
   protected PrivacySettings extractPrivacySettings(final JsonNode fieldNode) {
-    return extractPrivacy(fieldNode.get("privacy"));
+    return this.extractPrivacy(fieldNode.get("privacy"));
   }
 
   /**

@@ -40,4 +40,19 @@ public class SdkRepositoryFactory extends SdkComponentFactory {
     return SdkRepositoryFactory.INSTANCE.getComponentImpl(sdkVersion,
         SdkComponentType.NODE_REPOSITORY, SdkNodeRepository.class, sdkVersion, sdkPath);
   }
+
+  /**
+   * @param sdkVersion the version of the SDK
+   * @param sdkPath the folder of the SDK
+   * @param nodeRepository the nodes of the same SDK, to link each field to its parent node; may be
+   *        null to leave the parent nodes unlinked
+   * @return the fields of that SDK, by identifier
+   * @throws InstantiationException if the fields cannot be read for this SDK version
+   */
+  public static SdkFieldRepository getSdkFieldRepository(final String sdkVersion,
+      final Path sdkPath, final SdkNodeRepository nodeRepository) throws InstantiationException {
+    return SdkRepositoryFactory.INSTANCE.getComponentImpl(sdkVersion,
+        SdkComponentType.FIELD_REPOSITORY, SdkFieldRepository.class, sdkVersion, sdkPath,
+        nodeRepository);
+  }
 }
