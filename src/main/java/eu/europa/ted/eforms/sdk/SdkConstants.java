@@ -66,37 +66,44 @@ public class SdkConstants {
   public static final String FWD_DIR_NAME = "fwd";
 
   /**
-   * Key of the map that names the fields or the nodes that have a special role, in
-   * fields/fwd/fields.json and fields/fwd/nodes.json of SDK 2 (TEDEFO-1877, TEDEFO-5210). The keys
-   * of the map itself are plain strings, as the map is data and will grow (TEDEFO-5230).
+   * Key of the map of stable identifiers, in fields/fwd/fields.json and fields/fwd/nodes.json of
+   * SDK 2 (TEDEFO-1877, TEDEFO-5210). A stable identifier names the field or the node that plays a
+   * particular role, such as "disclosureDate", and stays the same throughout a major version of the
+   * SDK, whereas the identifier of the field or the node may change from one minor version to the
+   * next. The stable identifiers are plain strings, as the map is data and will grow
+   * (TEDEFO-5230).
+   *
+   * <p>
+   * The SDK 2 files call the map "specialPurpose".
+   * </p>
    */
-  public static final String SPECIAL_PURPOSE_KEY = "specialPurpose";
+  public static final String STABLE_IDS_KEY = "specialPurpose";
 
   /**
-   * Special purpose key of the field holding the disclosure group of a withheld field, which SDK 1
+   * Stable identifier of the field holding the disclosure group of a withheld field, which SDK 1
    * named per field as privacy.unpublishedFieldId.
    */
-  public static final String SPECIAL_PURPOSE_DISCLOSURE_GROUP = "disclosureGroup";
+  public static final String STABLE_ID_DISCLOSURE_GROUP = "disclosureGroup";
 
   /**
-   * Special purpose key of the field holding the justification code of a withheld field, which
+   * Stable identifier of the field holding the justification code of a withheld field, which
    * SDK 1 named per field as privacy.reasonCodeFieldId.
    */
-  public static final String SPECIAL_PURPOSE_DISCLOSURE_JUSTIFICATION_CODE =
+  public static final String STABLE_ID_DISCLOSURE_JUSTIFICATION_CODE =
       "disclosureJustificationCode";
 
   /**
-   * Special purpose key of the field holding the justification description of a withheld field,
+   * Stable identifier of the field holding the justification description of a withheld field,
    * which SDK 1 named per field as privacy.reasonDescriptionFieldId.
    */
-  public static final String SPECIAL_PURPOSE_DISCLOSURE_JUSTIFICATION_DESCRIPTION =
+  public static final String STABLE_ID_DISCLOSURE_JUSTIFICATION_DESCRIPTION =
       "disclosureJustificationDescription";
 
   /**
-   * Special purpose key of the field holding the disclosure date of a withheld field, which SDK 1
+   * Stable identifier of the field holding the disclosure date of a withheld field, which SDK 1
    * named per field as privacy.publicationDateFieldId.
    */
-  public static final String SPECIAL_PURPOSE_DISCLOSURE_DATE = "disclosureDate";
+  public static final String STABLE_ID_DISCLOSURE_DATE = "disclosureDate";
 
   private SdkConstants() {}
 

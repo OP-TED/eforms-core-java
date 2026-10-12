@@ -23,8 +23,8 @@ public class SdkNodeRepository extends MapFromJson<SdkNode> {
   private static final long serialVersionUID = 1L;
 
   /**
-   * The nodes that have a special role, by their key (TEDEFO-5230). Null for the SDK versions that
-   * publish no such map.
+   * The identifier of each node that plays a particular role, by its stable identifier
+   * (TEDEFO-5230). Null for the SDK versions that publish no such map.
    *
    * <p>
    * Deliberately left without an initialiser: it is assigned while the map of nodes is being
@@ -32,7 +32,7 @@ public class SdkNodeRepository extends MapFromJson<SdkNode> {
    * that call and undo it.
    * </p>
    */
-  private Map<String, String> specialPurpose;
+  private Map<String, String> stableIds;
 
   /**
    * Creates the repository of the nodes from the xmlStructure array of the given fields.json.
@@ -74,26 +74,26 @@ public class SdkNodeRepository extends MapFromJson<SdkNode> {
   }
 
   /**
-   * Reads the map of the nodes that have a special role, which the given file starts with.
+   * Reads the map of stable identifiers, which the given file starts with.
    */
-  protected void readSpecialPurpose(final JsonNode json) {
-    this.specialPurpose = SpecialPurpose.read(json);
+  protected void readStableIds(final JsonNode json) {
+    this.stableIds = stableIdsOf(json);
   }
 
   /**
-   * @return the nodes that have a special role, by their key, as the SDK gives them. Empty for the
-   *         SDK versions that publish no such map.
+   * @return the identifier of each node that plays a particular role, by its stable identifier, as
+   *         the SDK gives them. Empty for the SDK versions that publish no such map.
    */
-  public Map<String, String> getSpecialPurpose() {
-    return this.specialPurpose == null ? Collections.emptyMap() : this.specialPurpose;
+  public Map<String, String> getStableIds() {
+    return this.stableIds == null ? Collections.emptyMap() : this.stableIds;
   }
 
   /**
-   * @param key a special purpose key, such as "root"
-   * @return the identifier of the node that has that role, or null if the SDK names none. An
-   *         unknown key is not an error.
+   * @param stableId a stable identifier, such as "root"
+   * @return the identifier of the node that plays that role, or null if the SDK names none. An
+   *         unknown stable identifier is not an error.
    */
-  public String getSpecialPurposeNodeId(final String key) {
-    return this.getSpecialPurpose().get(key);
+  public String getNodeIdByStableId(final String stableId) {
+    return this.getStableIds().get(stableId);
   }
 }

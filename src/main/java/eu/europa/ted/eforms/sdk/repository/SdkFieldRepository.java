@@ -24,8 +24,8 @@ public class SdkFieldRepository extends MapFromJson<SdkField> {
   private static final long serialVersionUID = 1L;
 
   /**
-   * The fields that have a special role, by their key (TEDEFO-5230). Null for the SDK versions
-   * that publish no such map.
+   * The identifier of each field that plays a particular role, by its stable identifier
+   * (TEDEFO-5230). Null for the SDK versions that publish no such map.
    *
    * <p>
    * Deliberately left without an initialiser: it is assigned while the map of fields is being
@@ -33,7 +33,7 @@ public class SdkFieldRepository extends MapFromJson<SdkField> {
    * that call and undo it.
    * </p>
    */
-  private Map<String, String> specialPurpose;
+  private Map<String, String> stableIds;
 
   public SdkFieldRepository(String sdkVersion, Path jsonPath) throws InstantiationException {
     super(sdkVersion, jsonPath);
@@ -122,26 +122,26 @@ public class SdkFieldRepository extends MapFromJson<SdkField> {
   }
 
   /**
-   * Reads the map of the fields that have a special role, which the given file starts with.
+   * Reads the map of stable identifiers, which the given file starts with.
    */
-  protected void readSpecialPurpose(final JsonNode json) {
-    this.specialPurpose = SpecialPurpose.read(json);
+  protected void readStableIds(final JsonNode json) {
+    this.stableIds = stableIdsOf(json);
   }
 
   /**
-   * @return the fields that have a special role, by their key, as the SDK gives them. Empty for
-   *         the SDK versions that publish no such map.
+   * @return the identifier of each field that plays a particular role, by its stable identifier, as
+   *         the SDK gives them. Empty for the SDK versions that publish no such map.
    */
-  public Map<String, String> getSpecialPurpose() {
-    return this.specialPurpose == null ? Collections.emptyMap() : this.specialPurpose;
+  public Map<String, String> getStableIds() {
+    return this.stableIds == null ? Collections.emptyMap() : this.stableIds;
   }
 
   /**
-   * @param key a special purpose key, such as "disclosureDate"
-   * @return the identifier of the field that has that role, or null if the SDK names none. An
-   *         unknown key is not an error.
+   * @param stableId a stable identifier, such as "disclosureDate"
+   * @return the identifier of the field that plays that role, or null if the SDK names none. An
+   *         unknown stable identifier is not an error.
    */
-  public String getSpecialPurposeFieldId(final String key) {
-    return this.getSpecialPurpose().get(key);
+  public String getFieldIdByStableId(final String stableId) {
+    return this.getStableIds().get(stableId);
   }
 }

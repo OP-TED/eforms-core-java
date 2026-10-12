@@ -22,8 +22,8 @@ import eu.europa.ted.eforms.sdk.component.SdkComponentType;
 import eu.europa.ted.eforms.sdk.repository.SdkNodeRepository;
 
 /**
- * The nodes of an SDK 2, read from its fields/fwd/nodes.json (TEDEFO-5228), with the map of the
- * nodes that have a special role, which the file starts with (TEDEFO-5230).
+ * The nodes of an SDK 2, read from its fields/fwd/nodes.json (TEDEFO-5228), with the map of stable
+ * identifiers, which the file starts with (TEDEFO-5230).
  */
 @SdkComponent(versions = {"2"}, componentType = SdkComponentType.NODE_REPOSITORY)
 public class SdkNodeRepositoryV2 extends SdkNodeRepository {
@@ -40,7 +40,7 @@ public class SdkNodeRepositoryV2 extends SdkNodeRepository {
 
   @Override
   protected void populateMap(final JsonNode json) throws InstantiationException {
-    this.readSpecialPurpose(json);
+    this.readStableIds(json);
     this.addNodes((ArrayNode) json.get(SdkConstants.NODES_JSON_NODES_KEY));
   }
 }

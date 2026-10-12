@@ -24,11 +24,11 @@ import eu.europa.ted.eforms.sdk.repository.SdkFieldRepository;
 import eu.europa.ted.eforms.sdk.repository.SdkNodeRepository;
 
 /**
- * The fields of an SDK 2, read from its fields/fwd/fields.json (TEDEFO-5229), with the map of the
- * fields that have a special role, which the file starts with (TEDEFO-5230).
+ * The fields of an SDK 2, read from its fields/fwd/fields.json (TEDEFO-5229), with the map of
+ * stable identifiers, which the file starts with (TEDEFO-5230).
  *
  * <p>
- * SDK 2 names the four disclosure fields once, in the special purpose map, instead of naming them
+ * SDK 2 names the four disclosure fields once, by their stable identifiers, instead of naming them
  * in the privacy block of each field that can be withheld. This repository gives them to each such
  * field, so that its privacy settings are the same as with SDK 1.
  * </p>
@@ -52,7 +52,7 @@ public class SdkFieldRepositoryV2 extends SdkFieldRepository {
   @Override
   protected void populateMap(final JsonNode json, final Object... context)
       throws InstantiationException {
-    this.readSpecialPurpose(json);
+    this.readStableIds(json);
     this.addFields((ArrayNode) json.get(SdkConstants.FIELDS_JSON_FIELDS_KEY),
         nodeRepositoryOf(context));
     this.linkTheDisclosureFields();
@@ -60,23 +60,23 @@ public class SdkFieldRepositoryV2 extends SdkFieldRepository {
   }
 
   /**
-   * Gives the four disclosure fields of the special purpose map to each field that can be withheld,
-   * that is each field that has a disclosure control, and therefore a privacy code. They are read
-   * from the map only, with no fallback to the privacy blocks of fields/fields.json, so a file
-   * without the map gives no disclosure fields.
+   * Gives the four disclosure fields, found by their stable identifiers, to each field that can be
+   * withheld, that is each field that has a disclosure control, and therefore a privacy code. They
+   * are read from the map of stable identifiers only, with no fallback to the privacy blocks of
+   * fields/fields.json, so a file without that map gives no disclosure fields.
    */
   private void linkTheDisclosureFields() {
-    if (this.getSpecialPurpose().isEmpty()) {
+    if (this.getStableIds().isEmpty()) {
       return;
     }
     for (final SdkField sdkField : this.values()) {
       if (sdkField.getPrivacyCode() != null) {
         sdkField.setPrivacySettings(new SdkField.PrivacySettings(
-            this.getSpecialPurposeFieldId(SdkConstants.SPECIAL_PURPOSE_DISCLOSURE_GROUP),
-            this.getSpecialPurposeFieldId(SdkConstants.SPECIAL_PURPOSE_DISCLOSURE_JUSTIFICATION_CODE),
-            this.getSpecialPurposeFieldId(
-                SdkConstants.SPECIAL_PURPOSE_DISCLOSURE_JUSTIFICATION_DESCRIPTION),
-            this.getSpecialPurposeFieldId(SdkConstants.SPECIAL_PURPOSE_DISCLOSURE_DATE)));
+            this.getFieldIdByStableId(SdkConstants.STABLE_ID_DISCLOSURE_GROUP),
+            this.getFieldIdByStableId(SdkConstants.STABLE_ID_DISCLOSURE_JUSTIFICATION_CODE),
+            this.getFieldIdByStableId(
+                SdkConstants.STABLE_ID_DISCLOSURE_JUSTIFICATION_DESCRIPTION),
+            this.getFieldIdByStableId(SdkConstants.STABLE_ID_DISCLOSURE_DATE)));
       }
     }
   }

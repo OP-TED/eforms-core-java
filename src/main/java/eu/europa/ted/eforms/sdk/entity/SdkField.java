@@ -18,7 +18,7 @@ public abstract class SdkField implements Comparable<SdkField> {
   private final boolean repeatable;
   private final String privacyCode;
   // Not final: SDK 2 no longer names the disclosure fields per field, so they are filled in after
-  // this field is read, from the special purpose map of the SDK (TEDEFO-5230).
+  // this field is read, from the stable identifiers of the SDK (TEDEFO-5230).
   private PrivacySettings privacySettings;
   private final String withholdingCondition;
   private final String undisclosedFieldSelector;
@@ -349,9 +349,8 @@ public abstract class SdkField implements Comparable<SdkField> {
 
   /**
    * Sets the fields that hold the disclosure data of this field. SDK 1 names them in the privacy
-   * block of each withheld field, so they are read with the field; SDK 2 names them once, in the
-   * special purpose map of fields/fwd/fields.json, so they are filled in afterwards
-   * (TEDEFO-5230).
+   * block of each withheld field, so they are read with the field; SDK 2 names them once, by their
+   * stable identifiers in fields/fwd/fields.json, so they are filled in afterwards (TEDEFO-5230).
    */
   public void setPrivacySettings(final PrivacySettings privacySettings) {
     this.privacySettings = privacySettings;

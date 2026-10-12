@@ -99,31 +99,31 @@ class SdkNodeRepositoryTest {
         ofSdk2.get(NODE_OF_THE_FWD_FILE).getAncestry());
   }
 
-  /** The special purpose map of the nodes is read in full, and looked up by key (TEDEFO-5230). */
+  /** The stable identifiers of the nodes are read in full, and each gives its node. */
   @Test
-  void testTheSpecialPurposeNodesAreLoaded() throws InstantiationException {
+  void testTheStableIdsOfTheNodesAreLoaded() throws InstantiationException {
     SdkNodeRepository ofSdk2 = SdkRepositoryFactory.getSdkNodeRepository(SDK_2, SDK_ROOT.resolve(SDK_2));
 
-    assertEquals(2, ofSdk2.getSpecialPurpose().size());
-    assertEquals("ND-Root", ofSdk2.getSpecialPurposeNodeId("root"));
-    assertEquals("ND-Organizations", ofSdk2.getSpecialPurposeNodeId("organizations"));
-    assertNotNull(ofSdk2.get(ofSdk2.getSpecialPurposeNodeId("root")),
+    assertEquals(2, ofSdk2.getStableIds().size());
+    assertEquals("ND-Root", ofSdk2.getNodeIdByStableId("root"));
+    assertEquals("ND-Organizations", ofSdk2.getNodeIdByStableId("organizations"));
+    assertNotNull(ofSdk2.get(ofSdk2.getNodeIdByStableId("root")),
         "the key must give an identifier that the nodes can be looked up by");
   }
 
   /** An unknown key gives no result, and is not an error. */
   @Test
-  void testAnUnknownSpecialPurposeKeyGivesNothing() throws InstantiationException {
-    assertNull(SdkRepositoryFactory.getSdkNodeRepository(SDK_2, SDK_ROOT.resolve(SDK_2)).getSpecialPurposeNodeId("thereIsNoSuchKey"));
+  void testAnUnknownStableIdGivesNothing() throws InstantiationException {
+    assertNull(SdkRepositoryFactory.getSdkNodeRepository(SDK_2, SDK_ROOT.resolve(SDK_2)).getNodeIdByStableId("thereIsNoSuchKey"));
   }
 
   /** SDK 1 has no such map, so the lookup gives no result. */
   @Test
-  void testSdk1HasNoSpecialPurposeNodes() throws InstantiationException {
+  void testSdk1HasNoStableIds() throws InstantiationException {
     SdkNodeRepository ofSdk1 = SdkRepositoryFactory.getSdkNodeRepository(SDK_1, SDK_ROOT.resolve(SDK_1));
 
-    assertTrue(ofSdk1.getSpecialPurpose().isEmpty());
-    assertNull(ofSdk1.getSpecialPurposeNodeId("root"));
+    assertTrue(ofSdk1.getStableIds().isEmpty());
+    assertNull(ofSdk1.getNodeIdByStableId("root"));
   }
 
   /** Each SDK version gets its own node implementation, as before. */

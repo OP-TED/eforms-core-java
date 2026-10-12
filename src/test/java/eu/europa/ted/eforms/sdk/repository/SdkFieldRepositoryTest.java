@@ -144,12 +144,12 @@ class SdkFieldRepositoryTest {
   }
 
   /**
-   * SDK 2 names them once, in the special purpose map, so every field that can be withheld gets
+   * SDK 2 names them once, by their stable identifiers, so every field that can be withheld gets
    * them from there instead (TEDEFO-5230). The EFX Toolkit resolves the privacy properties of
    * EFX 2 through these, so they must stay available per field.
    */
   @Test
-  void testSdk2TakesTheDisclosureFieldsFromTheSpecialPurposeMap() throws InstantiationException {
+  void testSdk2TakesTheDisclosureFieldsFromTheStableIds() throws InstantiationException {
     SdkField.PrivacySettings ofSdk2 = ofSdk2().get("BT-Withheld").getPrivacySettings();
 
     assertNotNull(ofSdk2, "a withheld field must still have its disclosure fields");
@@ -177,29 +177,29 @@ class SdkFieldRepositoryTest {
         "a field that is not withheld has no disclosure fields");
   }
 
-  /** The special purpose map of the fields is read in full, and looked up by key. */
+  /** The stable identifiers of the fields are read in full, and each gives its field. */
   @Test
-  void testTheSpecialPurposeFieldsAreLoaded() throws InstantiationException {
+  void testTheStableIdsOfTheFieldsAreLoaded() throws InstantiationException {
     SdkFieldRepository ofSdk2 = ofSdk2();
 
-    assertEquals(5, ofSdk2.getSpecialPurpose().size());
-    assertEquals("BT-198-notice", ofSdk2.getSpecialPurposeFieldId("disclosureDate"));
-    assertEquals("OPP-070-notice", ofSdk2.getSpecialPurposeFieldId("noticeSubType"));
+    assertEquals(5, ofSdk2.getStableIds().size());
+    assertEquals("BT-198-notice", ofSdk2.getFieldIdByStableId("disclosureDate"));
+    assertEquals("OPP-070-notice", ofSdk2.getFieldIdByStableId("noticeSubType"));
   }
 
   /** An unknown key gives no result, and is not an error. */
   @Test
-  void testAnUnknownSpecialPurposeKeyGivesNothing() throws InstantiationException {
-    assertNull(ofSdk2().getSpecialPurposeFieldId("thereIsNoSuchKey"));
+  void testAnUnknownStableIdGivesNothing() throws InstantiationException {
+    assertNull(ofSdk2().getFieldIdByStableId("thereIsNoSuchKey"));
   }
 
   /** SDK 1 has no such map, so the lookup gives no result. */
   @Test
-  void testSdk1HasNoSpecialPurposeFields() throws InstantiationException {
+  void testSdk1HasNoStableIds() throws InstantiationException {
     SdkFieldRepository ofSdk1 = ofSdk1();
 
-    assertTrue(ofSdk1.getSpecialPurpose().isEmpty());
-    assertNull(ofSdk1.getSpecialPurposeFieldId("disclosureDate"));
+    assertTrue(ofSdk1.getStableIds().isEmpty());
+    assertNull(ofSdk1.getFieldIdByStableId("disclosureDate"));
   }
 
   /** The fields are linked to the nodes loaded from the file of the same SDK version. */
