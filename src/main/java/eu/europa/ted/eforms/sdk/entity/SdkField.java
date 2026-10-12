@@ -353,8 +353,8 @@ public abstract class SdkField implements Comparable<SdkField> {
    * block of each withheld field, so they are read with the field; SDK 2 names them once, by their
    * stable identifiers in fields/fwd/fields.json, so they are filled in afterwards (TEDEFO-5230).
    */
-  public void setPrivacySettings(final PrivacySettings privacySettings) {
-    this.privacySettings = privacySettings;
+  public void setDisclosureControl(final PrivacySettings disclosureControl) {
+    this.privacySettings = disclosureControl;
   }
 
   /**
