@@ -10,17 +10,17 @@
     "repeatable" : false,
     "alias" : "root"
   }, {
+    "id" : "ND-Fwd-Only",
+    "parentId" : "ND-Lot",
+    "xpathAbsolute" : "/*/cac:ProcurementProjectLot/cac:FwdOnly",
+    "xpathRelative" : "cac:FwdOnly",
+    "repeatable" : false
+  }, {
     "id" : "ND-Lot",
     "parentId" : "ND-Root",
     "xpathAbsolute" : "/*/cac:ProcurementProjectLot",
     "xpathRelative" : "cac:ProcurementProjectLot",
     "repeatable" : true,
     "alias" : "lot"
-  }, {
-    "id" : "ND-Fwd-Only",
-    "parentId" : "ND-Lot",
-    "xpathAbsolute" : "/*/cac:ProcurementProjectLot/cac:FwdOnly",
-    "xpathRelative" : "cac:FwdOnly",
-    "repeatable" : false
   } ]
 }
