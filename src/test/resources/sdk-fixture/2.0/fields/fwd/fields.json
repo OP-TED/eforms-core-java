@@ -41,7 +41,7 @@
     "disclosureControl" : {
       "groupId" : "cro-bor-law",
       "withholdingCondition" : "{BT-WithheldSometimes} ${BT-Plain == 'x'}",
-      "undisclosedFieldSelector" : "{ND-Root} ${BT-WithheldSometimes[BT-Plain == 'x']}"
+      "undisclosedFieldSelector" : "{ND-Root} &{/BT-WithheldSometimes[BT-Plain == 'x']}"
     }
   }, {
     "id" : "BT-Measure",

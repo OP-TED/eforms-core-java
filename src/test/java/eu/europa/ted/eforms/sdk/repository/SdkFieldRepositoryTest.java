@@ -115,7 +115,7 @@ class SdkFieldRepositoryTest {
     assertEquals("cro-bor-law", withheldSometimes.getPrivacyCode());
     assertEquals("{BT-WithheldSometimes} ${BT-Plain == 'x'}",
         withheldSometimes.getWithholdingCondition());
-    assertEquals("{ND-Root} ${BT-WithheldSometimes[BT-Plain == 'x']}",
+    assertEquals("{ND-Root} &{/BT-WithheldSometimes[BT-Plain == 'x']}",
         withheldSometimes.getUndisclosedFieldSelector());
   }
 

@@ -367,8 +367,8 @@ public abstract class SdkField implements Comparable<SdkField> {
   }
 
   /**
-   * @return the EFX selector ({@code {ND-Root} ${fieldId[conditionEfx]}}) locating this field when
-   *         it is withheld, as the SDK gives it and untranslated, or null when this field is not
+   * @return the EFX selector ({@code {ND-Root} &{/fieldId[conditionEfx]}}) locating this field
+   *         when it is withheld, as the SDK gives it and untranslated, or null when this field is not
    *         withheld or is withheld for all of its instances. Only SDK 2 gives it (TEDEFO-5229).
    */
   public String getUndisclosedFieldSelector() {
