@@ -93,9 +93,10 @@ class SdkFieldRepositoryTest {
     assertFalse(ofSdk2.get("BT-NotRepeatable").isRepeatable());
   }
 
-  /** SDK 2 gives the privacy code as the groupId of the disclosureControl block. */
+  /** SDK 2 gives the disclosure group as the groupId of the disclosureControl block. */
   @Test
-  void testThePrivacyCodeComesFromGroupIdForSdk2() throws InstantiationException {
+  void testTheDisclosureGroupIdComesFromTheDisclosureControlForSdk2()
+      throws InstantiationException {
     assertEquals("con-esti", ofSdk1().get("BT-Withheld").getPrivacyCode(),
         "SDK 1 gives it as privacy.code");
     assertEquals("con-esti", ofSdk2().get("BT-Withheld").getPrivacyCode(),

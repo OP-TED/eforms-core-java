@@ -73,13 +73,13 @@ public class SdkFieldV2 extends SdkFieldV1 {
   }
 
   /**
-   * fields/fwd/fields.json gives the privacy code as the groupId of the disclosureControl block,
-   * where fields/fields.json gives it as the code of the privacy block.
+   * fields/fwd/fields.json gives the identifier of the disclosure group as the groupId of the
+   * disclosureControl block, where fields/fields.json gives it as the code of the privacy block.
    */
   @Override
-  protected String extractPrivacyCode(final JsonNode fieldNode) {
+  protected String extractDisclosureGroupId(final JsonNode fieldNode) {
     if (disclosureControlOf(fieldNode) == null) {
-      return super.extractPrivacyCode(fieldNode);
+      return super.extractDisclosureGroupId(fieldNode);
     }
     return textOfDisclosureControl(fieldNode, "groupId");
   }
@@ -90,9 +90,9 @@ public class SdkFieldV2 extends SdkFieldV1 {
    * read from the privacy block of fields/fields.json.
    */
   @Override
-  protected PrivacySettings extractPrivacySettings(final JsonNode fieldNode) {
+  protected PrivacySettings extractDisclosureControl(final JsonNode fieldNode) {
     if (disclosureControlOf(fieldNode) == null) {
-      return super.extractPrivacySettings(fieldNode);
+      return super.extractDisclosureControl(fieldNode);
     }
     return null;
   }

@@ -138,8 +138,8 @@ public abstract class SdkField implements Comparable<SdkField> {
     this.type = fieldNode.get("type").asText(null);
     this.codelistId = extractCodelistId(fieldNode);
     this.repeatable = extractRepeatable(fieldNode);
-    this.privacyCode = this.extractPrivacyCode(fieldNode);
-    this.privacySettings = this.extractPrivacySettings(fieldNode);
+    this.privacyCode = this.extractDisclosureGroupId(fieldNode);
+    this.privacySettings = this.extractDisclosureControl(fieldNode);
     this.withholdingCondition = this.extractWithholdingCondition(fieldNode);
     this.undisclosedFieldSelector = this.extractUndisclosedFieldSelector(fieldNode);
     this.attributes = extractAttributes(fieldNode);
@@ -188,15 +188,16 @@ public abstract class SdkField implements Comparable<SdkField> {
   }
 
   /**
-   * Returns the privacy code of the field, from the privacy block of fields/fields.json. SDK 2
-   * gives it as the groupId of the disclosureControl block instead (TEDEFO-5229).
+   * Returns the identifier of the disclosure group of the field, from the code of the privacy block
+   * of fields/fields.json. SDK 2 gives it as the groupId of the disclosureControl block instead
+   * (TEDEFO-5229).
    *
    * <p>
    * Called while this field is being constructed, so an override must read the given node only,
    * and no state of its own.
    * </p>
    */
-  protected String extractPrivacyCode(final JsonNode fieldNode) {
+  protected String extractDisclosureGroupId(final JsonNode fieldNode) {
     final JsonNode privacyNode = fieldNode.get("privacy");
     return privacyNode != null ? privacyNode.get("code").asText(null) : null;
   }
@@ -211,7 +212,7 @@ public abstract class SdkField implements Comparable<SdkField> {
    * and no state of its own.
    * </p>
    */
-  protected PrivacySettings extractPrivacySettings(final JsonNode fieldNode) {
+  protected PrivacySettings extractDisclosureControl(final JsonNode fieldNode) {
     return this.extractPrivacy(fieldNode.get("privacy"));
   }
 
