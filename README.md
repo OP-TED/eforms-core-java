@@ -12,7 +12,7 @@ This library provides a set of classes that can be used to solve some common "pr
 
 ## Using the eForms Core Library
 
-The eForms Core library requires Java 11 or later.
+The eForms Core library requires Java 21 or later.
 
 It is available as a Maven package on Maven Central and can be used by adding the following to the project's `pom.xml`.
 
@@ -34,7 +34,7 @@ Replace `${eforms-core.version}` with the latest version available, or define th
 
 Requirements:
 
-* Java 11 or higher
+* Java 21 or higher
 * Maven 3.8, other versions probably also work
 
 Execute the following on the root folder of this project:
