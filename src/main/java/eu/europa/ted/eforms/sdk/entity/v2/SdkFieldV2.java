@@ -90,9 +90,9 @@ public class SdkFieldV2 extends SdkFieldV1 {
    * read from the privacy block of fields/fields.json.
    */
   @Override
-  protected PrivacySettings extractDisclosureControl(final JsonNode fieldNode) {
+  protected PrivacySettings extractDisclosureControlFields(final JsonNode fieldNode) {
     if (disclosureControlOf(fieldNode) == null) {
-      return super.extractDisclosureControl(fieldNode);
+      return super.extractDisclosureControlFields(fieldNode);
     }
     return null;
   }

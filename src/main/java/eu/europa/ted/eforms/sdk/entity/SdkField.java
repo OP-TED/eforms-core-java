@@ -139,7 +139,7 @@ public abstract class SdkField implements Comparable<SdkField> {
     this.codelistId = extractCodelistId(fieldNode);
     this.repeatable = extractRepeatable(fieldNode);
     this.privacyCode = this.extractDisclosureGroupId(fieldNode);
-    this.privacySettings = this.extractDisclosureControl(fieldNode);
+    this.privacySettings = this.extractDisclosureControlFields(fieldNode);
     this.withholdingCondition = this.extractWithholdingCondition(fieldNode);
     this.undisclosedFieldSelector = this.extractUndisclosedFieldSelector(fieldNode);
     this.attributes = extractAttributes(fieldNode);
@@ -212,7 +212,7 @@ public abstract class SdkField implements Comparable<SdkField> {
    * and no state of its own.
    * </p>
    */
-  protected PrivacySettings extractDisclosureControl(final JsonNode fieldNode) {
+  protected PrivacySettings extractDisclosureControlFields(final JsonNode fieldNode) {
     return this.extractPrivacy(fieldNode.get("privacy"));
   }
 
