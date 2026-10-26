@@ -71,7 +71,7 @@ public class SdkFieldRepositoryV2 extends SdkFieldRepository {
     }
     for (final SdkField sdkField : this.values()) {
       if (sdkField.getPrivacyCode() != null) {
-        sdkField.setDisclosureControl(new SdkField.PrivacySettings(
+        sdkField.setDisclosureControlFields(new SdkField.PrivacySettings(
             this.getFieldIdByStableId(SdkConstants.STABLE_ID_DISCLOSURE_GROUP),
             this.getFieldIdByStableId(SdkConstants.STABLE_ID_DISCLOSURE_JUSTIFICATION_CODE),
             this.getFieldIdByStableId(
