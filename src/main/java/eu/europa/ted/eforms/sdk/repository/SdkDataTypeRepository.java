@@ -16,6 +16,8 @@ package eu.europa.ted.eforms.sdk.repository;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UncheckedIOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.Map;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -26,22 +28,34 @@ import eu.europa.ted.eforms.sdk.entity.SdkDataType;
 /**
  * Repository of SDK data types.
  *
- * Currently uses hardcoded type definitions, in the data-types.json resource of this library.
+ * <p>
+ * SDK 2 publishes its data types in fields/fwd/data-types.json (TEDEFO-5231). SDK 1 publishes
+ * none, so its data types come from the data-types.json resource of this library, which has the
+ * same format. The data types do not depend on the SDK version.
+ * </p>
  */
 public class SdkDataTypeRepository extends HashMap<String, SdkDataType> {
   private static final long serialVersionUID = 1L;
 
   /**
-   * Creates the repository of the data types, with their privacy masks, the attributes that their
-   * fields carry, and the code lists of their values. They are read from the data-types.json
-   * resource of this library, which has the format of fields/fwd/data-types.json in SDK 2. The
-   * data types are the same for every SDK version.
+   * Creates the repository of the data types of the SDK in the given folder, with their privacy
+   * masks, the attributes that their fields carry, and the code lists of their values. They are
+   * read from the fields/fwd/data-types.json of the SDK, or, for an SDK that publishes no data
+   * types, from the data-types.json resource of this library.
+   *
+   * @param sdkPath the folder of the SDK
+   */
+  public SdkDataTypeRepository(final Path sdkPath) {
+    final Path dataTypesJson =
+        sdkPath.resolve(SdkConstants.SdkResource.FIELDS_FWD_DATA_TYPES.getPath());
+    this.addDataTypes(Files.exists(dataTypesJson) ? readSdkFile(dataTypesJson) : readResource());
+  }
+
+  /**
+   * Creates the repository of the data types from the data-types.json resource of this library.
    */
   public SdkDataTypeRepository() {
-    for (final JsonNode dataType : readResource().get(SdkConstants.DATA_TYPES_JSON_DATA_TYPES_KEY)) {
-      final SdkDataType sdkDataType = new SdkDataType(dataType);
-      this.put(sdkDataType.getId(), sdkDataType);
-    }
+    this.addDataTypes(readResource());
   }
 
   private SdkDataTypeRepository(final Map<String, SdkDataType> dataTypes) {
@@ -86,9 +100,24 @@ public class SdkDataTypeRepository extends HashMap<String, SdkDataType> {
     this.put(id, new SdkDataType(id, privacyMask));
   }
 
+  private void addDataTypes(final JsonNode json) {
+    for (final JsonNode dataType : json.get(SdkConstants.DATA_TYPES_JSON_DATA_TYPES_KEY)) {
+      final SdkDataType sdkDataType = new SdkDataType(dataType);
+      this.put(sdkDataType.getId(), sdkDataType);
+    }
+  }
+
   private static JsonNode readResource() {
     try (InputStream input =
         SdkDataTypeRepository.class.getResourceAsStream(SdkConstants.DATA_TYPES_JSON_FILE_NAME)) {
+      return new ObjectMapper().readTree(input);
+    } catch (IOException e) {
+      throw new UncheckedIOException(e);
+    }
+  }
+
+  private static JsonNode readSdkFile(final Path dataTypesPath) {
+    try (InputStream input = Files.newInputStream(dataTypesPath)) {
       return new ObjectMapper().readTree(input);
     } catch (IOException e) {
       throw new UncheckedIOException(e);

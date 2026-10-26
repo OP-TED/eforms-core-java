@@ -2,15 +2,38 @@ package eu.europa.ted.eforms.sdk.repository;
 
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import eu.europa.ted.eforms.sdk.SdkConstants;
 import eu.europa.ted.eforms.sdk.entity.SdkEntityFactory;
 import eu.europa.ted.eforms.sdk.entity.SdkField;
 
+/**
+ * The fields of an SDK, by identifier.
+ *
+ * <p>
+ * Each SDK version keeps its fields in its own file. The repository of an SDK version, which knows
+ * that file, is given by
+ * {@link SdkRepositoryFactory#getSdkFieldRepository(String, Path, SdkNodeRepository)}.
+ * </p>
+ */
 public class SdkFieldRepository extends MapFromJson<SdkField> {
   private static final long serialVersionUID = 1L;
+
+  /**
+   * The identifier of each field that plays a particular role, by its stable identifier
+   * (TEDEFO-5230). Null for the SDK versions that publish no such map.
+   *
+   * <p>
+   * Deliberately left without an initialiser: it is assigned while the map of fields is being
+   * populated, which happens during the call to super, and a field initialiser would run after
+   * that call and undo it.
+   * </p>
+   */
+  private Map<String, String> stableIds;
 
   public SdkFieldRepository(String sdkVersion, Path jsonPath) throws InstantiationException {
     super(sdkVersion, jsonPath);
@@ -23,33 +46,49 @@ public class SdkFieldRepository extends MapFromJson<SdkField> {
 
   @Override
   protected void populateMap(final JsonNode json) throws InstantiationException {
-    populateMap(json, new Object[0]);
+    this.populateMap(json, new Object[0]);
   }
 
   @Override
   protected void populateMap(final JsonNode json, final Object... context)
       throws InstantiationException {
-    SdkNodeRepository nodes = (context.length > 0 && context[0] instanceof SdkNodeRepository)
+    this.addFields((ArrayNode) json.get(SdkConstants.FIELDS_JSON_FIELDS_KEY),
+        nodeRepositoryOf(context));
+    this.resolveReferences();
+  }
+
+  /**
+   * @return the repository of nodes given as context, to link each field to its parent node, or
+   *         null to leave the parent nodes unlinked
+   */
+  protected static SdkNodeRepository nodeRepositoryOf(final Object... context) {
+    return context.length > 0 && context[0] instanceof SdkNodeRepository
         ? (SdkNodeRepository) context[0]
         : null;
+  }
 
-    final ArrayNode fields = (ArrayNode) json.get(SdkConstants.FIELDS_JSON_FIELDS_KEY);
-
-    // First pass: create all field entities and add them to the map
+  /**
+   * Adds the given fields, each linked to its parent node when the nodes are given.
+   */
+  protected void addFields(final ArrayNode fields, final SdkNodeRepository nodes)
+      throws InstantiationException {
     for (final JsonNode field : fields) {
-      final SdkField sdkField = SdkEntityFactory.getSdkField(sdkVersion, field);
-      put(sdkField.getId(), sdkField);
-
+      final SdkField sdkField = SdkEntityFactory.getSdkField(this.sdkVersion, field);
+      this.put(sdkField.getId(), sdkField);
       if (nodes != null && sdkField.getParentNodeId() != null) {
         sdkField.setParentNode(nodes.get(sdkField.getParentNodeId()));
       }
     }
+  }
 
-    // Second pass: resolve cross-field references
+  /**
+   * Resolves the fields that each field refers to by identifier: its disclosure fields, its
+   * attribute fields and the field it is an attribute of.
+   */
+  protected void resolveReferences() {
     for (final SdkField sdkField : this.values()) {
       if (sdkField.getPrivacySettings() != null) {
-        SdkField.PrivacySettings privacy = sdkField.getPrivacySettings();
-
+        final SdkField.PrivacySettings privacy = sdkField.getPrivacySettings();
         if (privacy.getPrivacyCodeFieldId() != null) {
           privacy.setPrivacyCodeField(this.get(privacy.getPrivacyCodeFieldId()));
         }
@@ -66,9 +105,9 @@ public class SdkFieldRepository extends MapFromJson<SdkField> {
       }
 
       if (!sdkField.getAttributes().isEmpty()) {
-        List<SdkField> attrFields = new ArrayList<>();
-        for (String attrFieldId : sdkField.getAttributes()) {
-          SdkField attrField = this.get(attrFieldId);
+        final List<SdkField> attrFields = new ArrayList<>();
+        for (final String attrFieldId : sdkField.getAttributes()) {
+          final SdkField attrField = this.get(attrFieldId);
           if (attrField != null) {
             attrFields.add(attrField);
           }
@@ -80,5 +119,29 @@ public class SdkFieldRepository extends MapFromJson<SdkField> {
         sdkField.setAttributeOfField(this.get(sdkField.getAttributeOf()));
       }
     }
+  }
+
+  /**
+   * Reads the map of stable identifiers, which the given file starts with.
+   */
+  protected void readStableIds(final JsonNode json) {
+    this.stableIds = stableIdsOf(json);
+  }
+
+  /**
+   * @return the identifier of each field that plays a particular role, by its stable identifier, as
+   *         the SDK gives them. Empty for the SDK versions that publish no such map.
+   */
+  public Map<String, String> getStableIds() {
+    return this.stableIds == null ? Collections.emptyMap() : this.stableIds;
+  }
+
+  /**
+   * @param stableId a stable identifier, such as "disclosureDate"
+   * @return the identifier of the field that plays that role, or null if the SDK names none. An
+   *         unknown stable identifier is not an error.
+   */
+  public String getFieldIdByStableId(final String stableId) {
+    return this.getStableIds().get(stableId);
   }
 }
