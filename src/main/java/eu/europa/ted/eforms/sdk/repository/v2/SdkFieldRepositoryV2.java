@@ -43,6 +43,10 @@ public class SdkFieldRepositoryV2 extends SdkFieldRepository {
    * @param nodeRepository the nodes of the same SDK, to link each field to its parent node; may be
    *        null to leave the parent nodes unlinked
    */
+  // The constructor of the base class is deprecated because applications should not choose the
+  // file to read. They use SdkRepositoryFactory, which creates this class, and this class passes
+  // the file of its own SDK version.
+  @SuppressWarnings("removal")
   public SdkFieldRepositoryV2(final String sdkVersion, final Path sdkPath,
       final SdkNodeRepository nodeRepository) throws InstantiationException {
     super(sdkVersion, sdkPath.resolve(SdkConstants.SdkResource.FIELDS_FWD_FIELDS_JSON.getPath()),

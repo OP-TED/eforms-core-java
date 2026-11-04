@@ -252,6 +252,7 @@ class SdkFieldRepositoryTest {
 
   /** The constructor that takes a fields.json reads the file it is given. */
   @Test
+  @SuppressWarnings("removal")
   void testTheConstructorReadsTheFileItIsGiven() throws InstantiationException {
     SdkFieldRepository fields = new SdkFieldRepository(SDK_1,
         SDK_ROOT.resolve(Path.of("1.16", "fields", "fields.json")));
@@ -266,6 +267,7 @@ class SdkFieldRepositoryTest {
    * code and disclosure fields from its privacy block.
    */
   @Test
+  @SuppressWarnings("removal")
   void testSdk2FieldsJsonIsReadWithItsPrivacyBlocks() throws InstantiationException {
     final Path fieldsJson = SDK_ROOT.resolve(Path.of(SDK_2, "fields", "fields.json"));
     final SdkFieldRepository fields = new SdkFieldRepository(SDK_2, fieldsJson,

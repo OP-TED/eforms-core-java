@@ -35,10 +35,30 @@ public class SdkFieldRepository extends MapFromJson<SdkField> {
    */
   private Map<String, String> stableIds;
 
+  /**
+   * Creates the repository of the fields of the given file.
+   *
+   * @deprecated Use
+   *             {@link SdkRepositoryFactory#getSdkFieldRepository(String, Path, SdkNodeRepository)},
+   *             which reads the fields of an SDK version from the folder of that SDK. This
+   *             constructor reads only the file it is given: given the fields/fwd/fields.json of
+   *             SDK 2, it reads neither the stable identifiers nor the disclosure fields.
+   */
+  @Deprecated(since = "1.10.0", forRemoval = true)
   public SdkFieldRepository(String sdkVersion, Path jsonPath) throws InstantiationException {
     super(sdkVersion, jsonPath);
   }
 
+  /**
+   * Creates the repository of the fields of the given file, each linked to its parent node.
+   *
+   * @deprecated Use
+   *             {@link SdkRepositoryFactory#getSdkFieldRepository(String, Path, SdkNodeRepository)},
+   *             which reads the fields of an SDK version from the folder of that SDK. This
+   *             constructor reads only the file it is given: given the fields/fwd/fields.json of
+   *             SDK 2, it reads neither the stable identifiers nor the disclosure fields.
+   */
+  @Deprecated(since = "1.10.0", forRemoval = true)
   public SdkFieldRepository(String sdkVersion, Path jsonPath, SdkNodeRepository nodeRepository)
       throws InstantiationException {
     super(sdkVersion, jsonPath, nodeRepository);
