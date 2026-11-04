@@ -53,7 +53,14 @@ public class SdkDataTypeRepository extends HashMap<String, SdkDataType> {
 
   /**
    * Creates the repository of the data types from the data-types.json resource of this library.
+   *
+   * @deprecated Use {@link SdkRepositoryFactory#getSdkDataTypeRepository(String, Path)}, which
+   *             reads the data types of an SDK from the folder of that SDK. This constructor always
+   *             gives the list of data types built into this library, whatever the SDK: for SDK 2,
+   *             which publishes its own list, the two can differ, for example in their masking
+   *             values.
    */
+  @Deprecated(since = "1.10.0", forRemoval = true)
   public SdkDataTypeRepository() {
     this.addDataTypes(readResource());
   }
@@ -66,8 +73,8 @@ public class SdkDataTypeRepository extends HashMap<String, SdkDataType> {
    * Creates a repository with the default set of SDK data types and their privacy masks. This is a
    * temporary approach until data-types.json is available in the SDK.
    *
-   * @deprecated Use {@link #SdkDataTypeRepository()}, which also gives the attributes that the
-   *             fields of each data type carry.
+   * @deprecated Use {@link SdkRepositoryFactory#getSdkDataTypeRepository(String, Path)}, which
+   *             also gives the attributes that the fields of each data type carry.
    */
   @Deprecated
   public static SdkDataTypeRepository createDefault() {

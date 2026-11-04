@@ -164,6 +164,7 @@ class SdkDataTypeRepositoryTest {
 
   /** The constructor without arguments reads the resource of this library. */
   @Test
+  @SuppressWarnings("removal")
   void testTheConstructorWithoutArgumentsReadsTheResource() {
     assertEquals(23, new SdkDataTypeRepository().size());
   }
