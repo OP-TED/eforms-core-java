@@ -46,6 +46,12 @@ class SdkFieldRepositoryTest {
   /** Only fields/fwd/fields.json holds this field. */
   private static final String FIELD_OF_THE_FWD_FILE = "BT-Fwd-Only";
 
+  /**
+   * The fields of SDK 2 without their map of stable identifiers, as in an SDK exported without it,
+   * such as 2.0.0-alpha.5.
+   */
+  private static final String SDK_2_WITHOUT_STABLE_IDS = "2.0-without-stable-ids";
+
   private static SdkFieldRepository ofSdk1() throws InstantiationException {
     final Path sdk = SDK_ROOT.resolve(SDK_1);
     return SdkRepositoryFactory.getSdkFieldRepository(SDK_1, sdk,
@@ -186,6 +192,26 @@ class SdkFieldRepositoryTest {
     assertEquals(5, ofSdk2.getStableIds().size());
     assertEquals("BT-198-notice", ofSdk2.getFieldIdByStableId("disclosureDate"));
     assertEquals("OPP-070-notice", ofSdk2.getFieldIdByStableId("noticeSubType"));
+  }
+
+  /**
+   * An SDK 2 that gives no map of stable identifiers still gets the disclosure fields, from their
+   * defaults, and nothing else.
+   */
+  @Test
+  void testTheDisclosureFieldsDefaultWhenTheSdkGivesNoStableIds() throws InstantiationException {
+    final SdkFieldRepository fields = SdkRepositoryFactory.getSdkFieldRepository(SDK_2,
+        SDK_ROOT.resolve(SDK_2_WITHOUT_STABLE_IDS), null);
+
+    assertEquals("BT-198-notice", fields.getFieldIdByStableId("disclosureDate"));
+    assertNull(fields.getFieldIdByStableId("noticeSubType"),
+        "only the disclosure fields have a default");
+    final SdkField.PrivacySettings disclosureFields =
+        fields.get("BT-Withheld").getPrivacySettings();
+    assertEquals("BT-195-notice", disclosureFields.getPrivacyCodeField().getId());
+    assertEquals("BT-197-notice", disclosureFields.getJustificationCodeField().getId());
+    assertEquals("BT-196-notice", disclosureFields.getJustificationDescriptionField().getId());
+    assertEquals("BT-198-notice", disclosureFields.getPublicationDateField().getId());
   }
 
   /** An unknown key gives no result, and is not an error. */

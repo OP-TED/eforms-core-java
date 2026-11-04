@@ -14,6 +14,9 @@
 package eu.europa.ted.eforms.sdk.repository.v2;
 
 import java.nio.file.Path;
+import java.util.Collections;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import eu.europa.ted.eforms.sdk.SdkConstants;
@@ -38,6 +41,15 @@ public class SdkFieldRepositoryV2 extends SdkFieldRepository {
   private static final long serialVersionUID = 1L;
 
   /**
+   * The field of each disclosure stable identifier, for an SDK 2 whose fields/fwd/fields.json does
+   * not give it, such as 2.0.0-alpha.5, which was exported without its map of stable identifiers.
+   */
+  // TODO: Remove these defaults once SDK 2.0.0 is released, as from then on every SDK 2 gives its
+  // map of stable identifiers.
+  private static final Map<String, String> DEFAULT_DISCLOSURE_FIELD_IDS =
+      defaultDisclosureFieldIds();
+
+  /**
    * @param sdkVersion the version of the SDK
    * @param sdkPath the folder of the SDK
    * @param nodeRepository the nodes of the same SDK, to link each field to its parent node; may be
@@ -56,7 +68,7 @@ public class SdkFieldRepositoryV2 extends SdkFieldRepository {
   @Override
   protected void populateMap(final JsonNode json, final Object... context)
       throws InstantiationException {
-    this.readStableIds(json);
+    this.readStableIds(json, DEFAULT_DISCLOSURE_FIELD_IDS);
     this.addFields((ArrayNode) json.get(SdkConstants.FIELDS_JSON_FIELDS_KEY),
         nodeRepositoryOf(context));
     this.linkTheDisclosureFields();
@@ -65,14 +77,11 @@ public class SdkFieldRepositoryV2 extends SdkFieldRepository {
 
   /**
    * Gives the four disclosure fields, found by their stable identifiers, to each field that can be
-   * withheld, that is each field that has a disclosure control, and therefore a privacy code. They
-   * are read from the map of stable identifiers only, with no fallback to the privacy blocks of
-   * fields/fields.json, so a file without that map gives no disclosure fields.
+   * withheld, that is each field that has a disclosure control, and therefore a privacy code. A
+   * stable identifier that the file does not give falls back to
+   * {@link #DEFAULT_DISCLOSURE_FIELD_IDS}, never to the privacy blocks of fields/fields.json.
    */
   private void linkTheDisclosureFields() {
-    if (this.getStableIds().isEmpty()) {
-      return;
-    }
     for (final SdkField sdkField : this.values()) {
       if (sdkField.getPrivacyCode() != null) {
         sdkField.setDisclosureControlFields(new SdkField.PrivacySettings(
@@ -83,5 +92,15 @@ public class SdkFieldRepositoryV2 extends SdkFieldRepository {
             this.getFieldIdByStableId(SdkConstants.STABLE_ID_DISCLOSURE_DATE)));
       }
     }
+  }
+
+  private static Map<String, String> defaultDisclosureFieldIds() {
+    final Map<String, String> fieldIdByStableId = new LinkedHashMap<>();
+    fieldIdByStableId.put(SdkConstants.STABLE_ID_DISCLOSURE_GROUP, "BT-195-notice");
+    fieldIdByStableId.put(SdkConstants.STABLE_ID_DISCLOSURE_JUSTIFICATION_CODE, "BT-197-notice");
+    fieldIdByStableId.put(SdkConstants.STABLE_ID_DISCLOSURE_JUSTIFICATION_DESCRIPTION,
+        "BT-196-notice");
+    fieldIdByStableId.put(SdkConstants.STABLE_ID_DISCLOSURE_DATE, "BT-198-notice");
+    return Collections.unmodifiableMap(fieldIdByStableId);
   }
 }

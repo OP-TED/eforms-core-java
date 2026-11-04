@@ -3,6 +3,7 @@ package eu.europa.ted.eforms.sdk.repository;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -149,8 +150,24 @@ public class SdkFieldRepository extends MapFromJson<SdkField> {
   }
 
   /**
+   * Reads the map of stable identifiers, which the given file starts with, and completes it with the
+   * given defaults for the stable identifiers that the file does not give. A stable identifier that
+   * the file gives keeps the identifier of the file.
+   *
+   * @param json the root of the file
+   * @param defaults the identifier of a field by its stable identifier, for each stable identifier
+   *        that the file may lack
+   */
+  protected void readStableIds(final JsonNode json, final Map<String, String> defaults) {
+    final Map<String, String> idByStableId = new LinkedHashMap<>(stableIdsOf(json));
+    defaults.forEach(idByStableId::putIfAbsent);
+    this.stableIds = Collections.unmodifiableMap(idByStableId);
+  }
+
+  /**
    * @return the identifier of each field that plays a particular role, by its stable identifier, as
-   *         the SDK gives them. Empty for the SDK versions that publish no such map.
+   *         the SDK gives them, completed with the defaults of the SDK version, if any. Empty for
+   *         the SDK versions that publish no such map.
    */
   public Map<String, String> getStableIds() {
     return this.stableIds == null ? Collections.emptyMap() : this.stableIds;
