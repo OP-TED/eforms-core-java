@@ -36,11 +36,11 @@ class SdkDataTypeRepositoryTest {
   private static final Path SDK_ROOT = Path.of("src", "test", "resources", "sdk-fixture");
 
   private static SdkDataTypeRepository ofSdk1() throws InstantiationException {
-    return new SdkDataTypeRepository(SDK_ROOT.resolve(SDK_1));
+    return SdkRepositoryFactory.getSdkDataTypeRepository(SDK_1, SDK_ROOT.resolve(SDK_1));
   }
 
   private static SdkDataTypeRepository ofSdk2() throws InstantiationException {
-    return new SdkDataTypeRepository(SDK_ROOT.resolve(SDK_2));
+    return SdkRepositoryFactory.getSdkDataTypeRepository(SDK_2, SDK_ROOT.resolve(SDK_2));
   }
 
   @Test

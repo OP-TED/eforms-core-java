@@ -55,4 +55,19 @@ public class SdkRepositoryFactory extends SdkComponentFactory {
         SdkComponentType.FIELD_REPOSITORY, SdkFieldRepository.class, sdkVersion, sdkPath,
         nodeRepository);
   }
+
+  /**
+   * The data types do not depend on the SDK version: they are read from the
+   * fields/fwd/data-types.json of the SDK, or from the resource of this library for an SDK that
+   * publishes none (SDK 1). The version is asked for all the same, so that every repository of an
+   * SDK is obtained in the same way.
+   *
+   * @param sdkVersion the version of the SDK
+   * @param sdkPath the folder of the SDK
+   * @return the data types of that SDK, by identifier
+   */
+  public static SdkDataTypeRepository getSdkDataTypeRepository(final String sdkVersion,
+      final Path sdkPath) {
+    return new SdkDataTypeRepository(sdkPath);
+  }
 }
