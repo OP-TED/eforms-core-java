@@ -68,6 +68,13 @@
     "repeatable" : {
       "value" : false,
       "severity" : "ERROR"
+    },
+    "codeList" : {
+      "value" : {
+        "id" : "non-publication-justification",
+        "type" : "flat"
+      },
+      "severity" : "ERROR"
     }
   }, {
     "id" : "BT-198-notice",

@@ -77,7 +77,14 @@
     "xpathAbsolute" : "/*/efac:FieldsPrivacy/cbc:ReasonCode",
     "xpathRelative" : "efac:FieldsPrivacy/cbc:ReasonCode",
     "type" : "code",
-    "repeatable" : false
+    "repeatable" : false,
+    "codelist" : {
+      "value" : {
+        "id" : "non-publication-justification",
+        "type" : "flat"
+      },
+      "severity" : "ERROR"
+    }
   }, {
     "id" : "BT-198-notice",
     "parentNodeId" : "ND-Root",

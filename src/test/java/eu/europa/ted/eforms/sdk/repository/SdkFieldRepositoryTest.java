@@ -99,6 +99,14 @@ class SdkFieldRepositoryTest {
     assertFalse(ofSdk2.get("BT-NotRepeatable").isRepeatable());
   }
 
+  /** fields/fwd/fields.json names the code list of a field codelist instead of codeList. */
+  @Test
+  void testSdk2ReadsTheCodelistOfTheFwdFile() throws InstantiationException {
+    assertEquals("non-publication-justification",
+        ofSdk2().get("BT-197-notice").getCodelistId());
+    assertNull(ofSdk2().get("BT-Plain").getCodelistId(), "a field without a code list has none");
+  }
+
   /** SDK 2 gives the disclosure group as the groupId of the disclosureControl block. */
   @Test
   void testTheDisclosureGroupIdComesFromTheDisclosureControlForSdk2()
@@ -289,8 +297,8 @@ class SdkFieldRepositoryTest {
 
   /**
    * The EFX Toolkit still reads the fields of SDK 2 from fields/fields.json, with the constructor
-   * that takes the file. There an SDK 2 field takes repeatable from the object, and its privacy
-   * code and disclosure fields from its privacy block.
+   * that takes the file. There an SDK 2 field takes repeatable from the object, its code list from
+   * codeList, and its privacy code and disclosure fields from its privacy block.
    */
   @Test
   @SuppressWarnings("removal")
@@ -302,6 +310,7 @@ class SdkFieldRepositoryTest {
     assertTrue(fields.get("BT-Plain") instanceof SdkFieldV2);
     assertTrue(fields.get("BT-Plain").isRepeatable());
     assertFalse(fields.get("BT-Withheld").isRepeatable());
+    assertEquals("non-publication-justification", fields.get("BT-197-notice").getCodelistId());
     assertEquals("con-esti", fields.get("BT-Withheld").getPrivacyCode());
     final SdkField.PrivacySettings privacy = fields.get("BT-Withheld").getPrivacySettings();
     assertEquals("BT-195-notice", privacy.getPrivacyCodeField().getId());
