@@ -73,6 +73,24 @@ public class SdkFieldV2 extends SdkFieldV1 {
   }
 
   /**
+   * fields/fwd/fields.json renames the field property from codeList to codelist (TEDEFO-5240),
+   * where fields/fields.json still gives codeList. An SDK 2 field is read from either file, so both
+   * are tried, the fwd name first.
+   */
+  @Override
+  protected String extractCodelistId(final JsonNode fieldNode) {
+    final JsonNode codelistNode = fieldNode.get("codelist");
+    if (codelistNode == null) {
+      return super.extractCodelistId(fieldNode);
+    }
+    final JsonNode valueNode = codelistNode.get("value");
+    if (valueNode == null) {
+      return null;
+    }
+    return valueNode.get("id").asText(null);
+  }
+
+  /**
    * fields/fwd/fields.json gives the identifier of the disclosure group as the groupId of the
    * disclosureControl block, where fields/fields.json gives it as the code of the privacy block.
    */
