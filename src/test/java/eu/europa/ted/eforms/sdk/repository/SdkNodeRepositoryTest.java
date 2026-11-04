@@ -141,6 +141,7 @@ class SdkNodeRepositoryTest {
    * The constructor that takes a fields.json reads the xmlStructure array of the file it is given.
    */
   @Test
+  @SuppressWarnings("removal")
   void testTheConstructorReadsTheXmlStructureOfTheFileItIsGiven() throws InstantiationException {
     SdkNodeRepository nodes = new SdkNodeRepository(SDK_1,
         SDK_ROOT.resolve(Path.of("1.16", "fields", "fields.json")));

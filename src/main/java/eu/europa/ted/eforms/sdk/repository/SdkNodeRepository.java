@@ -36,7 +36,13 @@ public class SdkNodeRepository extends MapFromJson<SdkNode> {
 
   /**
    * Creates the repository of the nodes from the xmlStructure array of the given fields.json.
+   *
+   * @deprecated Use {@link SdkRepositoryFactory#getSdkNodeRepository(String, Path)}, which reads
+   *             the nodes of an SDK version from the folder of that SDK. This constructor reads
+   *             only the xmlStructure array of the file it is given, so it cannot read the
+   *             fields/fwd/nodes.json of SDK 2.
    */
+  @Deprecated(since = "1.10.0", forRemoval = true)
   public SdkNodeRepository(String sdkVersion, Path jsonPath) throws InstantiationException {
     super(sdkVersion, jsonPath);
   }

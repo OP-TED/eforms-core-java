@@ -30,6 +30,10 @@ public class SdkNodeRepositoryV1 extends SdkNodeRepository {
    * @param sdkVersion the version of the SDK
    * @param sdkPath the folder of the SDK
    */
+  // The constructor of the base class is deprecated because applications should not choose the
+  // file to read. They use SdkRepositoryFactory, which creates this class, and this class passes
+  // the file of its own SDK version.
+  @SuppressWarnings("removal")
   public SdkNodeRepositoryV1(final String sdkVersion, final Path sdkPath)
       throws InstantiationException {
     super(sdkVersion, sdkPath.resolve(SdkConstants.SdkResource.FIELDS_JSON.getPath()));
