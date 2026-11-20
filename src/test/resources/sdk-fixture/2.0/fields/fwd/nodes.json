@@ -7,8 +7,7 @@
     "id" : "ND-Root",
     "xpathAbsolute" : "/*",
     "xpathRelative" : "/*",
-    "repeatable" : false,
-    "alias" : "root"
+    "repeatable" : false
   }, {
     "id" : "ND-Fwd-Only",
     "parentId" : "ND-Lot",
@@ -20,7 +19,6 @@
     "parentId" : "ND-Root",
     "xpathAbsolute" : "/*/cac:ProcurementProjectLot",
     "xpathRelative" : "cac:ProcurementProjectLot",
-    "repeatable" : true,
-    "alias" : "lot"
+    "repeatable" : true
   } ]
 }

@@ -6,8 +6,7 @@
       "xpathAbsolute" : "/*/cac:ProcurementProjectLot/cbc:Plain",
       "xpathRelative" : "cbc:Plain",
       "type" : "text",
-      "repeatable" : true,
-      "alias" : "plain"
+      "repeatable" : true
     },
     {
       "id" : "BT-NotRepeatable",
