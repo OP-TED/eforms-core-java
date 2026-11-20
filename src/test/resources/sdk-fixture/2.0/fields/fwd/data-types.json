@@ -1,0 +1,45 @@
+{
+  "dataTypes" : [ {
+    "type" : "amount",
+    "description" : "Monetary value with currency",
+    "valueType" : "decimal",
+    "maskingValue" : "undisclosed",
+    "displayTypes" : [ "TEXTBOX" ],
+    "attribute" : {
+      "name" : "currencyID",
+      "description" : "ISO 4217 currency code",
+      "type" : "currency"
+    }
+  }, {
+    "type" : "currency",
+    "description" : "ISO 4217 currency code",
+    "valueType" : "string",
+    "maskingValue" : "undisclosed",
+    "displayTypes" : [ "COMBOBOX" ],
+    "listName" : "currency"
+  }, {
+    "type" : "duration",
+    "description" : "Duration",
+    "valueType" : "decimal",
+    "maskingValue" : "undisclosed",
+    "displayTypes" : [ "TEXTBOX" ],
+    "attribute" : {
+      "name" : "unitCode",
+      "description" : "UN/ECE Recommendation 20 unit code",
+      "type" : "duration-unit"
+    }
+  }, {
+    "type" : "duration-unit",
+    "description" : "Unit of duration",
+    "valueType" : "string",
+    "maskingValue" : "undisclosed",
+    "displayTypes" : [ "COMBOBOX" ],
+    "listName" : "timeperiod"
+  }, {
+    "type" : "date",
+    "description" : "Date value with timezone",
+    "valueType" : "date",
+    "maskingValue" : "1970-01-01Z",
+    "displayTypes" : [ "TEXTBOX" ]
+  } ]
+}
