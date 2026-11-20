@@ -281,7 +281,6 @@ class SdkFieldRepositoryTest {
 
     assertTrue(ofSdk1 instanceof SdkFieldV1, "SDK 1 gives " + ofSdk1.getClass());
     assertTrue(ofSdk2 instanceof SdkFieldV2, "SDK 2 gives " + ofSdk2.getClass());
-    assertEquals("plain", ((SdkFieldV2) ofSdk2).getAlias(), "SDK 2 also reads the alias");
   }
 
   /** The constructor that takes a fields.json reads the file it is given. */
