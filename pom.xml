@@ -52,6 +52,9 @@
     <version.junit>5.7.2</version.junit>
     <version.logback>1.5.18</version.logback>
     <version.maven>3.8.6</version.maven>
+    <!-- The versions that maven-settings-builder uses, to decrypt the passwords of the settings -->
+    <version.plexus-cipher>2.0</version.plexus-cipher>
+    <version.plexus-sec-dispatcher>2.0</version.plexus-sec-dispatcher>
     <version.ph-jaxb>11.1.3</version.ph-jaxb>
     <version.ph-genericode>7.1.1</version.ph-genericode>
     <version.classgraph>4.8.179</version.classgraph>
@@ -159,6 +162,16 @@
         <groupId>org.apache.maven</groupId>
         <artifactId>maven-settings-builder</artifactId>
         <version>${version.maven}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.codehaus.plexus</groupId>
+        <artifactId>plexus-cipher</artifactId>
+        <version>${version.plexus-cipher}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.codehaus.plexus</groupId>
+        <artifactId>plexus-sec-dispatcher</artifactId>
+        <version>${version.plexus-sec-dispatcher}</version>
       </dependency>
       <dependency>
         <groupId>org.apache.maven</groupId>
@@ -288,6 +301,14 @@
     <dependency>
       <groupId>org.apache.maven</groupId>
       <artifactId>maven-settings-builder</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.codehaus.plexus</groupId>
+      <artifactId>plexus-cipher</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.codehaus.plexus</groupId>
+      <artifactId>plexus-sec-dispatcher</artifactId>
     </dependency>
     <dependency>
       <groupId>org.apache.maven</groupId>
