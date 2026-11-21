@@ -15,14 +15,19 @@ import org.apache.maven.repository.internal.MavenRepositorySystemUtils;
 import org.apache.maven.settings.Profile;
 import org.apache.maven.settings.Proxy;
 import org.apache.maven.settings.Repository;
+import org.apache.maven.settings.Server;
 import org.apache.maven.settings.Settings;
 import org.apache.maven.settings.building.DefaultSettingsBuilderFactory;
 import org.apache.maven.settings.building.DefaultSettingsBuildingRequest;
 import org.apache.maven.settings.building.SettingsBuildingException;
+import org.apache.maven.settings.crypto.DefaultSettingsDecrypter;
+import org.apache.maven.settings.crypto.DefaultSettingsDecryptionRequest;
+import org.apache.maven.settings.crypto.SettingsDecryptionResult;
 import org.eclipse.aether.DefaultRepositorySystemSession;
 import org.eclipse.aether.RepositorySystem;
 import org.eclipse.aether.RepositorySystemSession;
 import org.eclipse.aether.artifact.Artifact;
+import org.eclipse.aether.repository.Authentication;
 import org.eclipse.aether.repository.LocalRepository;
 import org.eclipse.aether.repository.ProxySelector;
 import org.eclipse.aether.repository.RemoteRepository;
@@ -35,6 +40,8 @@ import org.eclipse.aether.util.repository.AuthenticationBuilder;
 import org.eclipse.aether.util.repository.DefaultProxySelector;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.sonatype.plexus.components.cipher.DefaultPlexusCipher;
+import org.sonatype.plexus.components.sec.dispatcher.DefaultSecDispatcher;
 import eu.europa.ted.maven.listener.ConsoleRepositoryListener;
 import eu.europa.ted.maven.listener.ConsoleTransferListener;
 
@@ -42,6 +49,8 @@ public class MavenBooter {
   private static final Logger logger = LoggerFactory.getLogger(MavenBooter.class);
 
   private static final String SETTINGS_FILE_NAME = "settings.xml";
+
+  private static final String SETTINGS_SECURITY_FILE_NAME = "settings-security.xml";
 
   private static final MavenBooter INSTANCE = new MavenBooter();
 
@@ -189,10 +198,44 @@ public class MavenBooter {
     DefaultSettingsBuildingRequest request = new DefaultSettingsBuildingRequest()
         .setGlobalSettingsFile(settingsFile).setUserSettingsFile(settingsFile);
 
-    return new DefaultSettingsBuilderFactory().newInstance().build(request).getEffectiveSettings();
+    Settings settings =
+        new DefaultSettingsBuilderFactory().newInstance().build(request).getEffectiveSettings();
+
+    return decrypt(settings, getSettingsSecurityFile());
   }
 
-  private static List<RemoteRepository> newRepositories(RepositorySystemSession session,
+  /**
+   * @return The file that holds the master password where the Maven command line looks for it by
+   *         default: in the .m2 folder of the user's home, wherever the settings file is.
+   */
+  static Path getSettingsSecurityFile() {
+    return Path.of(System.getProperty("user.home"), ".m2", SETTINGS_SECURITY_FILE_NAME);
+  }
+
+  /**
+   * Replaces the encrypted passwords of the servers and proxies in the settings with their
+   * decrypted values, as the Maven command line does. Passwords that are not encrypted are kept as
+   * they are.
+   *
+   * @param settings The settings to decrypt.
+   * @param settingsSecurityFile The file that holds the master password, unless the system
+   *        property {@code settings.security} names another one, as for the Maven command line.
+   * @return The same settings, with decrypted passwords.
+   */
+  static Settings decrypt(Settings settings, Path settingsSecurityFile) {
+    SettingsDecryptionResult result = new DefaultSettingsDecrypter(new DefaultSecDispatcher(
+        new DefaultPlexusCipher(), Collections.emptyMap(), settingsSecurityFile.toString()))
+            .decrypt(new DefaultSettingsDecryptionRequest(settings));
+
+    result.getProblems().forEach(problem -> logger.warn("Maven settings: {}", problem.getMessage()));
+
+    settings.setServers(result.getServers());
+    settings.setProxies(result.getProxies());
+
+    return settings;
+  }
+
+  static List<RemoteRepository> newRepositories(RepositorySystemSession session,
       Settings settings) {
     List<RemoteRepository> remoteRepositories = new ArrayList<>();
 
@@ -200,10 +243,10 @@ public class MavenBooter {
       getActiveProfiles(settings).forEach((Profile profile) -> Optional
           .ofNullable(profile.getRepositories()).orElse(Collections.emptyList()).stream()
           .forEach((Repository repository) -> remoteRepositories
-              .add(toRemoteRepository(repository, session))));
+              .add(toRemoteRepository(repository, session, settings))));
 
       if (remoteRepositories.isEmpty() && !settings.isOffline()) {
-        remoteRepositories.addAll(getDefaultRepositories(session));
+        remoteRepositories.addAll(getDefaultRepositories(session, settings));
       }
     }
 
@@ -225,34 +268,39 @@ public class MavenBooter {
         .collect(Collectors.toList());
   }
 
+  /**
+   * Builds the remote repository of a repository in the settings, with its proxy, and with the
+   * login of the server that has the same id in the settings, if there is one.
+   */
   private static RemoteRepository toRemoteRepository(Repository repository,
-      RepositorySystemSession session) {
-    // need a temp repo to lookup proxy
-    RemoteRepository tempRemoteRepository = toRemoteRepositoryBuilder(repository).build();
-    org.eclipse.aether.repository.Proxy proxy =
-        session.getProxySelector().getProxy(tempRemoteRepository);
-
-    // now build the actual repo and attach proxy
-    return toRemoteRepositoryBuilder(repository).setProxy(proxy).build();
-  }
-
-  private static RemoteRepository.Builder toRemoteRepositoryBuilder(Repository repository) {
-    return new RemoteRepository.Builder(repository.getId(), "default", repository.getUrl());
-  }
-
-  private static List<RemoteRepository> getDefaultRepositories(RepositorySystemSession session) {
+      RepositorySystemSession session, Settings settings) {
     RemoteRepository.Builder builder =
-        new RemoteRepository.Builder("central", "default", "https://repo.maven.apache.org/maven2/");
+        new RemoteRepository.Builder(repository.getId(), "default", repository.getUrl());
 
     // need a temp repo to lookup proxy
-    RemoteRepository tempDefaultRepository = builder.build();
-    org.eclipse.aether.repository.Proxy proxy =
-        session.getProxySelector().getProxy(tempDefaultRepository);
+    builder.setProxy(session.getProxySelector().getProxy(builder.build()));
 
-    // now build the actual repo and attach proxy
-    RemoteRepository defaultRepository = builder.setProxy(proxy).build();
+    Server server = settings.getServer(repository.getId());
+    if (server != null) {
+      builder.setAuthentication(toAuthentication(server));
+    }
 
-    return Arrays.asList(defaultRepository);
+    return builder.build();
+  }
+
+  private static Authentication toAuthentication(Server server) {
+    return new AuthenticationBuilder().addUsername(server.getUsername())
+        .addPassword(server.getPassword())
+        .addPrivateKey(server.getPrivateKey(), server.getPassphrase()).build();
+  }
+
+  private static List<RemoteRepository> getDefaultRepositories(RepositorySystemSession session,
+      Settings settings) {
+    Repository central = new Repository();
+    central.setId("central");
+    central.setUrl("https://repo.maven.apache.org/maven2/");
+
+    return Arrays.asList(toRemoteRepository(central, session, settings));
   }
 
   private static ProxySelector getProxySelector(Settings settings) {
