@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- The master password "test-master-password", encrypted as mvn -encrypt-master-password does.
+     The passwords of MavenBooterTest are encrypted with it. -->
+<settingsSecurity>
+  <master>{D4pKrb3TVV8Ha28bM3hbL7vzZ1h8XYFtb2bAwhtmXd19PvrlHLZTPWhYCSPH36rp}</master>
+</settingsSecurity>
