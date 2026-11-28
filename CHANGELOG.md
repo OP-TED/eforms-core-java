@@ -1,14 +1,14 @@
-# eForms Core Library 1.10.0 Release Notes
+# eForms Core Library 2.0.0-alpha.1 Release Notes
 
 The eForms Core Library is a collection of utilities used by the EFX Toolkit for Java Developers and other eForms applications.
 
 ## In this release
 
-This release introduces support for the SDK 2 metadata files located in `fields/fwd`. The new class `SdkRepositoryFactory` creates the repositories of nodes, fields and data types for a given SDK version, for both SDK 1 and SDK 2. The repository constructors that read a single file are deprecated in favour of this factory.
+This is the first pre-release of version 2.0.0. It contains all the changes of version 1.10.0, together with the following changes.
 
-The SDK downloader now authenticates with the repositories declared in the Maven `settings.xml` file, and takes into account the profiles that are active by default.
+The library now requires Java 21 or later.
 
-This is the final release of the 1.x line. It requires Java 11 or later.
+The alias of fields and nodes has been removed, as EFX 2 no longer uses aliases. `SdkFieldV2` and `SdkNodeV2` no longer provide `getAlias()`, and their constructors no longer take an alias parameter. Applications that call these constructors or this method must be adapted. JSON that is deserialised directly into these classes must no longer contain an `alias` property, as it is now rejected.
 
 ## Download
 
