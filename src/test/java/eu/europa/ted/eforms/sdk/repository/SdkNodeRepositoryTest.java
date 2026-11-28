@@ -134,7 +134,6 @@ class SdkNodeRepositoryTest {
 
     assertTrue(ofSdk1 instanceof SdkNodeV1, "SDK 1 gives " + ofSdk1.getClass());
     assertTrue(ofSdk2 instanceof SdkNodeV2, "SDK 2 gives " + ofSdk2.getClass());
-    assertEquals("root", ((SdkNodeV2) ofSdk2).getAlias(), "SDK 2 also reads the alias");
   }
 
   /**

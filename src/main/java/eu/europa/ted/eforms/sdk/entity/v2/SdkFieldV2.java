@@ -28,17 +28,13 @@ public class SdkFieldV2 extends SdkFieldV1 {
    */
   private static final String DISCLOSURE_CONTROL = "disclosureControl";
 
-  private final String alias;
-
   public SdkFieldV2(String id, String type, String parentNodeId, String xpathAbsolute,
-      String xpathRelative, String rootCodelistId, boolean repeatable, String alias) {
+      String xpathRelative, String rootCodelistId, boolean repeatable) {
     super(id, type, parentNodeId, xpathAbsolute, xpathRelative, rootCodelistId, repeatable);
-    this.alias = alias;
   }
 
   public SdkFieldV2(JsonNode fieldNode) {
     super(fieldNode);
-    this.alias = fieldNode.has("alias") ? fieldNode.get("alias").asText(null) : null;
   }
 
   @JsonCreator
@@ -49,14 +45,9 @@ public class SdkFieldV2 extends SdkFieldV1 {
       @JsonProperty("xpathAbsolute") final String xpathAbsolute,
       @JsonProperty("xpathRelative") final String xpathRelative,
       @JsonProperty("codeList") final Map<String, Map<String, String>> codelist,
-      @JsonProperty("repeatable") final Map<String, Object> repeatable,
-      @JsonProperty("alias") final String alias) {
+      @JsonProperty("repeatable") final Map<String, Object> repeatable) {
     this(id, type, parentNodeId, xpathAbsolute, xpathRelative, getCodelistId(codelist),
-        getRepeatable(repeatable), alias);
-  }
-
-  public String getAlias() {
-    return alias;
+        getRepeatable(repeatable));
   }
 
   /**

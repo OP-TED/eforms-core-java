@@ -12,7 +12,6 @@ import eu.europa.ted.eforms.sdk.entity.v1.SdkNodeV1;
  */
 @SdkComponent(versions = {"2"}, componentType = SdkComponentType.NODE)
 public class SdkNodeV2 extends SdkNodeV1 {
-  private final String alias;
 
   @JsonCreator
   public SdkNodeV2(
@@ -20,18 +19,11 @@ public class SdkNodeV2 extends SdkNodeV1 {
       @JsonProperty("parentId") String parentId,
       @JsonProperty("xpathAbsolute") String xpathAbsolute,
       @JsonProperty("xpathRelative") String xpathRelative,
-      @JsonProperty("repeatable") boolean repeatable,
-      @JsonProperty("alias") String alias) {
+      @JsonProperty("repeatable") boolean repeatable) {
     super(id, parentId, xpathAbsolute, xpathRelative, repeatable);
-    this.alias = alias;
   }
 
   public SdkNodeV2(JsonNode node) {
     super(node);
-    this.alias = node.has("alias") ? node.get("alias").asText(null) : null;
-  }
-
-  public String getAlias() {
-    return alias;
   }
 }
